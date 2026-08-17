@@ -1,0 +1,215 @@
+/* =========================================================
+   ADMIN — minimal structural CSS ONLY.
+   This is deliberately plain, just enough to make the panel
+   readable while you build/test each feature. Final aesthetic
+   pass (colors, fonts, spacing polish) happens later to match
+   the main site's design system — don't extend this file with
+   visual design, just keep it functional/readable.
+   ========================================================= */
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  margin: 0;
+  padding: 24px;
+  color: #222;
+  background: #fafafa;
+  font-size: 14px;
+}
+
+.admin-shell {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.admin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 12px;
+}
+
+.admin-header h1 { margin: 0; font-size: 1.4rem; }
+.link-back { font-size: 0.85rem; color: #444; }
+
+.admin-tabs {
+  display: flex;
+  gap: 6px;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 10px;
+}
+.admin-tabs .tab-btn {
+  background: #f0f0f0;
+  border: 1px solid #ccc;
+}
+.admin-tabs .tab-btn.active {
+  background: #222;
+  color: #fff;
+  border-color: #222;
+}
+
+.view { display: flex; flex-direction: column; gap: 20px; }
+
+.stat-cards {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.stat-card {
+  flex: 1;
+  min-width: 130px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.stat-value { font-size: 1.6rem; font-weight: 700; }
+.stat-label { font-size: 0.75rem; color: #666; }
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin: 14px 0;
+}
+.profile-block {
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 12px 14px;
+}
+.profile-block h3 { margin: 0 0 8px; font-size: 0.9rem; }
+
+.simple-list { list-style: none; margin: 0; padding: 0; font-size: 0.8rem; }
+.simple-list li { display: flex; justify-content: space-between; padding: 3px 0; }
+
+.admin-section {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 16px 18px;
+  background: #fff;
+}
+
+.admin-section h2 {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: #666;
+  margin: 0 0 10px;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #555;
+}
+
+input, select {
+  font-family: inherit;
+  font-size: 0.85rem;
+  padding: 6px 8px;
+  border: 1px solid #bbb;
+  border-radius: 3px;
+}
+
+button {
+  font-family: inherit;
+  font-size: 0.82rem;
+  padding: 7px 12px;
+  border: 1px solid #999;
+  border-radius: 3px;
+  background: #f0f0f0;
+  cursor: pointer;
+}
+button:hover { background: #e4e4e4; }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.inline-form, .filter-bar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: end;
+  margin-bottom: 14px;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+.admin-table th, .admin-table td {
+  border: 1px solid #e0e0e0;
+  padding: 7px 9px;
+  text-align: left;
+}
+.admin-table th {
+  background: #f2f2f2;
+  font-weight: 600;
+}
+.admin-table td.actions-cell {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.status-badge {
+  font-size: 0.72rem;
+  padding: 2px 7px;
+  border-radius: 10px;
+  background: #eee;
+  border: 1px solid #ccc;
+  display: inline-block;
+}
+
+.empty-note { color: #777; font-style: italic; font-size: 0.85rem; }
+
+.search-results { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+.search-result-row {
+  border: 1px solid #e0e0e0;
+  border-radius: 3px;
+  padding: 6px 10px;
+  font-size: 0.82rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+.search-result-row .tag {
+  font-size: 0.68rem;
+  color: #666;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.export-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.toast-container {
+  position: fixed;
+  bottom: 18px;
+  right: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 999;
+}
+.toast {
+  background: #222;
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 3px;
+  font-size: 0.82rem;
+  max-width: 300px;
+}
+.toast.warn { background: #7a2e2e; }
+.toast.success { background: #2e6b3e; }
