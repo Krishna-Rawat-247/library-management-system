@@ -53,6 +53,7 @@ body {
   border-color: #222;
 }
 
+.view[hidden] { display: none; }
 .view { display: flex; flex-direction: column; gap: 20px; }
 
 .stat-cards {

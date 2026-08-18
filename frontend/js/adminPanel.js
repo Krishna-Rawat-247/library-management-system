@@ -354,3 +354,353 @@ renderResourcesTable();
 wireResourceForm();
 
 
+
+// ********************************************************************************************************************************************************
+// 3. Admin User Management Panel:
+// ********************************************************************************************************************************************************
+
+let selectedUserId = null;
+
+const ROLE_WEIGHTS = {
+  final_year: 100,
+  pg: 75,
+  faculty: 60,
+  ug_senior: 50,
+  ug_junior: 30,
+};
+
+const ROLE_LABELS = {
+  final_year: "Final-year / Thesis",
+  pg: "Postgraduate",
+  faculty: "Faculty",
+  ug_senior: "UG Senior",
+  ug_junior: "UG Junior",
+};
+
+// ---------------------------------------------------------
+// SEARCH
+// ---------------------------------------------------------
+
+function wireUserSearch() {
+  let searchInput = document.getElementById("userSearchInput");
+
+  searchInput.addEventListener("input", function () {
+    renderUserSearchResults(searchInput.value);
+  });
+}
+
+function renderUserSearchResults(term) {
+  let resultsDiv = document.getElementById("userSearchResults");
+  resultsDiv.innerHTML = "";
+
+  let cleanTerm = term.trim().toLowerCase();
+  if (!cleanTerm) return;
+
+  let users = JSON.parse(localStorage.getItem("users")) || [];
+  let matches = users.filter((user) =>
+    user.name.toLowerCase().includes(cleanTerm)
+  );
+
+  if (matches.length === 0) {
+    let empty = document.createElement("div");
+    empty.className = "search-result-row";
+    empty.innerText = "No users found.";
+    resultsDiv.appendChild(empty);
+    return;
+  }
+
+  matches.forEach((user) => {
+    let row = document.createElement("div");
+    row.className = "search-result-row";
+
+    let left = document.createElement("span");
+    left.innerText = user.name;
+
+    let right = document.createElement("span");
+    right.className = "tag";
+    right.innerText = ROLE_LABELS[user.role] || user.role;
+
+    row.appendChild(left);
+    row.appendChild(right);
+
+    row.addEventListener("click", function () {
+      openUserProfile(user.id);
+    });
+
+    resultsDiv.appendChild(row);
+  });
+}
+
+// ---------------------------------------------------------
+// PROFILE
+// ---------------------------------------------------------
+
+function openUserProfile(userId) {
+  selectedUserId = userId;
+
+  let users = JSON.parse(localStorage.getItem("users")) || [];
+  let user = users.find((u) => u.id === userId);
+  if (!user) return;
+
+  document.getElementById("section-user-profile").hidden = false;
+
+  document.getElementById("userProfileName").innerText = user.name;
+  document.getElementById("userProfileRole").innerText =
+    ROLE_LABELS[user.role] || user.role;
+  document.getElementById("userProfileNoShows").innerText =
+    user.noShowCount || 0;
+  document.getElementById("userProfileReliability").innerText =
+    getReliabilityScore(user);
+
+  renderPriorityBreakdown(user);
+  renderUserBookingHistory(userId);
+  renderSuspendStatus(user);
+}
+
+function getReliabilityScore(user) {
+  let strikes = Math.min(user.noShowCount || 0, 6);
+  return Math.max(0, 100 - strikes * 15);
+}
+
+function renderPriorityBreakdown(user) {
+  let breakdownList = document.getElementById("userProfilePriorityBreakdown");
+  breakdownList.innerHTML = "";
+
+  let roleRaw = ROLE_WEIGHTS[user.role] ?? 30;
+  let reliRaw = getReliabilityScore(user);
+  let examRaw = 0; // TODO: wire up once exam windows exist in Settings
+
+  let roleWeighted = roleRaw * 0.5;
+  let reliWeighted = reliRaw * 0.3;
+  let examWeighted = examRaw * 0.2;
+
+  let total = Math.round(roleWeighted + reliWeighted + examWeighted);
+
+  let rows = [
+    { label: "Role (" + (ROLE_LABELS[user.role] || user.role) + ")", value: roleRaw + " → " + roleWeighted.toFixed(1) },
+    { label: "Reliability", value: reliRaw + " → " + reliWeighted.toFixed(1) },
+    { label: "Exam proximity", value: examRaw + " → " + examWeighted.toFixed(1) },
+    { label: "Total priority score", value: total },
+  ];
+
+  rows.forEach((row) => {
+    let li = document.createElement("li");
+
+    let left = document.createElement("span");
+    left.innerText = row.label;
+
+    let right = document.createElement("span");
+    right.innerText = row.value;
+
+    li.appendChild(left);
+    li.appendChild(right);
+    breakdownList.appendChild(li);
+  });
+}
+
+// ---------------------------------------------------------
+// BOOKING HISTORY
+// ---------------------------------------------------------
+
+function renderUserBookingHistory(userId) {
+  let reservations = JSON.parse(localStorage.getItem("reservations")) || [];
+  let userReservations = reservations.filter((r) => r.userId === userId);
+
+  userReservations.sort((a, b) => {
+    return getDateTime(b) - getDateTime(a); // most recent first
+  });
+
+  let tbody = document.getElementById("userBookingHistoryTableBody");
+  let emptyNote = document.getElementById("userHistoryEmptyNote");
+  tbody.innerHTML = "";
+
+  emptyNote.hidden = userReservations.length > 0;
+
+  userReservations.forEach((reservation) => {
+    let row = document.createElement("tr");
+
+    let data = [
+      getResourceLabel(reservation.resourceId),
+      reservation.date,
+      reservation.startTime + " - " + reservation.endTime,
+      reservation.status,
+    ];
+
+    data.forEach((value) => {
+      let td = document.createElement("td");
+      td.innerText = value;
+      row.appendChild(td);
+    });
+
+    tbody.appendChild(row);
+  });
+}
+
+wireUserSearch();
+
+// ---------------------------------------------------------
+// ACCESS CONTROL (suspend / unsuspend)
+// ---------------------------------------------------------
+
+function renderSuspendStatus(user) {
+  let statusEl = document.getElementById("userSuspendStatus");
+  let form = document.getElementById("userSuspendForm");
+  let unsuspendBtn = document.getElementById("userUnsuspendBtn");
+
+  if (user.suspended) {
+    let untilText = user.suspendedUntil
+      ? "until " + user.suspendedUntil
+      : "indefinitely";
+    let reasonText = user.suspendReason ? " — " + user.suspendReason : "";
+
+    statusEl.innerText = "Suspended " + untilText + reasonText;
+    form.hidden = true;
+    unsuspendBtn.hidden = false;
+  } else {
+    statusEl.innerText = "Not suspended.";
+    form.hidden = false;
+    unsuspendBtn.hidden = true;
+  }
+}
+
+function suspendUser(userId, durationValue, reason) {
+  let users = JSON.parse(localStorage.getItem("users")) || [];
+  let user = users.find((u) => u.id === userId);
+  if (!user) return;
+
+  user.suspended = true;
+  user.suspendReason = reason;
+
+  if (durationValue === "indefinite") {
+    user.suspendedUntil = null;
+  } else {
+    let until = new Date();
+    until.setDate(until.getDate() + Number(durationValue));
+    user.suspendedUntil = until.toISOString().slice(0, 10);
+  }
+
+  localStorage.setItem("users", JSON.stringify(users));
+  renderSuspendStatus(user);
+}
+
+function unsuspendUser(userId) {
+  let users = JSON.parse(localStorage.getItem("users")) || [];
+  let user = users.find((u) => u.id === userId);
+  if (!user) return;
+
+  user.suspended = false;
+  user.suspendedUntil = null;
+  user.suspendReason = "";
+
+  localStorage.setItem("users", JSON.stringify(users));
+  renderSuspendStatus(user);
+}
+
+function wireSuspendControls() {
+  let form = document.getElementById("userSuspendForm");
+  let unsuspendBtn = document.getElementById("userUnsuspendBtn");
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    if (!selectedUserId) return;
+
+    let duration = document.getElementById("userSuspendDuration").value;
+    let reason = document.getElementById("userSuspendReason").value;
+
+    suspendUser(selectedUserId, duration, reason);
+    form.reset();
+  });
+
+  unsuspendBtn.addEventListener("click", function () {
+    if (!selectedUserId) return;
+    unsuspendUser(selectedUserId);
+  });
+}
+
+wireUserSearch();
+wireSuspendControls();
+
+// ********************************************************************************************************************************************************
+// 4. Admin Dashboard Panel:
+// ********************************************************************************************************************************************************
+
+function getTodayDate() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function isHappeningNow(reservation) {
+  if (reservation.status !== "confirmed") return false;
+
+  let today = getTodayDate();
+  if (reservation.date !== today) return false;
+
+  let now = new Date();
+  let start = new Date(today + "T" + reservation.startTime);
+  let end = new Date(today + "T" + reservation.endTime);
+
+  return now >= start && now <= end;
+}
+
+function renderDashboardStats() {
+  let reservations = JSON.parse(localStorage.getItem("reservations")) || [];
+  let today = getTodayDate();
+
+  let totalToday = reservations.filter((r) => r.date === today).length;
+  let pendingCount = reservations.filter((r) => r.status === "pending").length;
+  let noShowsToday = reservations.filter(
+    (r) => r.date === today && r.status === "no_show"
+  ).length;
+  let liveNow = reservations.filter(isHappeningNow).length;
+
+  document.getElementById("statTotalToday").innerText = totalToday;
+  document.getElementById("statLiveNow").innerText = liveNow;
+  document.getElementById("statPending").innerText = pendingCount;
+  document.getElementById("statNoShowsToday").innerText = noShowsToday;
+}
+
+function renderLiveBookings() {
+  let reservations = JSON.parse(localStorage.getItem("reservations")) || [];
+  let liveReservations = reservations.filter(isHappeningNow);
+
+  let tbody = document.getElementById("liveBookingsTableBody");
+  let emptyNote = document.getElementById("liveBookingsEmptyNote");
+  tbody.innerHTML = "";
+
+  emptyNote.hidden = liveReservations.length > 0;
+
+  liveReservations.forEach((reservation) => {
+    let row = document.createElement("tr");
+
+    let data = [
+      getUserName(reservation.userId),
+      getResourceLabel(reservation.resourceId),
+      reservation.startTime,
+      reservation.endTime,
+      reservation.checkedIn ? "Yes" : "No",
+    ];
+
+    data.forEach((value) => {
+      let td = document.createElement("td");
+      td.innerText = value;
+      row.appendChild(td);
+    });
+
+    tbody.appendChild(row);
+  });
+}
+
+
+function renderDashboard() {
+  renderDashboardStats();
+  renderLiveBookings();
+}
+renderDashboard();
+document.addEventListener("adminview:shown", function (e) {
+  if (e.detail.view === "dashboard") {
+    renderDashboard();
+  }
+});
+
+
+
