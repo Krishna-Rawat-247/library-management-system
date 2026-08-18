@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Reservation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        nav a {
+            margin-left: 20px;
+            text-decoration: none;
+            color: #333;
+        }
+        .container {
+            display: flex;
+            gap: 30px;
+        }
+        .resource-section,
+        .booking-section {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        .resource-section {
+            flex: 2;
+        }
+        .booking-section {
+            flex: 1;
+        }
+        .filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        select,
+        input,
+        button {
+            padding: 10px;
+        }
+        .resource-map {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+        }
+        .resource-card {
+            padding: 20px 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .resource-card:hover {
+            background-color: #eee;
+        }
+        .booking-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h1>Library Reservation</h1>
+            <p>Reserve your seat or library resource</p>
+        </div>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="myBooking.html">My Bookings</a>
+            <a href="#">Profile</a>
+        </nav>
+    </header>
+
+    <main class="container">
+        <section class="resource-section">
+            <h2>Library Resources</h2>
+
+            <div class="filters">
+                <select id="resourceType">
+                    <option value="all">All Resources</option>
+                    <option value="seat">Seats</option>
+                    <option value="discussion-room">Discussion Rooms</option>
+                    <option value="projector">Projectors</option>
+                </select>
+
+                <select id="zone">
+                    <option value="all">All Zones</option>
+                    <option value="North Wing">North Wing</option>
+                    <option value="South Wing">South Wing</option>
+                </select>
+            </div>
+
+            <div id="resourceMap" class="resource-map"></div>
+        </section>
+
+        <section class="booking-section">
+            <h2>Reserve Resource</h2>
+
+            <div id="selectedResource">
+                <p>Select a seat or resource to continue.</p>
+            </div>
+
+            <form id="bookingForm" class="booking-form">
+                <label for="date">Date</label>
+                <input type="date" id="date">
+
+                <label for="startTime">Start Time</label>
+                <input type="time" id="startTime">
+
+                <label for="endTime">End Time</label>
+                <input type="time" id="endTime">
+
+                <button type="submit">Reserve</button>
+            </form>
+        </section>
+    </main>
+
+    <script>
+        let resources = [];
+        let selectedResource = null;
+        let selectedResourceDiv = document.getElementById("selectedResource");
+        let currentUser = JSON.parse(localStorage.getItem("currentUser"));
+
+        if (!currentUser) {
+            alert("Please login first");
+            window.location.href = "login.html";
+        }
+
+        let getResources = async () => {
+            let response = await fetch("http://localhost:3000/resources");
+            resources = await response.json();
+            showResources();
+        };
+
+        getResources();
+
+        let showResources = () => {
+            let resourceType = document.getElementById("resourceType").value;
+            let zone = document.getElementById("zone").value;
+            let date = document.getElementById("date").value;
+            let startTime = document.getElementById("startTime").value;
+            let endTime = document.getElementById("endTime").value;
+            let resourceMap = document.getElementById("resourceMap");
+
+            resourceMap.innerHTML = "";
+
+            let bookings = JSON.parse(localStorage.getItem("bookings")) || [];
+
+            let filteredResources = resources.filter(resource => {
+                return (resourceType === "all" || resource.type === resourceType) &&
+                    (zone === "all" || resource.zone === zone);
+            });
+
+            filteredResources.forEach(resource => {
+                let booked = false;
+
+                if (date !== "" && startTime !== "" && endTime !== "") {
+                    booked = bookings.find(booking =>
+                        booking.resourcesid === resource.id &&
+                        booking.date === date &&
+                        booking.startTime < endTime &&
+                        booking.endTime > startTime
+                    );
+                }
+
+                let status = booked ? "Reserved" : "Available";
+
+                resourceMap.innerHTML += `
+                    <div class="resource-card" onclick="selectResource('${resource.id}')">
+                        <h3>${resource.name}</h3>
+                        <p>Type: ${resource.type}</p>
+                        <p>Zone: ${resource.zone}</p>
+                        <p>Capacity: ${resource.capacity}</p>
+                        <p>Status: ${status}</p>
+                    </div>
+                `;
+            });
+        };
+
+        document.getElementById("resourceType").addEventListener("change", showResources);
+        document.getElementById("zone").addEventListener("change", showResources);
+        document.getElementById("date").addEventListener("change", showResources);
+        document.getElementById("startTime").addEventListener("change", showResources);
+        document.getElementById("endTime").addEventListener("change", showResources);
+
+        let selectResource = (id) => {
+            selectedResource = resources.find(resource => resource.id === id);
+
+            selectedResourceDiv.innerHTML = `
+                <h3>${selectedResource.name}</h3>
+                <p>Type: ${selectedResource.type}</p>
+                <p>Zone: ${selectedResource.zone}</p>
+                <p>Capacity: ${selectedResource.capacity}</p>
+            `;
+        };
+
+        let bookingForm = document.getElementById("bookingForm");
+
+        bookingForm.addEventListener("submit", (event) => {
+            event.preventDefault();
+
+            let date = document.getElementById("date").value;
+            let startTime = document.getElementById("startTime").value;
+            let endTime = document.getElementById("endTime").value;
+
+            if (!currentUser) {
+                alert("Please login first");
+                window.location.href = "login.html";
+                return;
+            }
+
+            if (selectedResource === null) {
+                alert("Please select a resource first");
+                return;
+            }
+
+            if (date === "" || startTime === "" || endTime === "") {
+                alert("Please fill all the details");
+                return;
+            }
+
+            if (startTime >= endTime) {
+                alert("End time must be after start time");
+                return;
+            }
+
+            let bookings = JSON.parse(localStorage.getItem("bookings")) || [];
+
+            let exist = bookings.find(booking =>
+                booking.resourcesid === selectedResource.id &&
+                booking.date === date &&
+                booking.startTime < endTime &&
+                booking.endTime > startTime
+            );
+
+            if (exist) {
+                alert("This resource is already booked for this time");
+                return;
+            }
+
+            let stud = {
+                userEmail: currentUser.email,
+                userName: currentUser.name,
+                resourcesid: selectedResource.id,
+                resourcesName: selectedResource.name,
+                date: date,
+                startTime: startTime,
+                endTime: endTime
+            };
+
+            bookings.push(stud);
+
+            localStorage.setItem("bookings", JSON.stringify(bookings));
+
+            alert("Resource booked successfully");
+
+            bookingForm.reset();
+
+            selectedResource = null;
+
+            selectedResourceDiv.innerHTML = `
+                <p>Select a seat or resource to continue.</p>
+            `;
+
+            showResources();
+        });
+    </script>
+</body>
+</html>

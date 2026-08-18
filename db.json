@@ -1,0 +1,305 @@
+{
+  "resources": [
+    {
+      "id": "S-001",
+      "name": "S-001",
+      "type": "seat",
+      "zone": "North Wing",
+      "capacity": 1
+    },
+    {
+      "id": "S-002",
+      "name": "S-002",
+      "type": "seat",
+      "zone": "North Wing",
+      "capacity": 1
+    },
+    {
+      "id": "S-003",
+      "name": "S-003",
+      "type": "seat",
+      "zone": "North Wing",
+      "capacity": 1
+    },
+    {
+      "id": "S-004",
+      "name": "S-004",
+      "type": "seat",
+      "zone": "North Wing",
+      "capacity": 1
+    },
+    {
+      "id": "S-005",
+      "name": "S-005",
+      "type": "seat",
+      "zone": "North Wing",
+      "capacity": 1
+    },
+    {
+      "id": "S-006",
+      "name": "S-006",
+      "type": "seat",
+      "zone": "North Wing",
+      "capacity": 1
+    },
+    {
+      "id": "S-007",
+      "name": "S-007",
+      "type": "seat",
+      "zone": "North Wing",
+      "capacity": 1
+    },
+    {
+      "id": "S-008",
+      "name": "S-008",
+      "type": "seat",
+      "zone": "North Wing",
+      "capacity": 1
+    },
+    {
+      "id": "S-009",
+      "name": "S-009",
+      "type": "seat",
+      "zone": "North Wing",
+      "capacity": 1
+    },
+    {
+      "id": "S-010",
+      "name": "S-010",
+      "type": "seat",
+      "zone": "North Wing",
+      "capacity": 1
+    },
+    {
+      "id": "S-011",
+      "name": "S-011",
+      "type": "seat",
+      "zone": "North Wing",
+      "capacity": 1
+    },
+    {
+      "id": "S-012",
+      "name": "S-012",
+      "type": "seat",
+      "zone": "North Wing",
+      "capacity": 1
+    },
+    {
+      "id": "S-013",
+      "name": "S-013",
+      "type": "seat",
+      "zone": "North Wing",
+      "capacity": 1
+    },
+    {
+      "id": "S-014",
+      "name": "S-014",
+      "type": "seat",
+      "zone": "North Wing",
+      "capacity": 1
+    },
+    {
+      "id": "S-015",
+      "name": "S-015",
+      "type": "seat",
+      "zone": "North Wing",
+      "capacity": 1
+    },
+    {
+      "id": "S-016",
+      "name": "S-016",
+      "type": "seat",
+      "zone": "North Wing",
+      "capacity": 1
+    },
+    {
+      "id": "S-017",
+      "name": "S-017",
+      "type": "seat",
+      "zone": "North Wing",
+      "capacity": 1
+    },
+    {
+      "id": "S-018",
+      "name": "S-018",
+      "type": "seat",
+      "zone": "North Wing",
+      "capacity": 1
+    },
+    {
+      "id": "S-019",
+      "name": "S-019",
+      "type": "seat",
+      "zone": "South Wing",
+      "capacity": 1
+    },
+    {
+      "id": "S-020",
+      "name": "S-020",
+      "type": "seat",
+      "zone": "South Wing",
+      "capacity": 1
+    },
+    {
+      "id": "S-021",
+      "name": "S-021",
+      "type": "seat",
+      "zone": "South Wing",
+      "capacity": 1
+    },
+    {
+      "id": "S-022",
+      "name": "S-022",
+      "type": "seat",
+      "zone": "South Wing",
+      "capacity": 1
+    },
+    {
+      "id": "S-023",
+      "name": "S-023",
+      "type": "seat",
+      "zone": "South Wing",
+      "capacity": 1
+    },
+    {
+      "id": "S-024",
+      "name": "S-024",
+      "type": "seat",
+      "zone": "South Wing",
+      "capacity": 1
+    },
+    {
+      "id": "S-025",
+      "name": "S-025",
+      "type": "seat",
+      "zone": "South Wing",
+      "capacity": 1
+    },
+    {
+      "id": "S-026",
+      "name": "S-026",
+      "type": "seat",
+      "zone": "South Wing",
+      "capacity": 1
+    },
+    {
+      "id": "S-027",
+      "name": "S-027",
+      "type": "seat",
+      "zone": "South Wing",
+      "capacity": 1
+    },
+    {
+      "id": "S-028",
+      "name": "S-028",
+      "type": "seat",
+      "zone": "South Wing",
+      "capacity": 1
+    },
+    {
+      "id": "S-029",
+      "name": "S-029",
+      "type": "seat",
+      "zone": "South Wing",
+      "capacity": 1
+    },
+    {
+      "id": "S-030",
+      "name": "S-030",
+      "type": "seat",
+      "zone": "South Wing",
+      "capacity": 1
+    },
+    {
+      "id": "S-031",
+      "name": "S-031",
+      "type": "seat",
+      "zone": "South Wing",
+      "capacity": 1
+    },
+    {
+      "id": "S-032",
+      "name": "S-032",
+      "type": "seat",
+      "zone": "South Wing",
+      "capacity": 1
+    },
+    {
+      "id": "S-033",
+      "name": "S-033",
+      "type": "seat",
+      "zone": "South Wing",
+      "capacity": 1
+    },
+    {
+      "id": "S-034",
+      "name": "S-034",
+      "type": "seat",
+      "zone": "South Wing",
+      "capacity": 1
+    },
+    {
+      "id": "S-035",
+      "name": "S-035",
+      "type": "seat",
+      "zone": "South Wing",
+      "capacity": 1
+    },
+    {
+      "id": "S-036",
+      "name": "S-036",
+      "type": "seat",
+      "zone": "South Wing",
+      "capacity": 1
+    },
+    {
+      "id": "S-037",
+      "name": "S-037",
+      "type": "seat",
+      "zone": "South Wing",
+      "capacity": 1
+    },
+    {
+      "id": "S-038",
+      "name": "S-038",
+      "type": "seat",
+      "zone": "South Wing",
+      "capacity": 1
+    },
+    {
+      "id": "ROOM-A",
+      "name": "Discussion Room A",
+      "type": "discussion-room",
+      "zone": "North Wing",
+      "capacity": 6
+    },
+    {
+      "id": "ROOM-B",
+      "name": "Discussion Room B",
+      "type": "discussion-room",
+      "zone": "North Wing",
+      "capacity": 6
+    },
+    {
+      "id": "ROOM-C",
+      "name": "Discussion Room C",
+      "type": "discussion-room",
+      "zone": "South Wing",
+      "capacity": 6
+    },
+    {
+      "id": "PROJECTOR-1",
+      "name": "Projector 1",
+      "type": "projector",
+      "zone": "North Wing",
+      "capacity": 1
+    },
+    {
+      "id": "PROJECTOR-2",
+      "name": "Projector 2",
+      "type": "projector",
+      "zone": "South Wing",
+      "capacity": 1
+    }
+  ]
+}
