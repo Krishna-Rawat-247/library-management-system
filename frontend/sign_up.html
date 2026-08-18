@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+</head>
+<body>
+    <h1>Create Your Account</h1>
+    <p>Get started by creating your account</p>
+    <form id="signupForm">
+        <label for="name">Full Name</label>
+        <input type="text" id="name" placeholder="Enter your full name">
+        <br><br>
+        <label for="studentId">Student ID</label>
+        <input type="text" id="studentId" placeholder="Enter your student ID">
+        <br><br>
+        <label for="email">Email Address</label>
+        <input type="email" id="email" placeholder="Enter your email">
+        <br><br>
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="Create a password">
+        <br><br>
+        <label for="confirmPassword">Confirm Password</label>
+        <input type="password" id="confirmPassword" placeholder="Confirm your password">
+        <br><br>
+        <button type="submit">Sign Up</button>
+    </form>
+    <p>
+        Already have an account?
+        <a href="login.html">Login</a>
+    </p>
+
+    <script>
+        let form = document.getElementById("signupForm");
+
+        let handleSubmit = (event) => {
+            event.preventDefault();
+
+            let fullName = document.getElementById("name");
+            let StudentId = document.getElementById("studentId");
+            let email = document.getElementById("email");
+            let password = document.getElementById("password");
+            let confirmPassword = document.getElementById("confirmPassword");
+
+            if (
+                fullName.value.trim() === "" ||
+                StudentId.value.trim() === "" ||
+                email.value.trim() === "" ||
+                password.value.trim() === "" ||
+                confirmPassword.value.trim() === ""
+            ) {
+                alert("Please Fill all the Details");
+                return;
+            }
+
+            if (!email.value.includes("@")) {
+                alert("Invalid Email");
+                return;
+            }
+
+            if (password.value.length < 8) {
+                alert("Password must be at least 8 characters");
+                return;
+            }
+
+            if (confirmPassword.value !== password.value) {
+                alert("Passwords do not match");
+                return;
+            }
+
+            let users = JSON.parse(localStorage.getItem("users")) || [];
+
+            let existing = users.find(
+                user => user.email === email.value.trim()
+            );
+
+            if (existing) {
+                alert("Email already registered");
+                return;
+            }
+
+            let newuser = {
+                name: fullName.value.trim(),
+                StudentId: StudentId.value.trim(),
+                email: email.value.trim(),
+                password: password.value,
+                role: "student",
+                noShowCount: 0
+            };
+
+            users.push(newuser);
+
+            localStorage.setItem("users", JSON.stringify(users));
+
+            alert("Account created successfully");
+
+            window.location.href = "login.html";
+        };
+
+        form.addEventListener("submit", handleSubmit);
+    </script>
+</body>
+</html>
