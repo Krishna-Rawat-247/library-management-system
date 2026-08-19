@@ -468,8 +468,7 @@ function renderPriorityBreakdown(user) {
 
   let roleRaw = ROLE_WEIGHTS[user.role] ?? 30;
   let reliRaw = getReliabilityScore(user);
-  let examRaw = 0; // TODO: wire up once exam windows exist in Settings
-
+let examRaw = getExamProximityScore(user.role, getTodayDate());
   let roleWeighted = roleRaw * 0.5;
   let reliWeighted = reliRaw * 0.3;
   let examWeighted = examRaw * 0.2;
@@ -536,7 +535,6 @@ function renderUserBookingHistory(userId) {
   });
 }
 
-wireUserSearch();
 
 // ---------------------------------------------------------
 // ACCESS CONTROL (suspend / unsuspend)
@@ -702,5 +700,98 @@ document.addEventListener("adminview:shown", function (e) {
   }
 });
 
+// ********************************************************************************************************************************************************
+// 5. Admin Settings — Exam Window Management:
+// ********************************************************************************************************************************************************
 
+function getExamWindows() {
+  return JSON.parse(localStorage.getItem("examWindows")) || [];
+}
+
+function saveExamWindows(windows) {
+  localStorage.setItem("examWindows", JSON.stringify(windows));
+}
+
+function renderExamWindowsTable() {
+  let windows = getExamWindows();
+  let tbody = document.getElementById("examWindowsTableBody");
+  tbody.innerHTML = "";
+
+  windows.forEach((window, index) => {
+    let row = document.createElement("tr");
+
+    let data = [window.start, window.end];
+
+    data.forEach((value) => {
+      let td = document.createElement("td");
+      td.innerText = value;
+      row.appendChild(td);
+    });
+
+    let actionsTd = document.createElement("td");
+    actionsTd.appendChild(
+      createButton("Remove", function () {
+        removeExamWindow(index);
+      })
+    );
+    row.appendChild(actionsTd);
+
+    tbody.appendChild(row);
+  });
+}
+
+function removeExamWindow(index) {
+  let windows = getExamWindows();
+  windows.splice(index, 1);
+  saveExamWindows(windows);
+  renderExamWindowsTable();
+}
+
+function wireExamWindowForm() {
+  let form = document.getElementById("examWindowForm");
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    let start = document.getElementById("examStart").value;
+    let end = document.getElementById("examEnd").value;
+
+    if (!start || !end || start > end) {
+      alert("Pick a valid start and end date (start must be before end).");
+      return;
+    }
+
+    let windows = getExamWindows();
+    windows.push({ start: start, end: end });
+    saveExamWindows(windows);
+
+    form.reset();
+    renderExamWindowsTable();
+  });
+}
+
+function getExamProximityScore(role, dateStr) {
+  if (role !== "final_year" && role !== "pg") return 0;
+
+  let windows = getExamWindows();
+  if (windows.length === 0) return 0;
+
+  let checkDate = new Date(dateStr + "T00:00:00");
+
+  for (let i = 0; i < windows.length; i++) {
+    let start = new Date(windows[i].start + "T00:00:00");
+    let end = new Date(windows[i].end + "T23:59:59");
+
+    if (checkDate >= start && checkDate <= end) {
+      let msPerDay = 1000 * 60 * 60 * 24;
+      let daysToExam = Math.ceil((end - checkDate) / msPerDay);
+      return Math.max(0, 100 - daysToExam * 8);
+    }
+  }
+
+  return 0; // not inside any exam window
+}
+
+renderExamWindowsTable();
+wireExamWindowForm();
 
