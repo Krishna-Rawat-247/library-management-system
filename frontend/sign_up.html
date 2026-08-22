@@ -3,113 +3,365 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up</title>
+    <title>Atlas Room - Create Your Account</title>
+    <meta name="description" content="Create your Atlas Room account to book study spaces and reserve your library seat.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/sign_up.css">
 </head>
+
 <body>
-    <h1>Create Your Account</h1>
-    <p>Get started by creating your account</p>
-    <form id="signupForm">
-        <label for="name">Full Name</label>
-        <input type="text" id="name" placeholder="Enter your full name">
-        <br><br>
-        <label for="studentId">Student ID</label>
-        <input type="text" id="studentId" placeholder="Enter your student ID">
-        <br><br>
-        <label for="email">Email Address</label>
-        <input type="email" id="email" placeholder="Enter your email">
-        <br><br>
-        <label for="password">Password</label>
-        <input type="password" id="password" placeholder="Create a password">
-        <br><br>
-        <label for="confirmPassword">Confirm Password</label>
-        <input type="password" id="confirmPassword" placeholder="Confirm your password">
-        <br><br>
-        <button type="submit">Sign Up</button>
-    </form>
-    <p>
-        Already have an account?
-        <a href="login.html">Login</a>
-    </p>
 
-    <script>
-        let form = document.getElementById("signupForm");
+<div class="site-frame">
 
-        let handleSubmit = async (event) => {
-            event.preventDefault();
+    <nav class="navbar">
 
-            let fullName = document.getElementById("name");
-            let studentId = document.getElementById("studentId");
-            let email = document.getElementById("email");
-            let password = document.getElementById("password");
-            let confirmPassword = document.getElementById("confirmPassword");
+        <div class="logo">
+            <div class="logo-book">◫</div>
+            <div>
+                <h2>ATLAS ROOM</h2>
+                <p>READ. FOCUS. GROW.</p>
+            </div>
+        </div>
 
-            if (
-                fullName.value.trim() === "" ||
-                studentId.value.trim() === "" ||
-                email.value.trim() === "" ||
-                password.value.trim() === "" ||
-                confirmPassword.value.trim() === ""
-            ) {
-                alert("Please Fill all the Details");
-                return;
-            }
+        <div class="nav-links">
+            <a href="index.html">SPACES</a>
+            <a href="#">HOURS</a>
+            <a href="#">PROGRAM</a>
+        </div>
 
-            if (!email.value.includes("@")) {
-                alert("Invalid Email");
-                return;
-            }
+        <div class="nav-buttons">
+            <a href="login.html" class="login-nav">LOG IN</a>
+            <a href="sign_up.html" class="signup-nav">SIGN UP</a>
+            <div class="nav-profile">☺</div>
+        </div>
 
-            if (password.value.length < 8) {
-                alert("Password must be at least 8 characters");
-                return;
-            }
+    </nav>
 
-            if (confirmPassword.value !== password.value) {
-                alert("Passwords do not match");
-                return;
-            }
 
-            let response = await fetch("http://localhost:3000/users");
-            let users = await response.json();
+    <div class="corner-btn corner-tl">↘</div>
+    <div class="corner-btn corner-tr">➤</div>
+    <div class="corner-btn corner-bl">↗</div>
+    <div class="corner-btn corner-br">◫</div>
 
-            let existing = users.find(
-                user => user.email === email.value.trim()
-            );
 
-            if (existing) {
-                alert("Email already registered");
-                return;
-            }
+    <main class="page">
+        
+        <div class="top-glow"></div>
 
-            let newuser = {
-                name: fullName.value.trim(),
-                studentId: studentId.value.trim(),
-                email: email.value.trim(),
-                password: password.value,
-                role: "student",
-                department: "",
-                semester: null,
-                noShowCount: 0,
-                reliabilityScore: 100,
-                suspended: false,
-                suspendedUntil: null,
-                suspendReason: null
-            };
+        <img src="images/decorative-shape-back-mirrored.png" class="deco-back" alt="">
+        <img src="images/decorative-shape-front-mirrored.png" class="deco-front" alt="">
+        <div class="vertical-label-left">
+            <span class="vert-text">YOUR NEXT CHAPTER <br> STARTS HERE</span>
+        </div>
 
-            await fetch("http://localhost:3000/users", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(newuser)
-            });
+       
+        <div class="card-area">
 
-            alert("Account created successfully");
+            <div class="signup-card">
 
-            window.location.href = "login.html";
-        };
+                <div class="card-stamp">
+                    <span>JOIN</span>
+                    <b>◫</b>
+                    <span>TODAY</span>
+                </div>
 
-        form.addEventListener("submit", handleSubmit);
-    </script>
+                <p class="card-label">CREATE ACCOUNT</p>
+
+                <h1>Join the Atlas Room</h1>
+
+                <form id="signupForm">
+
+                    <label for="name">Full Name</label>
+                    <div class="input-box">
+                        <span>👤</span>
+                        <input
+                            type="text"
+                            id="name"
+                            placeholder="Enter your full name"
+                        >
+                    </div>
+
+                    <label for="studentId">Student ID</label>
+                    <div class="input-box">
+                        <span>🪪</span>
+                        <input
+                            type="text"
+                            id="studentId"
+                            placeholder="Enter your student ID"
+                        >
+                    </div>
+
+                    <label for="email">Email Address</label>
+                    <div class="input-box">
+                        <span>✉</span>
+                        <input
+                            type="email"
+                            id="email"
+                            placeholder="Enter your email"
+                        >
+                    </div>
+
+                    <label for="password">Password</label>
+                    <div class="input-box">
+                        <span>🔒</span>
+                        <input
+                            type="password"
+                            id="password"
+                            placeholder="Create a password (min 8 chars)"
+                        >
+                        <span
+                            class="toggle-eye"
+                            onclick="togglePassword('password', this)"
+                        >👁</span>
+                    </div>
+
+                    <label for="confirmPassword">Confirm Password</label>
+                    <div class="input-box">
+                        <span>🔒</span>
+                        <input
+                            type="password"
+                            id="confirmPassword"
+                            placeholder="Confirm your password"
+                        >
+                        <span
+                            class="toggle-eye"
+                            onclick="togglePassword('confirmPassword', this)"
+                        >👁</span>
+                    </div>
+
+                    <label for="course">Course / Program</label>
+                    <div class="input-box">
+                        <span>🎓</span>
+                        <select id="course">
+                            <option value="">-- Select Course --</option>
+                            <option value="B.Tech">B.Tech (Bachelor of Technology)</option>
+                            <option value="BSc">BSc (Bachelor of Science)</option>
+                            <option value="BBA">BBA (Bachelor of Business Administration)</option>
+                            <option value="M.Tech">M.Tech (Master of Technology)</option>
+                            <option value="MSc">MSc (Master of Science)</option>
+                            <option value="MBA">MBA (Master of Business Administration)</option>
+                            <option value="PhD">PhD (Doctorate)</option>
+                        </select>
+                    </div>
+
+                    <label for="semester">Current Semester</label>
+                    <div class="input-box">
+                        <span>📅</span>
+                        <select id="semester">
+                            <option value="">-- Select Course First --</option>
+                        </select>
+                    </div>
+
+                    <button type="submit">
+                        CREATE ACCOUNT
+                    </button>
+
+                </form>
+
+                <p class="login-text">
+                    Already have an account?
+                    <a href="login.html">Log In</a>
+                </p>
+
+            </div>
+
+
+            <div class="character">
+                <img
+                    src="images/character-scene-signup.png"
+                    alt="Student reaching for a book"
+                >
+            </div>
+
+
+            <div class="side-panel">
+                <div class="side-icon">▤</div>
+                <h3>
+                    MORE<br>
+                    THAN A<br>
+                    LIBRARY
+                </h3>
+                <div class="side-line"></div>
+                <p>Study</p>
+                <p>Read</p>
+                <p>Connect</p>
+                <p>Grow</p>
+                <div class="side-arrow">→</div>
+            </div>
+
+
+            <div class="quiet-card">
+                <div class="pin">📍</div>
+                <div>
+                    <b>QUIET SPACES.</b>
+                    <b>BIG IDEAS.</b>
+                    <b>BETTER YOU.</b>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+</div>
+
+
+<script>
+
+function togglePassword(id, element) {
+    let input = document.getElementById(id);
+    if (input.type === "password") {
+        input.type = "text";
+        element.textContent = "🙈";
+    } else {
+        input.type = "password";
+        element.textContent = "👁";
+    }
+}
+
+// ── Course-duration map for semester limit & priority calculation ──
+const COURSE_DURATIONS = {
+    "B.Tech":  8,
+    "BSc":     6,
+    "BBA":     6,
+    "M.Tech":  4,
+    "MSc":     4,
+    "MBA":     4,
+    "PhD":     8
+};
+
+let courseSelect   = document.getElementById("course");
+let semesterSelect = document.getElementById("semester");
+
+courseSelect.addEventListener("change", function () {
+    let selectedCourse = this.value;
+    semesterSelect.innerHTML = "";
+
+    if (!selectedCourse || !COURSE_DURATIONS[selectedCourse]) {
+        semesterSelect.innerHTML = "<option value=\"\">-- Select Course First --</option>";
+        return;
+    }
+
+    let maxSemester = COURSE_DURATIONS[selectedCourse];
+    let defaultOption = document.createElement("option");
+    defaultOption.value = "";
+    defaultOption.textContent = "-- Select Semester --";
+    semesterSelect.appendChild(defaultOption);
+
+    for (let i = 1; i <= maxSemester; i++) {
+        let option = document.createElement("option");
+        option.value = i;
+        option.textContent = "Semester " + i;
+        semesterSelect.appendChild(option);
+    }
+});
+
+
+let form = document.getElementById("signupForm");
+
+let handleSubmit = async (event) => {
+    event.preventDefault();
+
+    let fullName        = document.getElementById("name");
+    let studentId       = document.getElementById("studentId");
+    let email           = document.getElementById("email");
+    let password        = document.getElementById("password");
+    let confirmPassword = document.getElementById("confirmPassword");
+
+    if (
+        fullName.value.trim() === "" ||
+        studentId.value.trim() === "" ||
+        email.value.trim() === "" ||
+        password.value.trim() === "" ||
+        confirmPassword.value.trim() === ""
+    ) {
+        alert("Please Fill all the Details");
+        return;
+    }
+
+    if (!email.value.includes("@")) {
+        alert("Invalid Email");
+        return;
+    }
+
+    if (password.value.length < 8) {
+        alert("Password must be at least 8 characters");
+        return;
+    }
+
+    if (confirmPassword.value !== password.value) {
+        alert("Passwords do not match");
+        return;
+    }
+
+    let selectedCourse = courseSelect.value;
+    if (!selectedCourse) {
+        alert("Please select your course / program");
+        return;
+    }
+
+    let selectedSemester = parseInt(semesterSelect.value);
+    let maxSemester      = COURSE_DURATIONS[selectedCourse];
+
+    if (
+        !semesterSelect.value ||
+        isNaN(selectedSemester) ||
+        selectedSemester < 1 ||
+        selectedSemester > maxSemester
+    ) {
+        alert("Please select a valid semester for your course");
+        return;
+    }
+
+    let response = await fetch("http://localhost:3000/users");
+    let users = await response.json();
+
+    let existing = users.find(
+        user => user.email === email.value.trim()
+    );
+
+    if (existing) {
+        alert("Email already registered");
+        return;
+    }
+
+    let newuser = {
+        name:             fullName.value.trim(),
+        studentId:        studentId.value.trim(),
+        email:            email.value.trim(),
+        password:         password.value,
+        role:             "student",
+        course:           selectedCourse,
+        semester:         selectedSemester,
+        noShowCount:      0,
+        reliabilityScore: 100,
+        suspended:        false,
+        suspendedUntil:   null,
+        suspendReason:    null
+    };
+
+    let postResponse = await fetch("http://localhost:3000/users", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(newuser)
+    });
+
+    if (!postResponse.ok) {
+        alert("Registration failed. Please try again.");
+        return;
+    }
+
+    alert("Account created successfully");
+    window.location.href = "login.html";
+};
+
+form.addEventListener("submit", handleSubmit);
+
+</script>
+
 </body>
 </html>

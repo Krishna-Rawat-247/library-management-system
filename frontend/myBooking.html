@@ -3,15 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Bookings</title>
+    <title>My Bookings — Atlas Room</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
-    <h1>My Bookings</h1>
-    <a href="index.html">Home</a>
-    <br><br>
-    <a href="profile.html">Profile</a>
-    <div id="bookingsContainer"></div>
 
+    <!-- ==================== HEADER & NAVIGATION ==================== -->
+    <header class="header">
+        <div class="container header__inner">
+            <!-- Brand Logo -->
+            <a href="index.html" class="brand" aria-label="Atlas Room Home">
+                <svg class="brand__icon" width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <polygon points="14,3 25,9 14,15 3,9" fill="#F1E6D1" opacity="0.95"/>
+                    <polygon points="3,9 14,15 14,25 3,19" fill="#944638"/>
+                    <polygon points="14,15 25,9 25,19 14,25" fill="#4A261D"/>
+                </svg>
+                <span class="brand__name">ATLAS ROOM</span>
+            </a>
+
+            <!-- Center Links -->
+            <nav class="nav__links" id="navLinks" aria-label="Main Navigation">
+                <a href="index.html" class="nav__link">HOME</a>
+                <a href="booking.html" class="nav__link">RESERVE A SEAT</a>
+                <a href="myBooking.html" class="nav__link active">MY BOOKINGS</a>
+                <a href="profile.html" class="nav__link">PROFILE</a>
+            </nav>
+
+            <!-- Right Actions -->
+            <div class="header__actions">
+                <a href="booking.html" class="btn btn--pill-cream">NEW BOOKING →</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- ==================== TOP DECORATIVE SHELF WIDGET ==================== -->
+    <section class="shelf-widget" aria-hidden="true">
+        <div class="shelf-widget__top-bar">
+            <div class="shelf-widget__pills">
+                <span class="pill pill--brick"></span>
+                <span class="pill pill--dark"></span>
+                <span class="pill pill--brick"></span>
+            </div>
+            <div class="shelf-widget__lines">
+                <span class="line"></span>
+                <span class="line"></span>
+                <span class="line"></span>
+                <span class="line"></span>
+            </div>
+        </div>
+        <div class="shelf-widget__bottom-bar">
+            <div class="shelf-widget__olive-light"></div>
+            <div class="shelf-widget__olive-dark"></div>
+        </div>
+    </section>
+
+    <!-- ==================== MAIN CONTENT ==================== -->
+    <main class="container">
+        <div class="page-header">
+            <span class="eyebrow">RESERVATION DASHBOARD</span>
+            <h1 class="page-title">My Bookings</h1>
+            <p class="page-subtitle">Track your confirmed sessions, monitor waiting queue status, and manage upcoming resource cancellations.</p>
+        </div>
+
+        <div class="bookings-view">
+            <div id="bookingsContainer"></div>
+        </div>
+    </main>
+
+    <!-- ==================== FOOTER ==================== -->
+    <footer class="footer">
+        <div class="container">
+            <p>Atlas Room &copy; 2026. University Library Management System with Dynamic Priority Queue.</p>
+        </div>
+    </footer>
+
+    <script src="js/priority.js"></script>
     <script>
         let bookingsContainer = document.getElementById("bookingsContainer");
         let currentUser = JSON.parse(localStorage.getItem("currentUser"));
@@ -59,17 +128,22 @@
                 let resourceName = resource ? resource.label : "Unknown Resource";
                 
                 let timeStatus = getTimeStatus(booking);
-                let displayStatus = booking.status;
+                let displayStatus = formatBookingStatus(booking.status);
                 if (
                     booking.status === "cancelled" ||
                     booking.status === "completed" ||
-                    booking.status === "no_show"
+                    booking.status === "no_show" ||
+                    booking.status === "bumped"
                 ) {
                     timeStatus = "";
                 }
 
                 let canCancel = false;
-                if (booking.status === "pending" || booking.status === "confirmed") {
+                if (
+                    booking.status === "pending" ||
+                    booking.status === "confirmed" ||
+                    booking.status === "waiting"
+                ) {
                     if (timeStatus === "Upcoming") {
                         canCancel = true;
                     }
@@ -94,6 +168,31 @@
                     <hr>
                 `;
             });
+        }
+
+        function formatBookingStatus(status) {
+            if (status === "confirmed") {
+                return "Confirmed";
+            }
+            if (status === "waiting") {
+                return "Waiting";
+            }
+            if (status === "bumped") {
+                return "Bumped";
+            }
+            if (status === "cancelled") {
+                return "Cancelled";
+            }
+            if (status === "pending") {
+                return "Pending";
+            }
+            if (status === "completed") {
+                return "Completed";
+            }
+            if (status === "no_show") {
+                return "No-show";
+            }
+            return status;
         }
 
         function getTimeStatus(booking) {
@@ -132,12 +231,19 @@
                 return;
             }
 
-            if (booking.status === "cancelled" || booking.status === "completed" || booking.status === "no_show") {
+            if (
+                booking.status === "cancelled" ||
+                booking.status === "completed" ||
+                booking.status === "no_show" ||
+                booking.status === "bumped"
+            ) {
                 alert("You cannot cancel this booking");
                 return;
             }
 
             try {
+                let wasConfirmed = booking.status === "confirmed";
+
                 let response = await fetch("http://localhost:3000/reservations/" + id, {
                     method: "PATCH",
                     headers: {
@@ -147,6 +253,14 @@
                 });
 
                 if (response.ok) {
+                    if (wasConfirmed) {
+                        await promoteWaitingReservation(
+                            booking.resourceId,
+                            booking.date,
+                            booking.startTime,
+                            booking.endTime
+                        );
+                    }
                     alert("Booking cancelled successfully");
                     loadBookings();
                 } else {

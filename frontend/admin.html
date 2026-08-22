@@ -4,7 +4,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin — Stackroom</title>
+  <title>Admin Panel — Atlas Room</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/admin.css">
 </head>
 
@@ -109,6 +112,7 @@
               <option value="all">All</option>
               <option value="pending">Pending</option>
               <option value="confirmed">Confirmed</option>
+              <option value="waiting">Waiting</option>
               <option value="bumped">Bumped</option>
               <option value="cancelled">Cancelled</option>
               <option value="completed">Completed</option>
@@ -303,39 +307,27 @@
         </table>
       </section>
 
-      <section class="admin-section" id="section-sweep">
-        <h2>Manual No-Show Sweep</h2>
-        <p class="hint">
-          Normally this runs automatically whenever a view loads (simulating a cron job).
-          Use this to force it right now — useful for demoing/testing without waiting
-          for real time to pass.
-        </p>
-        <button type="button" id="runSweepBtn">Run sweep now</button>
-        <p id="sweepResult" class="hint"></p>
-      </section>
-
-      <section class="admin-section" id="section-export">
-        <h2>Export Data</h2>
-        <div class="export-buttons">
-          <button type="button" id="exportReservationsCsv">Reservations &rarr; CSV</button>
-          <button type="button" id="exportReservationsJson">Reservations &rarr; JSON</button>
-          <button type="button" id="exportUsersCsv">Users &rarr; CSV</button>
-          <button type="button" id="exportUsersJson">Users &rarr; JSON</button>
-          <button type="button" id="exportResourcesCsv">Resources &rarr; CSV</button>
-          <button type="button" id="exportResourcesJson">Resources &rarr; JSON</button>
-        </div>
-      </section>
-
     </section>
 
   </div>
 
   <div id="adminToastContainer" class="toast-container" aria-live="polite"></div>
 
+  <script>
+    let currentUser = JSON.parse(localStorage.getItem("currentUser"));
+
+    if (!currentUser) {
+      alert("Please login first");
+      window.location.href = "login.html";
+    } else if (currentUser.role !== "admin") {
+      alert("Access denied. Only admin users can open the admin panel.");
+      window.location.href = "index.html";
+    }
+  </script>
+
   <!-- Nav switching only — plumbing, already written -->
   <script src="js/adminNav.js"></script>
-
-  <!-- Feature scripts — one per page, add each as you build it -->
+  <script src="js/priority.js"></script>
   <script src="js/adminPanel.js"></script>
   <!-- <script src="js/resourceManagement.js"></script> -->
   <!-- <script src="js/userManagement.js"></script> -->
