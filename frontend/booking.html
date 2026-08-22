@@ -3,130 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Library Reservation</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-        nav a {
-            margin-left: 20px;
-            text-decoration: none;
-            color: #333;
-        }
-        .container {
-            display: flex;
-            gap: 30px;
-        }
-        .resource-section,
-        .booking-section {
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-        }
-        .resource-section {
-            flex: 2;
-        }
-        .booking-section {
-            flex: 1;
-        }
-        .filters {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        select,
-        input,
-        button {
-            padding: 10px;
-        }
-        .resource-map {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 10px;
-        }
-        .resource-card {
-            padding: 20px 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            text-align: center;
-            cursor: pointer;
-        }
-        .resource-card:hover {
-            background-color: #eee;
-        }
-        .booking-form {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-    </style>
+    <title>Reserve a Resource — Atlas Room</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
-    <header>
-        <div>
-            <h1>Library Reservation</h1>
-            <p>Reserve your seat or library resource</p>
+
+    <!-- ==================== HEADER & NAVIGATION ==================== -->
+    <header class="header">
+        <div class="container header__inner">
+            <!-- Brand Logo -->
+            <a href="index.html" class="brand" aria-label="Atlas Room Home">
+                <svg class="brand__icon" width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <polygon points="14,3 25,9 14,15 3,9" fill="#F1E6D1" opacity="0.95"/>
+                    <polygon points="3,9 14,15 14,25 3,19" fill="#944638"/>
+                    <polygon points="14,15 25,9 25,19 14,25" fill="#4A261D"/>
+                </svg>
+                <span class="brand__name">ATLAS ROOM</span>
+            </a>
+
+            <!-- Center Links -->
+            <nav class="nav__links" id="navLinks" aria-label="Main Navigation">
+                <a href="index.html" class="nav__link">HOME</a>
+                <a href="booking.html" class="nav__link active">RESERVE A SEAT</a>
+                <a href="myBooking.html" class="nav__link">MY BOOKINGS</a>
+                <a href="profile.html" class="nav__link">PROFILE</a>
+            </nav>
+
+            <!-- Right Actions -->
+            <div class="header__actions">
+                <a href="myBooking.html" class="btn btn--outline-dark">MY RESERVATIONS</a>
+            </div>
         </div>
-        <nav>
-            <a href="index.html">Home</a>
-            <a href="myBooking.html">My Bookings</a>
-            <a href="profile.html">Profile</a>
-        </nav>
     </header>
 
+    <!-- ==================== TOP DECORATIVE SHELF WIDGET ==================== -->
+    <section class="shelf-widget" aria-hidden="true">
+        <div class="shelf-widget__top-bar">
+            <div class="shelf-widget__pills">
+                <span class="pill pill--brick"></span>
+                <span class="pill pill--dark"></span>
+                <span class="pill pill--brick"></span>
+            </div>
+            <div class="shelf-widget__lines">
+                <span class="line"></span>
+                <span class="line"></span>
+                <span class="line"></span>
+                <span class="line"></span>
+            </div>
+        </div>
+        <div class="shelf-widget__bottom-bar">
+            <div class="shelf-widget__olive-light"></div>
+            <div class="shelf-widget__olive-dark"></div>
+        </div>
+    </section>
+
+    <!-- ==================== MAIN CONTENT ==================== -->
     <main class="container">
-        <section class="resource-section">
-            <h2>Library Resources</h2>
+        <div class="page-header">
+            <span class="eyebrow">LIBRARY SEAT & RESOURCE RESERVATION</span>
+            <h1 class="page-title">Reserve a Resource</h1>
+            <p class="page-subtitle">Select a study room, discussion carrel, or workstation. Priority Queue allocation automatically guarantees fair access for academic deadlines.</p>
+        </div>
 
-            <div class="filters">
-                <select id="resourceType">
-                    <option value="all">All Resources</option>
-                    <option value="seat">Seats</option>
-                    <option value="discussion_room">Discussion Rooms</option>
-                    <option value="projector">Projectors</option>
-                </select>
+        <div class="booking-layout">
+            <!-- Left Column: Available Resources Grid & Filters -->
+            <section class="resource-section">
+                <div class="resource-section__header">
+                    <h2 class="section-heading">Available Spaces</h2>
+                </div>
 
-                <select id="zone">
-                    <option value="all">All Zones</option>
-                    <option value="North Wing">North Wing</option>
-                    <option value="South Wing">South Wing</option>
-                </select>
-            </div>
+                <!-- Modern Filter Controls -->
+                <div class="filters">
+                    <div class="filter-group">
+                        <label class="filter-label" for="resourceType">Resource Type</label>
+                        <select id="resourceType">
+                            <option value="all">All Resources</option>
+                            <option value="study room">Study Rooms</option>
+                            <option value="discussion_room">Discussion Rooms</option>
+                            <option value="carrel">Individual Carrels</option>
+                            <option value="computer station">Computer Stations</option>
+                            <option value="seminar hall">Seminar Halls</option>
+                            <option value="reading pod">Reading Pods</option>
+                        </select>
+                    </div>
 
-            <div id="resourceMap" class="resource-map"></div>
-        </section>
+                    <div class="filter-group">
+                        <label class="filter-label" for="zone">Library Zone</label>
+                        <select id="zone">
+                            <option value="all">All Library Zones</option>
+                            <option value="Silent Zone">Silent Zone</option>
+                            <option value="Collaborative Zone">Collaborative Zone</option>
+                            <option value="Quiet Zone">Quiet Zone</option>
+                            <option value="Digital Lab">Digital Lab</option>
+                            <option value="Conference Zone">Conference Zone</option>
+                            <option value="Open Reading Zone">Open Reading Zone</option>
+                        </select>
+                    </div>
+                </div>
 
-        <section class="booking-section">
-            <h2>Reserve Resource</h2>
+                <!-- Resource Cards Grid -->
+                <div id="resourceMap" class="resource-map"></div>
+            </section>
 
-            <div id="selectedResource">
-                <p>Select a seat or resource to continue.</p>
-            </div>
+            <!-- Right Column: Selected Space & Booking Form -->
+            <section class="booking-section">
+                <span class="eyebrow">TIME SLOT & CONFIRMATION</span>
+                <h2 class="section-heading" style="font-size: 1.35rem; margin-bottom: 16px;">Booking Details</h2>
 
-            <form id="bookingForm" class="booking-form">
-                <label for="date">Date</label>
-                <input type="date" id="date">
+                <div id="selectedResource">
+                    <p style="text-align: center; padding: 12px 0;">Select a seat or space from the left to begin.</p>
+                </div>
 
-                <label for="startTime">Start Time</label>
-                <input type="time" id="startTime">
+                <form id="bookingForm" class="booking-form">
+                    <div class="form-group">
+                        <label for="date">Date</label>
+                        <input type="date" id="date" required>
+                    </div>
 
-                <label for="endTime">End Time</label>
-                <input type="time" id="endTime">
+                    <div class="form-group">
+                        <label for="startTime">Start Time</label>
+                        <input type="time" id="startTime" required>
+                    </div>
 
-                <button type="submit">Reserve</button>
-            </form>
-        </section>
+                    <div class="form-group">
+                        <label for="endTime">End Time</label>
+                        <input type="time" id="endTime" required>
+                    </div>
+
+                    <button type="submit" class="btn btn--brick-cta">CONFIRM RESERVATION →</button>
+                </form>
+            </section>
+        </div>
     </main>
 
+    <!-- ==================== FOOTER ==================== -->
+    <footer class="footer">
+        <div class="container">
+            <p>Atlas Room &copy; 2026. University Library Management System with Dynamic Priority Queue.</p>
+        </div>
+    </footer>
+
+    <script src="js/priority.js"></script>
     <script>
         let resources = [];
         let selectedResource = null;
@@ -168,14 +188,14 @@
                 let booked = false;
 
                 if (date !== "" && startTime !== "" && endTime !== "") {
-                    booked = reservations.find(reservation =>
-                        String(reservation.resourceId) === String(resource.id) &&
-                        reservation.date === date &&
-                        reservation.startTime < endTime &&
-                        reservation.endTime > startTime &&
-                        reservation.status !== "cancelled" &&
-                        reservation.status !== "no_show"
+                    let conflicts = getConflictingReservations(
+                        reservations,
+                        resource.id,
+                        date,
+                        startTime,
+                        endTime
                     );
+                    booked = conflicts.length > 0;
                 }
 
                 let status = booked ? "Reserved" : "Available";
@@ -214,9 +234,9 @@
         bookingForm.addEventListener("submit", async (event) => {
             event.preventDefault();
 
-            let date = document.getElementById("date").value;
+            let date      = document.getElementById("date").value;
             let startTime = document.getElementById("startTime").value;
-            let endTime = document.getElementById("endTime").value;
+            let endTime   = document.getElementById("endTime").value;
 
             if (!currentUser) {
                 alert("Please login first");
@@ -239,33 +259,50 @@
                 return;
             }
 
-            let res = await fetch("http://localhost:3000/reservations");
-            let reservations = await res.json();
-
-            let exist = reservations.find(reservation =>
-                String(reservation.resourceId) === String(selectedResource.id) &&
-                reservation.date === date &&
-                reservation.startTime < endTime &&
-                reservation.endTime > startTime &&
-                reservation.status !== "cancelled" &&
-                reservation.status !== "no_show"
-            );
-
-            if (exist) {
-                alert("This resource is already booked for this time");
+            let userResponse = await fetch("http://localhost:3000/users/" + currentUser.id);
+            if (!userResponse.ok) {
+                alert("Unable to verify your account. Please login again.");
                 return;
             }
 
+            let bookingUser = await userResponse.json();
+
+            if (bookingUser.suspended === true) {
+                let until = bookingUser.suspendedUntil
+                    ? " until " + bookingUser.suspendedUntil
+                    : " indefinitely";
+                alert("Your account is suspended" + until + ". You cannot make new bookings.");
+                return;
+            }
+
+            let res = await fetch("http://localhost:3000/reservations");
+            let reservations = await res.json();
+
+            let calculatedPriorityScore = await calculatePriorityScore(bookingUser, date);
+
+            let conflicts = getConflictingReservations(
+                reservations,
+                selectedResource.id,
+                date,
+                startTime,
+                endTime
+            );
+
+            let bookingStatus = await resolveBookingConflict(
+                calculatedPriorityScore,
+                conflicts
+            );
+
             let newReservation = {
-                userId: currentUser.id,
-                resourceId: selectedResource.id,
-                date: date,
-                startTime: startTime,
-                endTime: endTime,
-                status: "pending",
-                priorityScore: null,
-                checkedIn: false,
-                createdAt: new Date().toISOString()
+                userId:        bookingUser.id,
+                resourceId:    selectedResource.id,
+                date:          date,
+                startTime:     startTime,
+                endTime:       endTime,
+                status:        bookingStatus,
+                priorityScore: calculatedPriorityScore,
+                checkedIn:     false,
+                createdAt:     new Date().toISOString()
             };
 
             let response = await fetch("http://localhost:3000/reservations", {
@@ -281,7 +318,13 @@
                 return;
             }
 
-            alert("Resource booked successfully");
+            if (bookingStatus === "waiting") {
+                alert("This resource is already booked. You were added to the waiting queue.");
+            } else if (conflicts.length > 0) {
+                alert("You have higher priority. The previous booking was bumped and yours is confirmed.");
+            } else {
+                alert("Resource booked successfully");
+            }
 
             bookingForm.reset();
 

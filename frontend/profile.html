@@ -1,23 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile</title>
+    <title>Member Profile — Atlas Room</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/app.css">
 </head>
-
 <body>
-    <h1>My Profile</h1>
 
-    <a href="index.html">Home</a>
-    <br><br>
-    <a href="myBooking.html">My Bookings</a>
+    <!-- ==================== HEADER & NAVIGATION ==================== -->
+    <header class="header">
+        <div class="container header__inner">
+            <!-- Brand Logo -->
+            <a href="index.html" class="brand" aria-label="Atlas Room Home">
+                <svg class="brand__icon" width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <polygon points="14,3 25,9 14,15 3,9" fill="#F1E6D1" opacity="0.95"/>
+                    <polygon points="3,9 14,15 14,25 3,19" fill="#944638"/>
+                    <polygon points="14,15 25,9 25,19 14,25" fill="#4A261D"/>
+                </svg>
+                <span class="brand__name">ATLAS ROOM</span>
+            </a>
 
-    <div id="profileContainer"></div>
+            <!-- Center Links -->
+            <nav class="nav__links" id="navLinks" aria-label="Main Navigation">
+                <a href="index.html" class="nav__link">HOME</a>
+                <a href="booking.html" class="nav__link">RESERVE A SEAT</a>
+                <a href="myBooking.html" class="nav__link">MY BOOKINGS</a>
+                <a href="profile.html" class="nav__link active">PROFILE</a>
+            </nav>
 
-    <button id="logoutBtn">Logout</button>
+            <!-- Right Actions -->
+            <div class="header__actions">
+                <a href="booking.html" class="btn btn--pill-cream">RESERVE SPACE →</a>
+            </div>
+        </div>
+    </header>
 
+    <!-- ==================== TOP DECORATIVE SHELF WIDGET ==================== -->
+    <section class="shelf-widget" aria-hidden="true">
+        <div class="shelf-widget__top-bar">
+            <div class="shelf-widget__pills">
+                <span class="pill pill--brick"></span>
+                <span class="pill pill--dark"></span>
+                <span class="pill pill--brick"></span>
+            </div>
+            <div class="shelf-widget__lines">
+                <span class="line"></span>
+                <span class="line"></span>
+                <span class="line"></span>
+                <span class="line"></span>
+            </div>
+        </div>
+        <div class="shelf-widget__bottom-bar">
+            <div class="shelf-widget__olive-light"></div>
+            <div class="shelf-widget__olive-dark"></div>
+        </div>
+    </section>
+
+    <!-- ==================== MAIN CONTENT ==================== -->
+    <main class="container">
+        <div class="page-header">
+            <span class="eyebrow">ACCOUNT DASHBOARD</span>
+            <h1 class="page-title">Member Profile</h1>
+            <p class="page-subtitle">Manage your verified university library credentials, priority queue metrics, and session security.</p>
+        </div>
+
+        <div class="profile-layout">
+            <div id="profileContainer">
+                <div class="profile-info-card" style="text-align: center; padding: 40px;">
+                    <p style="color: var(--text-muted);">Loading member profile...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ==================== FOOTER ==================== -->
+    <footer class="footer">
+        <div class="container">
+            <p>Atlas Room &copy; 2026. University Library Management System with Dynamic Priority Queue.</p>
+        </div>
+    </footer>
+
+    <script src="js/priority.js"></script>
     <script>
         let profileContainer = document.getElementById("profileContainer");
         let logoutBtn = document.getElementById("logoutBtn");
@@ -44,30 +111,140 @@
 
                 let user = await response.json();
 
+                // Calculate scores using existing priority.js functions
+                let today = new Date().toISOString().slice(0, 10);
+                let priorityScore = typeof calculatePriorityScore === "function"
+                    ? await calculatePriorityScore(user, today)
+                    : "—";
+                let reliabilityScore = typeof getReliabilityScore === "function"
+                    ? getReliabilityScore(user)
+                    : (typeof user.reliabilityScore === "number" ? user.reliabilityScore : (100 - (user.noShowCount || 0) * 15));
+
+                let initial = user.name ? user.name.trim().charAt(0).toUpperCase() : "U";
+
+                // Academic Information Fields (strictly existing values)
+                let courseVal = user.course || (typeof getUserCourse === "function" ? getUserCourse(user) : "");
+                let courseHtml = courseVal ? `
+                    <div class="info-row">
+                        <span class="info-label">Degree / Course</span>
+                        <strong class="info-value">${courseVal}</strong>
+                    </div>
+                ` : "";
+
+                let semesterHtml = (typeof user.semester === "number" && user.semester !== null) ? `
+                    <div class="info-row">
+                        <span class="info-label">Current Semester</span>
+                        <strong class="info-value">Semester ${user.semester}</strong>
+                    </div>
+                ` : "";
+
+                let departmentHtml = user.department ? `
+                    <div class="info-row">
+                        <span class="info-label">Department</span>
+                        <strong class="info-value">${user.department}</strong>
+                    </div>
+                ` : "";
+
+                let studentIdHtml = user.studentId ? `
+                    <div class="info-row">
+                        <span class="info-label">University ID / Roll No</span>
+                        <strong class="info-value">${String(user.studentId)}</strong>
+                    </div>
+                ` : "";
+
                 profileContainer.innerHTML = `
-                    <h2>${user.name}</h2>
-                    <p>Student ID: ${String(user.studentId)}</p>
-                    <p>Email: ${user.email}</p>
-                    <p>Role: ${user.role}</p>
-                    <p>No-Show Count: ${user.noShowCount || 0}</p>
+                    <div class="profile-dashboard">
+                        <!-- Left Column: Identity & Account Card -->
+                        <div class="profile-identity-card">
+                            <div class="profile-avatar-large">${initial}</div>
+                            <h2 class="profile-user-name">${user.name}</h2>
+                            <span class="role-badge">${user.role ? user.role.toUpperCase() : "STUDENT"}</span>
+                            
+                            <div class="profile-member-badge">
+                                <span class="status-dot"></span>
+                                <span>${user.suspended ? "Account Suspended" : "Verified Library Member"}</span>
+                            </div>
+
+                            <div class="profile-session-info">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                                    <span>Account Standing:</span>
+                                    <strong style="color: ${user.suspended ? '#FFAAA0' : '#B8D8A0'};">${user.suspended ? "Suspended" : "Good Standing"}</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Session Type:</span>
+                                    <strong>${user.role || "student"}</strong>
+                                </div>
+                            </div>
+
+                            <button id="logoutBtn">LOG OUT ACCOUNT</button>
+                        </div>
+
+                        <!-- Right Column: Information Cards Grid -->
+                        <div class="profile-details-grid">
+                            <!-- Card 1: Academic Credentials -->
+                            <div class="profile-info-card">
+                                <span class="eyebrow" style="margin-bottom: 4px;">ACADEMIC ENROLLMENT</span>
+                                <h3>Academic Credentials</h3>
+                                <div class="info-rows">
+                                    ${studentIdHtml}
+                                    ${courseHtml}
+                                    ${semesterHtml}
+                                    ${departmentHtml}
+                                </div>
+                            </div>
+
+                            <!-- Card 2: Account & Priority Rating -->
+                            <div class="profile-info-card">
+                                <span class="eyebrow" style="margin-bottom: 4px;">PRIORITY QUEUE METRICS</span>
+                                <h3>Account & Priority Standing</h3>
+                                <div class="info-rows">
+                                    <div class="info-row">
+                                        <span class="info-label">Email Address</span>
+                                        <strong class="info-value" style="font-size: 0.86rem; word-break: break-all;">${user.email}</strong>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-label">No-Show Strikes</span>
+                                        <strong class="info-value text-brick">${user.noShowCount || 0} Strikes</strong>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-label">Reliability Score</span>
+                                        <strong class="info-value text-olive">${reliabilityScore} / 100</strong>
+                                    </div>
+                                    <div class="info-row">
+                                        <span class="info-label">Priority Calculation Score</span>
+                                        <strong class="info-value text-amber">${priorityScore} pts</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 `;
+
+                // Wire logout event
+                let dynamicLogoutBtn = document.getElementById("logoutBtn");
+                if (dynamicLogoutBtn) {
+                    dynamicLogoutBtn.addEventListener("click", handleLogout);
+                }
 
             } catch (error) {
                 console.error("Error loading profile:", error);
                 profileContainer.innerHTML = `
-                    <p>Unable to connect to the server.</p>
+                    <div class="profile-info-card" style="text-align: center; padding: 40px;">
+                        <p style="color: var(--text-muted);">Unable to connect to the server.</p>
+                    </div>
                 `;
             }
         }
 
-        logoutBtn.addEventListener("click", function () {
+        function handleLogout() {
             localStorage.removeItem("currentUser");
-
             alert("Logged out successfully");
-
             window.location.href = "login.html";
-        });
+        }
+
+        if (logoutBtn) {
+            logoutBtn.addEventListener("click", handleLogout);
+        }
     </script>
 </body>
-
 </html>

@@ -517,15 +517,22 @@ body {
   flex-shrink: 0;
 }
 
-.input-box input {
+.input-box input,
+.input-box select {
   border: none;
   outline: none;
   background: transparent;
 
   font-size: 12px;
   color: #2a2419;
+  font-family: inherit;
 
   width: 100%;
+}
+
+.input-box select option {
+  background-color: #fbf6ea;
+  color: #2a2419;
 }
 
 .input-box input::placeholder {

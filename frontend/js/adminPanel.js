@@ -20,6 +20,9 @@ async function renderReservationTable() {
     fetch(`${API_BASE}/users`).then(r => r.json()),
     fetch(`${API_BASE}/resources`).then(r => r.json())
   ]);
+
+  populateReservationFilterDropdowns(users, resources);
+
   let tbody = document.getElementById("reservationsTableBody");
   tbody.innerHTML = "";
 
@@ -41,12 +44,12 @@ async function renderReservationTable() {
   }
   if (filters.userId !== "all") {
     reservations = reservations.filter(
-      (reservation) => reservation.userId === filters.userId,
+      (reservation) => String(reservation.userId) === String(filters.userId),
     );
   }
   if (filters.resourceId !== "all") {
     reservations = reservations.filter(
-      (reservation) => reservation.resourceId === filters.resourceId,
+      (reservation) => String(reservation.resourceId) === String(filters.resourceId),
     );
   }
 
@@ -77,6 +80,43 @@ async function renderReservationTable() {
 
     tbody.appendChild(row);
   });
+}
+
+function populateReservationFilterDropdowns(users, resources) {
+  let userSelect = document.getElementById("resFilterUser");
+  let resourceSelect = document.getElementById("resFilterResource");
+
+  let selectedUser = userSelect.value;
+  let selectedResource = resourceSelect.value;
+
+  userSelect.innerHTML = "";
+  let allUsersOption = document.createElement("option");
+  allUsersOption.value = "all";
+  allUsersOption.innerText = "All users";
+  userSelect.appendChild(allUsersOption);
+
+  users.forEach(function (user) {
+    let option = document.createElement("option");
+    option.value = String(user.id);
+    option.innerText = user.name;
+    userSelect.appendChild(option);
+  });
+
+  resourceSelect.innerHTML = "";
+  let allResourcesOption = document.createElement("option");
+  allResourcesOption.value = "all";
+  allResourcesOption.innerText = "All resources";
+  resourceSelect.appendChild(allResourcesOption);
+
+  resources.forEach(function (resource) {
+    let option = document.createElement("option");
+    option.value = String(resource.id);
+    option.innerText = resource.label;
+    resourceSelect.appendChild(option);
+  });
+
+  userSelect.value = selectedUser;
+  resourceSelect.value = selectedResource;
 }
 
 function getDateTime(reservation) {
@@ -120,7 +160,7 @@ function createActionButtons(reservation) {
   let actionsTd = document.createElement("td");
 
   // Force Confirm Button
-  if (reservation.status === "pending") {
+  if (reservation.status === "pending" || reservation.status === "waiting") {
     actionsTd.appendChild(
       createButton("Force Confirm", function () {
         updateReservationStatus(reservation.id, "confirmed");
@@ -136,7 +176,11 @@ function createActionButtons(reservation) {
     );
   }
   // Cancel
-  if (reservation.status === "pending" || reservation.status === "confirmed") {
+  if (
+    reservation.status === "pending" ||
+    reservation.status === "confirmed" ||
+    reservation.status === "waiting"
+  ) {
     actionsTd.appendChild(
       createButton("Cancel", function () {
         updateReservationStatus(reservation.id, "cancelled");
@@ -161,11 +205,44 @@ function createButton(text, onClick) {
 }
 
 async function updateReservationStatus(id, newStatus) {
+  let reservation = await fetch(`${API_BASE}/reservations/${id}`).then(res => res.json());
+  if (!reservation) {
+    return;
+  }
+
+  if (newStatus === "confirmed") {
+    let allReservations = await fetch(`${API_BASE}/reservations`).then(res => res.json());
+
+    let occupying = allReservations.filter(function (other) {
+      return String(other.id) !== String(reservation.id) &&
+        String(other.resourceId) === String(reservation.resourceId) &&
+        other.date === reservation.date &&
+        other.startTime < reservation.endTime &&
+        other.endTime > reservation.startTime &&
+        (other.status === "confirmed" || other.status === "pending");
+    });
+
+    if (occupying.length > 0) {
+      alert("This time slot is already occupied by a confirmed booking. Force Confirm was not applied.");
+      return;
+    }
+  }
+
   await fetch(`${API_BASE}/reservations/${id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ status: newStatus })
   });
+
+  if (reservation.status === "confirmed" && newStatus === "cancelled") {
+    await promoteWaitingReservation(
+      reservation.resourceId,
+      reservation.date,
+      reservation.startTime,
+      reservation.endTime
+    );
+  }
+
   renderReservationTable();
 }
 
@@ -200,7 +277,10 @@ async function markAsNoShow(id) {
     await fetch(`${API_BASE}/users/${reservation.userId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ noShowCount: (user.noShowCount || 0) + 1 })
+      body: JSON.stringify({
+        noShowCount: (user.noShowCount || 0) + 1,
+        reliabilityScore: Math.max(0, (typeof user.reliabilityScore === "number" ? user.reliabilityScore : 100) - 15)
+      })
     });
   }
   renderReservationTable();
@@ -364,20 +444,11 @@ wireResourceForm();
 
 let selectedUserId = null;
 
-const ROLE_WEIGHTS = {
-  final_year: 100,
-  pg: 75,
-  faculty: 60,
-  ug_senior: 50,
-  ug_junior: 30,
-};
-
 const ROLE_LABELS = {
-  final_year: "Final-year / Thesis",
-  pg: "Postgraduate",
+  student: "Student",
   faculty: "Faculty",
-  ug_senior: "UG Senior",
-  ug_junior: "UG Junior",
+  librarian: "Librarian",
+  admin: "Admin"
 };
 
 // ---------------------------------------------------------
@@ -459,23 +530,18 @@ async function openUserProfile(userId) {
   renderSuspendStatus(user);
 }
 
-function getReliabilityScore(user) {
-  let strikes = Math.min(user.noShowCount || 0, 6);
-  return Math.max(0, 100 - strikes * 15);
-}
-
 async function renderPriorityBreakdown(user) {
   let breakdownList = document.getElementById("userProfilePriorityBreakdown");
   breakdownList.innerHTML = "";
 
-  let roleRaw = ROLE_WEIGHTS[user.role] ?? 30;
+  let roleRaw = getRoleScore(user);
   let reliRaw = getReliabilityScore(user);
-  let examRaw = await getExamProximityScore(user.role, getTodayDate());
+  let examRaw = await getExamProximityScore(user, getTodayDate());
   let roleWeighted = roleRaw * 0.5;
   let reliWeighted = reliRaw * 0.3;
   let examWeighted = examRaw * 0.2;
 
-  let total = Math.round(roleWeighted + reliWeighted + examWeighted);
+  let total = await calculatePriorityScore(user, getTodayDate());
 
   let rows = [
     { label: "Role (" + (ROLE_LABELS[user.role] || user.role) + ")", value: roleRaw + " → " + roleWeighted.toFixed(1) },
@@ -508,7 +574,7 @@ async function renderUserBookingHistory(userId) {
     fetch(`${API_BASE}/reservations`).then(res => res.json()),
     fetch(`${API_BASE}/resources`).then(res => res.json())
   ]);
-  let userReservations = reservations.filter((r) => r.userId === userId);
+  let userReservations = reservations.filter((r) => String(r.userId) === String(userId));
 
   userReservations.sort((a, b) => {
     return getDateTime(b) - getDateTime(a); // most recent first
@@ -785,28 +851,6 @@ function wireExamWindowForm() {
     form.reset();
     renderExamWindowsTable();
   });
-}
-
-async function getExamProximityScore(role, dateStr) {
-  if (role !== "final_year" && role !== "pg") return 0;
-
-  let windows = await getExamWindows();
-  if (windows.length === 0) return 0;
-
-  let checkDate = new Date(dateStr + "T00:00:00");
-
-  for (let i = 0; i < windows.length; i++) {
-    let start = new Date(windows[i].startDate + "T00:00:00");
-    let end = new Date(windows[i].endDate + "T23:59:59");
-
-    if (checkDate >= start && checkDate <= end) {
-      let msPerDay = 1000 * 60 * 60 * 24;
-      let daysToExam = Math.ceil((end - checkDate) / msPerDay);
-      return Math.max(0, 100 - daysToExam * 8);
-    }
-  }
-
-  return 0; // not inside any exam window
 }
 
 renderExamWindowsTable();
