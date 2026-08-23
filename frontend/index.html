@@ -3,214 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<<<<<<< Updated upstream
-  <title>Atlas Room — Find your corner. Open your next chapter.</title>
-  <meta name="description" content="Reserve a place among the shelves—whether you're reading deeply, meeting quietly, or writing toward tomorrow.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/index.css">
-</head>
-<body>
-
-  <!-- ==================== HEADER & NAVIGATION ==================== -->
-  <header class="header">
-    <div class="container header__inner">
-      <!-- Brand Logo -->
-      <a href="#" class="brand" aria-label="Atlas Room Home">
-        <svg class="brand__icon" width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <!-- 3D folded book / geometric block icon -->
-=======
   <title>Atlas Room — Priority Queue Library Reservation & Anti-Cheat Engine</title>
-  <meta name="description" content="A weighted priority-queue reservation system for library seats and research pods with real-time anti-cheat penalties.">
+  <meta name="description" content="Hogwarts & Grand Library inspired reservation engine with interactive golden constellation line network canvas animation and high-impact room suites.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Cinzel:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/index.css">
-
-  <style>
-    /* FINAL ROOM LAYOUT: image and content are separate cards */
-    .availability-section__header,
-    .rooms-grid {
-      max-width: 920px;
-      margin-left: auto;
-      margin-right: auto;
-      width: 100%;
-    }
-
-    .availability-section__header {
-      margin-bottom: 36px;
-    }
-
-    .rooms-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 32px;
-    }
-
-    .room-card,
-    .room-card.room-card--reverse {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      gap: 22px;
-      background: transparent;
-      padding: 0;
-      box-shadow: none;
-      border-radius: 0;
-      position: relative;
-      transition: none;
-    }
-
-    .room-card:hover {
-      transform: none;
-      box-shadow: none;
-    }
-
-    .room-card__body,
-    .room-card__media {
-      background: var(--cream);
-      border-radius: var(--radius-xl);
-      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
-      min-width: 0;
-      height: 250px;
-    }
-
-    .room-card__body {
-      padding: 26px 30px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-
-    .room-card__tag {
-      margin-bottom: 4px;
-    }
-
-    .room-card__title {
-      font-size: 23px;
-      margin-bottom: 6px;
-      line-height: 1.2;
-    }
-
-    .room-card__desc {
-      font-size: 13px;
-      line-height: 1.45;
-      margin-bottom: 12px;
-      flex: none;
-    }
-
-    .room-card__media {
-      position: relative;
-      overflow: hidden;
-      margin: 0;
-      padding: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .room-card__img {
-      display: block;
-      width: 100%;
-      height: 100%;
-      min-height: auto;
-      object-fit: contain;
-      border-radius: var(--radius-lg);
-      transition: transform 0.4s ease;
-    }
-
-    .room-card__media:hover .room-card__img {
-      transform: scale(1.03);
-    }
-
-    .room-card__capacity-chip {
-      z-index: 2;
-    }
-
-    .room-card--reverse .room-card__media {
-      order: 1;
-    }
-
-    .room-card--reverse .room-card__body {
-      order: 2;
-    }
-
-    @media (max-width: 760px) {
-      .rooms-grid {
-        gap: 26px;
-      }
-
-      .room-card,
-      .room-card.room-card--reverse {
-        grid-template-columns: 1fr;
-        gap: 16px;
-      }
-
-      .room-card__body {
-        order: 2 !important;
-        height: auto;
-        min-height: auto;
-        padding: 26px 22px;
-      }
-
-      .room-card__media {
-        order: 1 !important;
-        height: 240px;
-        min-height: 240px;
-      }
-
-      .room-card__img {
-        min-height: 240px;
-      }
-    }
-  </style>
 </head>
 <body>
+
+  <!-- Full-Screen Interactive Golden Constellation Canvas Animation -->
+  <canvas id="goldenConstellationCanvas" class="golden-constellation-bg"></canvas>
 
   <!-- ==================== HEADER ==================== -->
   <header class="header">
     <div class="container header__inner">
       <a href="#" class="brand">
         <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
->>>>>>> Stashed changes
-          <polygon points="14,3 25,9 14,15 3,9" fill="#F1E6D1" opacity="0.95"/>
-          <polygon points="3,9 14,15 14,25 3,19" fill="#944638"/>
-          <polygon points="14,15 25,9 25,19 14,25" fill="#4A261D"/>
+          <polygon points="14,3 25,9 14,15 3,9" fill="#E8C382" opacity="0.95"/>
+          <polygon points="3,9 14,15 14,25 3,19" fill="#8C3A24"/>
+          <polygon points="14,15 25,9 25,19 14,25" fill="#7D8B6A"/>
         </svg>
-<<<<<<< Updated upstream
-        <span class="brand__name">ATLAS ROOM</span>
-      </a>
-
-      <!-- Center Links -->
-      <nav class="nav__links" id="navLinks" aria-label="Main Navigation">
-        <a href="#spaces" class="nav__link">SPACES</a>
-        <a href="#hours" class="nav__link">HOURS</a>
-        <a href="#program" class="nav__link">PROGRAM</a>
-      </nav>
-
-      <!-- Right Actions -->
-      <div class="header__actions">
-        <a href="login.html" class="nav__auth-link">LOG IN</a>
-        <a href="sign_up.html" class="nav__auth-link">Sign Up</a>
-        <a href="booking.html" class="nav__auth-link">RESERVE A SEAT</a>
-        <!-- <button class="btn btn--outline-dark" id="btnSignUp">SIGN UP</button> -->
-        <!-- <button class="btn btn--pill-cream" id="btnReserveTop">RESERVE A SEAT</button> -->
-      </div>
-
-      <!-- Mobile Hamburger Toggle -->
-      <button class="nav__toggle" id="navToggle" aria-label="Toggle navigation menu">
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
-    </div>
-  </header>
-
-  <main class="container">
-
-    <!-- ==================== TOP DECORATIVE SHELF WIDGET ==================== -->
-    <section class="shelf-widget" aria-hidden="true">
-=======
         <div>
           <span class="brand__name">ATLAS ROOM</span>
           <span class="brand__tag">PRIORITY HOLD ENGINE</span>
@@ -239,180 +52,158 @@
 
   <main class="container">
 
-    <!-- ==================== TOP DECORATIVE SHELF & LIVE QUEUE GAUGES ==================== -->
-    <section class="shelf-widget" aria-label="System status bar">
->>>>>>> Stashed changes
-      <div class="shelf-widget__top-bar">
-        <div class="shelf-widget__pills">
-          <span class="pill pill--brick"></span>
-          <span class="pill pill--dark"></span>
-          <span class="pill pill--brick"></span>
-        </div>
-        <div class="shelf-widget__lines">
-          <span class="line"></span>
-          <span class="line"></span>
-          <span class="line"></span>
-          <span class="line"></span>
-        </div>
-<<<<<<< Updated upstream
+    <!-- ==================== SPLIT HERO WITH AMBIENT EVENING VIDEO & FLOATING WITCH.PNG ==================== -->
+    <section class="hero-split-section">
+      <!-- Ambient Looping Video Background for Hero Container -->
+      <video autoplay loop muted playsinline class="hero-bg-video-ambient">
+        <source src="images/first.mp4" type="video/mp4">
+      </video>
+
+      <!-- Floating Animated Witch Mascot Sticker (using images/witch.png) -->
+      <div class="floating-witch-sticker" onclick="triggerToast('✨ The Library Sorceress grants you +12 Priority Streak Points!')">
+        <img src="images/witch.png" alt="Floating Academic Witch Mascot" class="floating-witch-img">
       </div>
-      <div class="shelf-widget__bottom-bar">
-        <div class="shelf-widget__olive-light"></div>
-        <div class="shelf-widget__olive-dark"></div>
-=======
-        <div class="shelf-widget__live-stat">
-          <span class="live-pulse-dot"></span>
-          <span>Exam Week Priority Protocol: Active</span>
+
+      <div class="hero-content-z">
+        <div class="hero-badge-wrap">
+          <span class="badge badge--amber">FINAL-YEAR THESIS PRIORITY</span>
+          <span class="badge badge--live" style="margin-left: 8px;"><span class="live-pulse-dot"></span> Protocol Active</span>
+        </div>
+        <h1 class="hero__heading"><span class="hero__heading-main">Find your corner.</span><br>Open your next <span class="hero__heading-gradient">chapter.</span></h1>
+        <p class="hero__text">
+          Reserve a place among the shelves—whether you're reading deeply, meeting quietly, or writing toward tomorrow. During exam weeks, our anti-cheat weighted queue prioritizes final-year and thesis students.
+        </p>
+
+        <!-- Quick Live Seat Finder Filter Bar in Hero -->
+        <div class="hero-search-box">
+          <div>
+            <span class="search-field-label">Target Wing</span>
+            <select class="search-select" id="heroSpaceSelect">
+              <option>Community Reading Room (North Wing)</option>
+              <option>Solo Study (Quiet Wing)</option>
+              <option>Projector Room (Media Wing)</option>
+              <option>Research Room (Archive Level)</option>
+            </select>
+          </div>
+          <div>
+            <span class="search-field-label">Time Window</span>
+            <select class="search-select" id="heroTimeSelect">
+              <option>Morning (08:00 — 12:00)</option>
+              <option selected>Afternoon (12:30 — 16:30)</option>
+              <option>Evening (17:00 — 21:00)</option>
+              <option>Night Owl (21:30 — 01:30)</option>
+            </select>
+          </div>
+          <button class="btn btn--brick" style="height: 38px; align-self: flex-end;" onclick="handleHeroSearch()">
+            SEARCH SEATS →
+          </button>
+        </div>
+
+        <div class="hero-stats-grid">
+          <div>
+            <span class="stat-item__num">12</span>
+            <span class="stat-item__label">Seats Open</span>
+          </div>
+          <div>
+            <span class="stat-item__num">92 pts</span>
+            <span class="stat-item__label">Your Score</span>
+          </div>
+          <div>
+            <span class="stat-item__num">0 Strikes</span>
+            <span class="stat-item__label">Clean Standing</span>
+          </div>
         </div>
       </div>
-      <div class="shelf-widget__bottom-bar">
-        <div class="shelf-widget__olive-light">
-          Thesis Research Allocation: 70% Priority Quota
-        </div>
-        <div class="shelf-widget__olive-dark">
-          General Study: 30%
-        </div>
->>>>>>> Stashed changes
-      </div>
-    </section>
 
-    <!-- ==================== HERO SECTION ==================== -->
-    <section class="hero">
-<<<<<<< Updated upstream
-      <p class="eyebrow">A ROOM FOR EVERY KIND OF STUDY</p>
-      <h1 class="hero__title">Find your corner.<br>Open your next chapter.</h1>
-      <p class="hero__desc">Reserve a place among the shelves—whether you're reading deeply, meeting quietly, or writing toward tomorrow.</p>
-      <div class="hero__cta-row">
-        <button class="btn btn--brick-cta" id="heroCta">
-          FIND A STUDY SPACE <span class="arrow" aria-hidden="true">→</span>
-        </button>
-      </div>
-    </section>
-
-    <!-- ==================== FEATURED LIBRARY SCENE WITH FLOATING CARDS ==================== -->
-    <section class="featured-scene" id="spaces">
-      <div class="featured-scene__wrapper">
-        <!-- Main Artwork / Illustration -->
-        <div class="featured-scene__art">
-          <img src="assets/atlas_library.jpg" alt="Illustrated modern library reading room with readers and lush plants" class="featured-scene__img">
-=======
-      <p class="eyebrow">
-        <span>A ROOM FOR EVERY KIND OF STUDY</span>
-        <span class="badge badge--amber" style="font-size: 10px; padding: 2px 8px;">FINAL-YEAR THESIS PRIORITY</span>
-      </p>
-      <h1 class="hero__heading">Find your corner.<br>Open your next chapter.</h1>
-      <p class="hero__text">
-        Reserve a place among the shelves—whether you're reading deeply, meeting quietly, or writing toward tomorrow. During exam weeks, our anti-cheat weighted queue prioritizes final-year and thesis students over simple first-come holds.
-      </p>
-      <div class="hero__actions-row">
-        <button class="btn btn--brick" id="heroCtaBtn">
-          FIND A STUDY SPACE <span class="arrow">→</span>
-        </button>
-        <a href="#engine" class="btn btn--outline">
-          CALCULATE MY PRIORITY SCORE
-        </a>
-      </div>
-    </section>
-
-    <!-- ==================== FEATURED LIBRARY SCENE WITH 4 FLOATING CARDS ==================== -->
-    <section class="featured-scene" id="spaces">
-      <div class="featured-scene__wrapper">
-        <div class="featured-scene__art">
-          <img src="images/atlas_library.jpg" alt="Atlas reading room interior with students, books, and plants" class="featured-scene__img">
->>>>>>> Stashed changes
+      <!-- Hero Right Ambient Video & Tour Trigger Card -->
+      <div class="hero-video-card hero-content-z">
+        <div class="hero-video-frame">
+          <video autoplay loop muted playsinline class="hero-video-element">
+            <source src="images/generate_the_video_in_evening.mp4" type="video/mp4">
+          </video>
+          <div class="hero-video-overlay"></div>
+          
+          <button class="hero-play-tour-btn" onclick="openVideoTourModal()">
+            <div class="play-icon-triangle"></div>
+            <span>WATCH 3D ROOM TOUR (0:10)</span>
+          </button>
         </div>
 
-        <!-- Floating Card 1: Top Left (Library Pass) -->
-        <div class="float-card float-card--top-left">
-<<<<<<< Updated upstream
-          <div class="float-card__badge-monogram">
-            <span class="monogram-letter">N</span>
+        <div class="hero-video-card__footer">
+          <div>
+            <strong style="font-size: 13px; color: var(--cream); display: block;">Atlas Evening Reading Room</strong>
+            <span style="font-size: 11.5px; color: var(--text-muted);">High-definition ambient lighting & quiet seating preview</span>
           </div>
-          <div class="float-card__pass-content">
-            <span class="float-card__tag">LIBRARY PASS</span>
-            <h2 class="float-card__title">Atlas Reading Room</h2>
-            <p class="float-card__text">A provisional place for quiet work and open tables.</p>
-            <div class="float-card__meta">
-              <span class="meta-item">4 seats</span>
-              <span class="meta-item">Open today</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Floating Card 2: Top Right (Reading Conditions) -->
-        <div class="float-card float-card--top-right float-card--dark">
-          <span class="float-card__tag float-card__tag--muted">READING CONDITIONS</span>
-          <h2 class="float-card__title float-card__title--large">Quiet</h2>
-          <div class="float-card__pill-highlight">
-            Best for focused study
-          </div>
-        </div>
-
-        <!-- Floating Card 3: Bottom Left (Today's Notes) -->
-        <div class="float-card float-card--bottom-left">
-          <h3 class="float-card__notes-title">Today's notes</h3>
-          <ul class="float-card__notes-list">
-            <li>A placeholder reading list</li>
-            <li>A future event note</li>
-          </ul>
-        </div>
-
-        <!-- Floating Card 4: Bottom Right (Floor Plan) -->
-        <div class="float-card float-card--bottom-right">
-          <h3 class="float-card__plan-title">Floor plan</h3>
-          <div class="float-card__plan-preview" aria-hidden="true">
-            <div class="plan-grid-preview">
-              <span class="plan-line-subtle"></span>
-              <span class="plan-line-subtle"></span>
-            </div>
-          </div>
-          <a href="#floorplan" class="float-card__plan-link">
-            View plan <span class="arrow" aria-hidden="true">→</span>
-          </a>
-=======
-          <div class="float-card__badge-monogram">N</div>
-          <span class="float-card__tag">LIBRARY PASS</span>
-          <h2 class="float-card__title">Atlas Reading Room</h2>
-          <p class="float-card__text">A provisional place for quiet work and open tables.</p>
-          <div class="float-card__meta">
-            <span>4 seats available</span>
-            <span style="color: var(--olive-dark);">Open today</span>
-          </div>
-        </div>
-
-        <!-- Floating Card 2: Top Right (Reading Conditions) -->
-        <div class="float-card float-card--top-right">
-          <span class="float-card__tag float-card__tag--muted">READING CONDITIONS</span>
-          <h2 class="float-card__title float-card__title--large">Quiet</h2>
-          <div class="float-card__pill-highlight">
-            Best for focused study
-          </div>
-        </div>
-
-        <!-- Floating Card 3: Bottom Left (Today's Notes) -->
-        <div class="float-card float-card--bottom-left">
-          <h3 class="float-card__notes-title">Today's notes</h3>
-          <ul class="float-card__notes-list">
-            <li>Thesis Defense Window: Day 4 of 14</li>
-            <li>Zero No-Show Strikes recorded</li>
-          </ul>
-        </div>
-
-        <!-- Floating Card 4: Bottom Right (Floor Plan Radar) -->
-        <div class="float-card float-card--bottom-right">
-          <h3 class="float-card__plan-title">Floor plan</h3>
-          <div class="float-card__plan-preview">
-            <div class="plan-grid-preview"></div>
-            <span style="font-size: 11px; font-weight: 700; color: #fff; position: relative; z-index: 2;">ZONE A • B • C</span>
-          </div>
-          <a href="#rooms" class="float-card__plan-link">
-            View plan <span class="arrow">→</span>
-          </a>
+          <span class="badge badge--live"><span class="live-pulse-dot"></span> 4K Ambient Video</span>
         </div>
       </div>
     </section>
 
-    <!-- ==================== INTERACTIVE PRIORITY ENGINE SIMULATOR ==================== -->
+    <!-- ==================== ANIMATED WITCH MASCOT CARD (USING images/witch.png) ==================== -->
+    <section class="witch-mascot-card">
+      <div class="witch-card-media">
+        <img src="images/witch.png" alt="Library Academic Spellmistress Mascot" class="witch-img-animated">
+        <span class="witch-badge">✨ PRIORITY GUARDIAN</span>
+      </div>
+      <div>
+        <h3 class="witch-card-title">
+          The Academic Spellmistress
+          <span class="witch-sparkle-dot"></span>
+        </h3>
+        <p class="witch-card-desc">
+          Guarding quiet research alcoves and weaving anti-cheat protection spells. During peak study hours, thesis students and researchers with upcoming defense dates earn automatic priority holds.
+        </p>
+        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+          <button class="btn btn--brick" onclick="openReservationModal('The quiet desk (Quiet Wing)')">
+            CLAIM A GUARDIAN HOLD →
+          </button>
+          <span style="font-size: 12px; color: var(--gold); font-weight: 700;">Zero No-Show Penalty Spell Active</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== BENTO SHOWCASE SECTION ==================== -->
+    <section class="bento-section" id="spaces">
+      <div class="availability-section__header" style="max-width: 100%;">
+        <div>
+          <p class="eyebrow">EXPLORE LIBRARY WINGS</p>
+          <h2 class="section-title">Designed for focus.</h2>
+        </div>
+      </div>
+
+      <div class="bento-grid">
+        <div class="bento-card bento-card--featured">
+          <div>
+            <span class="bento-card__tag">FEATURED SPACE</span>
+            <h3 class="bento-card__title">The Atlas Reading Room</h3>
+            <p class="bento-card__desc">A central haven designed with high ceilings, long oak tables, and dedicated thesis research stations.</p>
+          </div>
+          <div class="bento-card__art">
+            <img src="images/atlas_library.jpg" alt="Atlas reading room" class="bento-card__img">
+          </div>
+        </div>
+
+        <div class="bento-card">
+          <span class="bento-card__tag">QUIET WING</span>
+          <h3 class="bento-card__title">Quiet Desks</h3>
+          <p class="bento-card__desc">Individual window alcoves with zero-noise enforcement.</p>
+        </div>
+
+        <div class="bento-card">
+          <span class="bento-card__tag">MEDIA WING</span>
+          <h3 class="bento-card__title">Media Suites</h3>
+          <p class="bento-card__desc">Projector rooms for rehearsals, group work, and presentations.</p>
+        </div>
+
+        <div class="bento-card" style="grid-column: span 2;">
+          <span class="bento-card__tag">ARCHIVE LEVEL</span>
+          <h3 class="bento-card__title">Archive Reference Room</h3>
+          <p class="bento-card__desc">Surrounded by historical references, wide tables, and independent lighting for intensive research.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== PRIORITY ENGINE CALCULATOR (HUD LAYOUT) ==================== -->
     <section class="engine-simulator-section" id="engine">
       <div class="engine-simulator-grid">
         <div>
@@ -450,226 +241,149 @@
 
           <div class="gauge-display">
             <div class="gauge-score-row">
-              <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--cream);">Computed Priority Score</span>
+              <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--gold);">Computed Priority Score</span>
               <span class="gauge-score-number" id="simScoreVal">92</span>
             </div>
             <div class="gauge-formula" id="simFormula">
-              Score = 45 (Role) + 35 (Exam Proximity) - 0 (0 Strikes × 15) + 12 (Check-in Bonus)
+              Score = 45 (Role) + 35 (Exam Urgency) - 0 (0 Strikes × 15) + 12 (Check-in Bonus)
             </div>
           </div>
 
           <div class="penalty-trigger-bar">
             <div>
-              <strong style="color: #F89C90; font-size: 11.5px; text-transform: uppercase; display: block;">No-Show Strikes</strong>
+              <strong style="color: #F5EDE0; font-size: 11.5px; text-transform: uppercase; display: block;">No-Show Strikes</strong>
               <span style="font-size: 11.5px; color: var(--text-muted);" id="simStrikesText">0 Strikes (-0 pts)</span>
             </div>
             <div style="display: flex; gap: 6px;">
-              <button class="btn btn--outline" style="padding: 5px 10px; font-size: 10.5px; border-color: var(--danger); color: #F89C90;" id="btnAddStrike">+1 No-Show Strike</button>
+              <button class="btn btn--outline" style="padding: 5px 10px; font-size: 10.5px; border-color: var(--danger); color: #F5C9BD;" id="btnAddStrike">+1 No-Show Strike</button>
               <button class="btn btn--outline" style="padding: 5px 10px; font-size: 10.5px;" id="btnResetStrikes">Clear</button>
             </div>
           </div>
->>>>>>> Stashed changes
         </div>
       </div>
     </section>
 
-<<<<<<< Updated upstream
-    <!-- ==================== ROOM AVAILABILITY SECTION ==================== -->
-    <section class="availability-section" id="hours">
-=======
-    <!-- ==================== ROOM AVAILABILITY (2X2 GRID) ==================== -->
+    <!-- ==================== REDESIGNED HOGWARTS GRAND LIBRARY ROOM SUITES ==================== -->
     <section class="availability-section" id="rooms">
->>>>>>> Stashed changes
       <div class="availability-section__header">
-        <p class="eyebrow">FIND YOUR PLACE</p>
-        <h2 class="section-title">Room availability</h2>
-        <p class="section-desc">Four places to study, meet, present, and research—each ready when you are.</p>
+        <div>
+          <p class="eyebrow">✨ HOGWARTS GRAND LIBRARY WINGS</p>
+          <h2 class="section-title">Room availability</h2>
+          <p class="section-desc">Four specialized study wings equipped with live capacity trackers, acoustic controls, and priority holds.</p>
+        </div>
+
+        <div class="room-category-tabs">
+          <button class="category-tab active" onclick="filterRoomCards('all', this)">All Wings</button>
+          <button class="category-tab" onclick="filterRoomCards('quiet', this)">Quiet Pods</button>
+          <button class="category-tab" onclick="filterRoomCards('group', this)">Group & Media</button>
+        </div>
       </div>
 
       <div class="rooms-grid">
-<<<<<<< Updated upstream
-        <!-- Room Card 1 -->
-        <article class="room-card">
-          <div class="room-card__media">
-            <img src="assets/room_long_table.jpg" alt="The long-table room with warm bay window and sofa seating" class="room-card__img" loading="lazy">
-          </div>
-=======
 
-        <div class="room-card">
->>>>>>> Stashed changes
+        <!-- Card 1: The Long Table Room -->
+        <div class="room-card" data-category="group">
           <div class="room-card__body">
-            <span class="room-card__tag">COMMUNITY READING ROOM · NORTH WING</span>
-            <h3 class="room-card__title">The long-table room</h3>
-            <p class="room-card__desc">A sunlit shared room with a long table, lounge seating, and space for discussion or independent work.</p>
-<<<<<<< Updated upstream
-            <button class="btn btn--room-pill" aria-label="View The long-table room">
-              View this room <span class="arrow" aria-hidden="true">→</span>
-            </button>
-          </div>
-        </article>
-
-        <!-- Room Card 2 -->
-        <article class="room-card">
-          <div class="room-card__media">
-            <img src="assets/room_quiet_desk.jpg" alt="The quiet desk with panoramic window and long wooden table" class="room-card__img" loading="lazy">
-          </div>
-          <div class="room-card__body">
-            <span class="room-card__tag">SOLO STUDY · QUIET WING</span>
-            <h3 class="room-card__title">The quiet desk</h3>
-            <p class="room-card__desc">A calm desk by the windows for deep reading, focused writing, and uninterrupted work.</p>
-            <button class="btn btn--room-pill" aria-label="View The quiet desk">
-              View this room <span class="arrow" aria-hidden="true">→</span>
-            </button>
-          </div>
-        </article>
-
-        <!-- Room Card 3 -->
-        <article class="room-card">
-          <div class="room-card__media">
-            <img src="assets/room_presentation.jpg" alt="The presentation room with timber architecture and media space" class="room-card__img" loading="lazy">
-          </div>
-          <div class="room-card__body">
-            <span class="room-card__tag">PROJECTOR ROOM · MEDIA WING</span>
-            <h3 class="room-card__title">The presentation room</h3>
-            <p class="room-card__desc">A flexible room with a large screen, long table, and space for rehearsals, seminars, or group work.</p>
-            <button class="btn btn--room-pill" aria-label="View The presentation room">
-              View this room <span class="arrow" aria-hidden="true">→</span>
-            </button>
-          </div>
-        </article>
-
-        <!-- Room Card 4 -->
-        <article class="room-card">
-          <div class="room-card__media">
-            <img src="assets/room_research.jpg" alt="The research room lined with vintage library bookshelves" class="room-card__img" loading="lazy">
-          </div>
-          <div class="room-card__body">
-            <span class="room-card__tag">RESEARCH ROOM · ARCHIVE LEVEL</span>
-            <h3 class="room-card__title">The research room</h3>
-            <p class="room-card__desc">A quiet reference space with surrounding shelves, generous tables, and room to spread out your sources.</p>
-            <button class="btn btn--room-pill" aria-label="View The research room">
-              View this room <span class="arrow" aria-hidden="true">→</span>
-            </button>
-          </div>
-        </article>
-      </div>
-    </section>
-
-    <!-- ==================== BEHIND THE DESK / INFO SECTION ==================== -->
-    <section class="behind-the-desk-section" id="program">
-      <div class="behind-the-desk-card">
-        <!-- Left Side: Dark Info Panel -->
-        <div class="desk-panel desk-panel--dark">
-          <span class="desk-panel__eyebrow">BEHIND THE DESK</span>
-          <h2 class="desk-panel__title">A library that<br>studies with you.</h2>
-          <p class="desk-panel__desc">Live availability, quiet rules, and room details—organized so your next study session feels effortless.</p>
-        </div>
-
-        <!-- Right Side: Cream Feature List -->
-        <div class="desk-panel desk-panel--cream">
-          <!-- Feature Item 1 -->
-          <div class="feature-item">
-            <div class="feature-item__icon-wrap">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#944638" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-                <polyline points="12 6 12 12 16 14"></polyline>
-                <path d="M12 2v2"></path>
-                <path d="M12 20v2"></path>
-                <path d="M2 12h2"></path>
-                <path d="M20 12h2"></path>
-              </svg>
+            <div>
+              <span class="room-card__tag">COMMUNITY READING ROOM · NORTH WING</span>
+              <h3 class="room-card__title">The long-table room</h3>
+              <p class="room-card__desc">A sunlit shared room with a long oak table, lounge seating, and space for discussion or independent work.</p>
+              
+              <div class="room-amenities-row">
+                <span class="amenity-chip">⚡ USB-C Outlets</span>
+                <span class="amenity-chip">☀️ Natural Light</span>
+                <span class="amenity-chip">👥 Shared Discussion</span>
+              </div>
             </div>
-            <div class="feature-item__content">
-              <h3 class="feature-item__title">Live availability</h3>
-              <p class="feature-item__text">No more double bookings or manual room checks.</p>
-            </div>
-          </div>
 
-          <!-- Feature Item 2 -->
-          <div class="feature-item">
-            <div class="feature-item__icon-wrap">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#944638" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M9 11l3 3L22 4"></path>
-                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-              </svg>
-            </div>
-            <div class="feature-item__content">
-              <h3 class="feature-item__title">Rules with room to breathe</h3>
-              <p class="feature-item__text">Define every limit, buffer, permission, and opening hour once.</p>
-            </div>
-=======
             <button class="btn btn--room-pill" onclick="openReservationModal('The long-table room (North Wing)')">
-              View this room <span class="arrow">→</span>
+              Reserve Seat <span class="arrow">→</span>
             </button>
           </div>
 
           <div class="room-card__media">
             <img src="images/room_long_table.jpg" alt="The long-table room" class="room-card__img" loading="lazy">
-            <span class="room-card__capacity-chip">12 Seats Open</span>
+            <span class="room-card__capacity-chip">✨ 12 Seats Open</span>
           </div>
         </div>
 
-        <div class="room-card room-card--reverse">
+        <!-- Card 2: The Quiet Desk with Floating Character Cutout Sticker -->
+        <div class="room-card room-card--reverse" data-category="quiet">
+          <!-- Background-free Student Character Cutout Sticker -->
+          <img src="images/character-scene.png" alt="Student study character cutout" class="room-character-cutout">
+
           <div class="room-card__media">
             <img src="images/room_quiet_desk.jpg" alt="The quiet desk" class="room-card__img" loading="lazy">
-            <span class="room-card__capacity-chip">4 Thesis Pods Open</span>
+            <span class="room-card__capacity-chip">🕯️ 4 Pods Open</span>
           </div>
 
           <div class="room-card__body">
-            <span class="room-card__tag">SOLO STUDY · QUIET WING</span>
-            <h3 class="room-card__title">The quiet desk</h3>
-            <p class="room-card__desc">A calm desk by the windows for deep reading, focused writing, and uninterrupted work.</p>
+            <div>
+              <span class="room-card__tag">SOLO STUDY · QUIET WING</span>
+              <h3 class="room-card__title">The quiet desk</h3>
+              <p class="room-card__desc">A calm desk by the windows for deep reading, focused writing, and uninterrupted thesis work.</p>
+              
+              <div class="room-amenities-row">
+                <span class="amenity-chip">🔇 Zero-Noise Zone</span>
+                <span class="amenity-chip">🎓 Thesis Priority</span>
+                <span class="amenity-chip">💡 Task Lighting</span>
+              </div>
+            </div>
+
             <button class="btn btn--room-pill" onclick="openReservationModal('The quiet desk (Quiet Wing)')">
-              View this room <span class="arrow">→</span>
+              Reserve Pod <span class="arrow">→</span>
             </button>
->>>>>>> Stashed changes
           </div>
         </div>
-      </div>
-    </section>
 
-<<<<<<< Updated upstream
-  </main>
-
-  <!-- ==================== SIMPLE MODAL / POPUP FOR INTERACTIVITY ==================== -->
-  <dialog class="modal" id="reserveModal">
-    <div class="modal__content">
-      <button class="modal__close" id="modalClose" aria-label="Close dialog">✕</button>
-      <span class="eyebrow">RESERVATION PASS</span>
-      <h3 class="modal__title">Reserve your table</h3>
-      <p class="modal__text">Choose your preferred study room and time slot at Atlas Reading Room.</p>
-      <form class="modal__form" onsubmit="event.preventDefault(); alert('Reservation confirmed!'); document.getElementById('reserveModal').close();">
-        <label class="modal__label">Select Space
-          <select class="modal__select">
-=======
-        <div class="room-card">
+        <!-- Card 3: The Presentation Room -->
+        <div class="room-card" data-category="group">
           <div class="room-card__body">
-            <span class="room-card__tag">PROJECTOR ROOM · MEDIA WING</span>
-            <h3 class="room-card__title">The presentation room</h3>
-            <p class="room-card__desc">A flexible room with a large screen, long table, and space for rehearsals, seminars, or group work.</p>
+            <div>
+              <span class="room-card__tag">PROJECTOR ROOM · MEDIA WING</span>
+              <h3 class="room-card__title">The presentation room</h3>
+              <p class="room-card__desc">A flexible room with a large screen, long table, and space for rehearsals, seminars, or group work.</p>
+              
+              <div class="room-amenities-row">
+                <span class="amenity-chip">📺 4K Display Board</span>
+                <span class="amenity-chip">🎙️ Seminar Audio</span>
+                <span class="amenity-chip">📊 Conference Desk</span>
+              </div>
+            </div>
+
             <button class="btn btn--room-pill" onclick="openReservationModal('The presentation room (Media Wing)')">
-              View this room <span class="arrow">→</span>
+              Reserve Media Suite <span class="arrow">→</span>
             </button>
           </div>
 
           <div class="room-card__media">
             <img src="images/room_presentation.jpg" alt="The presentation room" class="room-card__img" loading="lazy">
-            <span class="room-card__capacity-chip">1 Media Suite Open</span>
+            <span class="room-card__capacity-chip">🔮 1 Suite Open</span>
           </div>
         </div>
 
-        <div class="room-card room-card--reverse">
+        <!-- Card 4: The Research Room -->
+        <div class="room-card room-card--reverse" data-category="quiet">
           <div class="room-card__media">
             <img src="images/room_research.jpg" alt="The research room" class="room-card__img" loading="lazy">
-            <span class="room-card__capacity-chip">6 Archive Desks Open</span>
+            <span class="room-card__capacity-chip">📜 6 Archive Desks Open</span>
           </div>
 
           <div class="room-card__body">
-            <span class="room-card__tag">RESEARCH ROOM · ARCHIVE LEVEL</span>
-            <h3 class="room-card__title">The research room</h3>
-            <p class="room-card__desc">A quiet reference space with surrounding shelves, generous tables, and room to spread out your sources.</p>
+            <div>
+              <span class="room-card__tag">RESEARCH ROOM · ARCHIVE LEVEL</span>
+              <h3 class="room-card__title">The research room</h3>
+              <p class="room-card__desc">A quiet reference space surrounded by shelves, generous tables, and room to spread out your sources.</p>
+              
+              <div class="room-amenities-row">
+                <span class="amenity-chip">📚 Special Collections</span>
+                <span class="amenity-chip">📐 Extra Wide Tables</span>
+                <span class="amenity-chip">🔍 Archive Scanner</span>
+              </div>
+            </div>
+
             <button class="btn btn--room-pill" onclick="openReservationModal('The research room (Archive Level)')">
-              View this room <span class="arrow">→</span>
+              Reserve Research Desk <span class="arrow">→</span>
             </button>
           </div>
         </div>
@@ -689,7 +403,7 @@
         <div class="desk-panel desk-panel--cream">
           <div class="feature-item">
             <div class="feature-item__icon-wrap">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#944638" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8C3A24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"></circle>
                 <polyline points="12 6 12 12 16 14"></polyline>
               </svg>
@@ -702,7 +416,7 @@
 
           <div class="feature-item">
             <div class="feature-item__icon-wrap">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#944638" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8C3A24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M9 11l3 3L22 4"></path>
                 <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
               </svg>
@@ -725,9 +439,9 @@
         <div class="footer__brand-col">
           <div class="brand">
             <svg width="24" height="24" viewBox="0 0 28 28" fill="none">
-              <polygon points="14,3 25,9 14,15 3,9" fill="#F1E6D1" opacity="0.95"/>
-              <polygon points="3,9 14,15 14,25 3,19" fill="#944638"/>
-              <polygon points="14,15 25,9 25,19 14,25" fill="#4A261D"/>
+              <polygon points="14,3 25,9 14,15 3,9" fill="#E8C382" opacity="0.95"/>
+              <polygon points="14,15 25,9 25,19 14,25" fill="#7D8B6A"/>
+              <polygon points="3,9 14,15 14,25 3,19" fill="#8C3A24"/>
             </svg>
             <span class="brand__name">ATLAS ROOM</span>
           </div>
@@ -776,28 +490,19 @@
   <dialog class="modal" id="reserveModal">
     <div class="modal__content">
       <button class="modal__close" id="modalClose" aria-label="Close">✕</button>
-      <span class="eyebrow">LIBRARY PASS RESERVATION</span>
+      <span class="eyebrow" style="color: var(--brick);">LIBRARY PASS RESERVATION</span>
       <h3 class="modal__title" id="modalRoomTitle">Reserve your table</h3>
       <p class="modal__text">Your current Priority Score (<strong id="modalScoreDisplay">92 pts</strong>) will be applied to this hold.</p>
       
       <form class="modal__form" onsubmit="event.preventDefault(); handleModalSubmit();">
         <label class="modal__label">Select Space
           <select class="modal__select" id="modalSpaceSelect">
->>>>>>> Stashed changes
             <option>The long-table room (North Wing)</option>
             <option>The quiet desk (Quiet Wing)</option>
             <option>The presentation room (Media Wing)</option>
             <option>The research room (Archive Level)</option>
           </select>
         </label>
-<<<<<<< Updated upstream
-        <button type="submit" class="btn btn--brick-cta modal__submit">CONFIRM SEAT →</button>
-      </form>
-    </div>
-  </dialog>
-
-  <script src="js/script.js"></script>
-=======
 
         <label class="modal__label">Time Window
           <select class="modal__select" id="modalTimeSelect">
@@ -812,6 +517,23 @@
           CONFIRM PRIORITY HOLD →
         </button>
       </form>
+    </div>
+  </dialog>
+
+  <!-- ==================== 3D VIDEO TOUR DIALOG MODAL ==================== -->
+  <dialog class="modal modal--video" id="videoTourModal">
+    <div class="modal__content modal__content--video">
+      <button class="modal__close modal__close--light" id="videoModalClose" aria-label="Close">✕</button>
+      <span class="eyebrow" style="color: var(--gold);">3D VIRTUAL ARCHITECTURAL TOUR</span>
+      <h3 class="modal__title" style="color: var(--cream);">Atlas Reading Room Atmosphere</h3>
+      <p style="font-size: 13px; color: var(--cream-muted);">Experience the ambient lighting, acoustic noise dampening, and seating arrangements in full resolution.</p>
+
+      <div class="video-modal-player">
+        <video controls playsinline class="modal-full-video-element" id="modalTourVideo">
+          <source src="images/rooms.mp4" type="video/mp4">
+          Your browser does not support HTML5 video playback.
+        </video>
+      </div>
     </div>
   </dialog>
 
@@ -844,6 +566,105 @@
         `${strikes} Strikes (-${penalty} pts penalty)`;
     }
 
+    /* FULL-SCREEN GOLDEN CONSTELLATION LINE NET ANIMATION CANVAS */
+    function initGoldenConstellationCanvas() {
+      const canvas = document.getElementById('goldenConstellationCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      let width = canvas.width = window.innerWidth;
+      let height = canvas.height = window.innerHeight;
+
+      window.addEventListener('resize', () => {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+      });
+
+      const nodes = [];
+      const nodeCount = 50;
+
+      for (let i = 0; i < nodeCount; i++) {
+        nodes.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          vx: (Math.random() - 0.5) * 0.6,
+          vy: (Math.random() - 0.5) * 0.6,
+          radius: Math.random() * 2.5 + 1.5,
+          pulse: Math.random() * Math.PI * 2
+        });
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, width, height);
+
+        // Update positions & draw nodes
+        nodes.forEach((node, i) => {
+          node.x += node.vx;
+          node.y += node.vy;
+          node.pulse += 0.03;
+
+          if (node.x < 0 || node.x > width) node.vx *= -1;
+          if (node.y < 0 || node.y > height) node.vy *= -1;
+
+          // Draw node glow dot
+          const glowRad = node.radius + Math.sin(node.pulse) * 1.2;
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, Math.max(1, glowRad), 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(232, 195, 130, 0.85)';
+          ctx.shadowColor = 'rgba(232, 195, 130, 0.9)';
+          ctx.shadowBlur = 10;
+          ctx.fill();
+          ctx.shadowBlur = 0;
+
+          // Connect nearby nodes with golden lines
+          for (let j = i + 1; j < nodes.length; j++) {
+            const other = nodes[j];
+            const dx = other.x - node.x;
+            const dy = other.y - node.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            if (dist < 150) {
+              const alpha = (1 - dist / 150) * 0.38;
+              ctx.beginPath();
+              ctx.moveTo(node.x, node.y);
+              ctx.lineTo(other.x, other.y);
+              ctx.strokeStyle = `rgba(232, 195, 130, ${alpha})`;
+              ctx.lineWidth = 1;
+              ctx.stroke();
+            }
+          }
+        });
+
+        requestAnimationFrame(draw);
+      }
+
+      draw();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initGoldenConstellationCanvas();
+    });
+    setTimeout(() => {
+      initGoldenConstellationCanvas();
+    }, 100);
+
+    /* Category Filter Logic for Room Cards */
+    window.filterRoomCards = function(category, btnElement) {
+      const tabs = document.querySelectorAll('.category-tab');
+      tabs.forEach(t => t.classList.remove('active'));
+      if (btnElement) btnElement.classList.add('active');
+
+      const cards = document.querySelectorAll('.rooms-grid .room-card');
+      cards.forEach(card => {
+        const cat = card.getAttribute('data-category');
+        if (category === 'all' || cat === category) {
+          card.style.display = 'grid';
+          card.style.opacity = '1';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    };
+
     document.getElementById('simRole').addEventListener('change', function() {
       roleBase = parseInt(this.value, 10);
       refreshSimulatorUI();
@@ -870,6 +691,14 @@
       triggerToast('✓ No-show strikes cleared');
     });
 
+    // Hero quick search handler
+    window.handleHeroSearch = function() {
+      const space = document.getElementById('heroSpaceSelect').value;
+      const time = document.getElementById('heroTimeSelect').value;
+      openReservationModal(space);
+      triggerToast(`Showing seat availability for ${space.split('(')[0]} (${time})`);
+    };
+
     // Modal controls
     const reserveModal = document.getElementById('reserveModal');
     const modalClose = document.getElementById('modalClose');
@@ -889,13 +718,40 @@
     };
 
     document.getElementById('btnHeaderReserve').addEventListener('click', () => openReservationModal());
-    document.getElementById('heroCtaBtn').addEventListener('click', () => openReservationModal());
     modalClose.addEventListener('click', () => reserveModal.close());
 
     reserveModal.addEventListener('click', (e) => {
       const rect = reserveModal.getBoundingClientRect();
       if (!(rect.top <= e.clientY && e.clientY <= rect.top + rect.height && rect.left <= e.clientX && e.clientX <= rect.left + rect.width)) {
         reserveModal.close();
+      }
+    });
+
+    // 3D Video Tour Modal Controls
+    const videoTourModal = document.getElementById('videoTourModal');
+    const videoModalClose = document.getElementById('videoModalClose');
+    const modalTourVideo = document.getElementById('modalTourVideo');
+
+    window.openVideoTourModal = function() {
+      if (modalTourVideo) {
+        modalTourVideo.currentTime = 0;
+        modalTourVideo.play().catch(() => {});
+      }
+      videoTourModal.showModal();
+    };
+
+    function closeVideoModal() {
+      if (modalTourVideo) {
+        modalTourVideo.pause();
+      }
+      videoTourModal.close();
+    }
+
+    videoModalClose.addEventListener('click', closeVideoModal);
+    videoTourModal.addEventListener('click', (e) => {
+      const rect = videoTourModal.getBoundingClientRect();
+      if (!(rect.top <= e.clientY && e.clientY <= rect.top + rect.height && rect.left <= e.clientX && e.clientX <= rect.left + rect.width)) {
+        closeVideoModal();
       }
     });
 
@@ -922,6 +778,5 @@
 
     refreshSimulatorUI();
   </script>
->>>>>>> Stashed changes
 </body>
 </html>
