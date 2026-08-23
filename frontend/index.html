@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<<<<<<< Updated upstream
   <title>Atlas Room — Find your corner. Open your next chapter.</title>
   <meta name="description" content="Reserve a place among the shelves—whether you're reading deeply, meeting quietly, or writing toward tomorrow.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -19,10 +20,164 @@
       <a href="#" class="brand" aria-label="Atlas Room Home">
         <svg class="brand__icon" width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
           <!-- 3D folded book / geometric block icon -->
+=======
+  <title>Atlas Room — Priority Queue Library Reservation & Anti-Cheat Engine</title>
+  <meta name="description" content="A weighted priority-queue reservation system for library seats and research pods with real-time anti-cheat penalties.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/index.css">
+
+  <style>
+    /* FINAL ROOM LAYOUT: image and content are separate cards */
+    .availability-section__header,
+    .rooms-grid {
+      max-width: 920px;
+      margin-left: auto;
+      margin-right: auto;
+      width: 100%;
+    }
+
+    .availability-section__header {
+      margin-bottom: 36px;
+    }
+
+    .rooms-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    .room-card,
+    .room-card.room-card--reverse {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 22px;
+      background: transparent;
+      padding: 0;
+      box-shadow: none;
+      border-radius: 0;
+      position: relative;
+      transition: none;
+    }
+
+    .room-card:hover {
+      transform: none;
+      box-shadow: none;
+    }
+
+    .room-card__body,
+    .room-card__media {
+      background: var(--cream);
+      border-radius: var(--radius-xl);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
+      min-width: 0;
+      height: 250px;
+    }
+
+    .room-card__body {
+      padding: 26px 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .room-card__tag {
+      margin-bottom: 4px;
+    }
+
+    .room-card__title {
+      font-size: 23px;
+      margin-bottom: 6px;
+      line-height: 1.2;
+    }
+
+    .room-card__desc {
+      font-size: 13px;
+      line-height: 1.45;
+      margin-bottom: 12px;
+      flex: none;
+    }
+
+    .room-card__media {
+      position: relative;
+      overflow: hidden;
+      margin: 0;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .room-card__img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      min-height: auto;
+      object-fit: contain;
+      border-radius: var(--radius-lg);
+      transition: transform 0.4s ease;
+    }
+
+    .room-card__media:hover .room-card__img {
+      transform: scale(1.03);
+    }
+
+    .room-card__capacity-chip {
+      z-index: 2;
+    }
+
+    .room-card--reverse .room-card__media {
+      order: 1;
+    }
+
+    .room-card--reverse .room-card__body {
+      order: 2;
+    }
+
+    @media (max-width: 760px) {
+      .rooms-grid {
+        gap: 26px;
+      }
+
+      .room-card,
+      .room-card.room-card--reverse {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .room-card__body {
+        order: 2 !important;
+        height: auto;
+        min-height: auto;
+        padding: 26px 22px;
+      }
+
+      .room-card__media {
+        order: 1 !important;
+        height: 240px;
+        min-height: 240px;
+      }
+
+      .room-card__img {
+        min-height: 240px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==================== HEADER ==================== -->
+  <header class="header">
+    <div class="container header__inner">
+      <a href="#" class="brand">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+>>>>>>> Stashed changes
           <polygon points="14,3 25,9 14,15 3,9" fill="#F1E6D1" opacity="0.95"/>
           <polygon points="3,9 14,15 14,25 3,19" fill="#944638"/>
           <polygon points="14,15 25,9 25,19 14,25" fill="#4A261D"/>
         </svg>
+<<<<<<< Updated upstream
         <span class="brand__name">ATLAS ROOM</span>
       </a>
 
@@ -55,6 +210,38 @@
 
     <!-- ==================== TOP DECORATIVE SHELF WIDGET ==================== -->
     <section class="shelf-widget" aria-hidden="true">
+=======
+        <div>
+          <span class="brand__name">ATLAS ROOM</span>
+          <span class="brand__tag">PRIORITY HOLD ENGINE</span>
+        </div>
+      </a>
+
+      <nav class="nav__links">
+        <a href="#spaces" class="nav__link">SPACES & WINGS</a>
+        <a href="#engine" class="nav__link">PRIORITY CALCULATOR</a>
+        <a href="#rooms" class="nav__link">ROOM AVAILABILITY</a>
+        <a href="#algorithm" class="nav__link">ANTI-CHEAT RULES</a>
+      </nav>
+
+      <div class="header__actions">
+        <div class="user-pill-display" title="Live priority weight calculated for current user">
+          <div class="user-pill-avatar" id="avatarLetter">T</div>
+          <div>
+            <span style="font-size: 10px; color: var(--text-muted); display: block; text-transform: uppercase;">Priority Tier</span>
+            <span class="user-pill-score" id="headerScore">92 pts (Tier 1)</span>
+          </div>
+        </div>
+        <button class="btn btn--cream-pill" id="btnHeaderReserve">RESERVE A SEAT</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- ==================== TOP DECORATIVE SHELF & LIVE QUEUE GAUGES ==================== -->
+    <section class="shelf-widget" aria-label="System status bar">
+>>>>>>> Stashed changes
       <div class="shelf-widget__top-bar">
         <div class="shelf-widget__pills">
           <span class="pill pill--brick"></span>
@@ -67,15 +254,31 @@
           <span class="line"></span>
           <span class="line"></span>
         </div>
+<<<<<<< Updated upstream
       </div>
       <div class="shelf-widget__bottom-bar">
         <div class="shelf-widget__olive-light"></div>
         <div class="shelf-widget__olive-dark"></div>
+=======
+        <div class="shelf-widget__live-stat">
+          <span class="live-pulse-dot"></span>
+          <span>Exam Week Priority Protocol: Active</span>
+        </div>
+      </div>
+      <div class="shelf-widget__bottom-bar">
+        <div class="shelf-widget__olive-light">
+          Thesis Research Allocation: 70% Priority Quota
+        </div>
+        <div class="shelf-widget__olive-dark">
+          General Study: 30%
+        </div>
+>>>>>>> Stashed changes
       </div>
     </section>
 
     <!-- ==================== HERO SECTION ==================== -->
     <section class="hero">
+<<<<<<< Updated upstream
       <p class="eyebrow">A ROOM FOR EVERY KIND OF STUDY</p>
       <h1 class="hero__title">Find your corner.<br>Open your next chapter.</h1>
       <p class="hero__desc">Reserve a place among the shelves—whether you're reading deeply, meeting quietly, or writing toward tomorrow.</p>
@@ -92,10 +295,36 @@
         <!-- Main Artwork / Illustration -->
         <div class="featured-scene__art">
           <img src="assets/atlas_library.jpg" alt="Illustrated modern library reading room with readers and lush plants" class="featured-scene__img">
+=======
+      <p class="eyebrow">
+        <span>A ROOM FOR EVERY KIND OF STUDY</span>
+        <span class="badge badge--amber" style="font-size: 10px; padding: 2px 8px;">FINAL-YEAR THESIS PRIORITY</span>
+      </p>
+      <h1 class="hero__heading">Find your corner.<br>Open your next chapter.</h1>
+      <p class="hero__text">
+        Reserve a place among the shelves—whether you're reading deeply, meeting quietly, or writing toward tomorrow. During exam weeks, our anti-cheat weighted queue prioritizes final-year and thesis students over simple first-come holds.
+      </p>
+      <div class="hero__actions-row">
+        <button class="btn btn--brick" id="heroCtaBtn">
+          FIND A STUDY SPACE <span class="arrow">→</span>
+        </button>
+        <a href="#engine" class="btn btn--outline">
+          CALCULATE MY PRIORITY SCORE
+        </a>
+      </div>
+    </section>
+
+    <!-- ==================== FEATURED LIBRARY SCENE WITH 4 FLOATING CARDS ==================== -->
+    <section class="featured-scene" id="spaces">
+      <div class="featured-scene__wrapper">
+        <div class="featured-scene__art">
+          <img src="images/atlas_library.jpg" alt="Atlas reading room interior with students, books, and plants" class="featured-scene__img">
+>>>>>>> Stashed changes
         </div>
 
         <!-- Floating Card 1: Top Left (Library Pass) -->
         <div class="float-card float-card--top-left">
+<<<<<<< Updated upstream
           <div class="float-card__badge-monogram">
             <span class="monogram-letter">N</span>
           </div>
@@ -140,12 +369,117 @@
           <a href="#floorplan" class="float-card__plan-link">
             View plan <span class="arrow" aria-hidden="true">→</span>
           </a>
+=======
+          <div class="float-card__badge-monogram">N</div>
+          <span class="float-card__tag">LIBRARY PASS</span>
+          <h2 class="float-card__title">Atlas Reading Room</h2>
+          <p class="float-card__text">A provisional place for quiet work and open tables.</p>
+          <div class="float-card__meta">
+            <span>4 seats available</span>
+            <span style="color: var(--olive-dark);">Open today</span>
+          </div>
+        </div>
+
+        <!-- Floating Card 2: Top Right (Reading Conditions) -->
+        <div class="float-card float-card--top-right">
+          <span class="float-card__tag float-card__tag--muted">READING CONDITIONS</span>
+          <h2 class="float-card__title float-card__title--large">Quiet</h2>
+          <div class="float-card__pill-highlight">
+            Best for focused study
+          </div>
+        </div>
+
+        <!-- Floating Card 3: Bottom Left (Today's Notes) -->
+        <div class="float-card float-card--bottom-left">
+          <h3 class="float-card__notes-title">Today's notes</h3>
+          <ul class="float-card__notes-list">
+            <li>Thesis Defense Window: Day 4 of 14</li>
+            <li>Zero No-Show Strikes recorded</li>
+          </ul>
+        </div>
+
+        <!-- Floating Card 4: Bottom Right (Floor Plan Radar) -->
+        <div class="float-card float-card--bottom-right">
+          <h3 class="float-card__plan-title">Floor plan</h3>
+          <div class="float-card__plan-preview">
+            <div class="plan-grid-preview"></div>
+            <span style="font-size: 11px; font-weight: 700; color: #fff; position: relative; z-index: 2;">ZONE A • B • C</span>
+          </div>
+          <a href="#rooms" class="float-card__plan-link">
+            View plan <span class="arrow">→</span>
+          </a>
         </div>
       </div>
     </section>
 
+    <!-- ==================== INTERACTIVE PRIORITY ENGINE SIMULATOR ==================== -->
+    <section class="engine-simulator-section" id="engine">
+      <div class="engine-simulator-grid">
+        <div>
+          <p class="eyebrow">WEIGHTED QUEUE CONTROLLER</p>
+          <h2 class="simulator-title">How your score is calculated.</h2>
+          <p class="simulator-desc">
+            FCFS systems are easily gamed by bots. Atlas Room evaluates <strong>Role Urgency</strong>, <strong>Time-to-Exam Proximity</strong>, and <strong>No-Show History</strong> to ensure library tables are guaranteed to students with imminent defense dates.
+          </p>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <span class="badge badge--live">Anti-Cheat Algorithm Active</span>
+            <span class="badge badge--cyan">Real-Time Bumping Protection</span>
+          </div>
+        </div>
+
+        <div class="controller-box">
+          <div class="control-row">
+            <label class="control-label" for="simRole">Your Academic Standing</label>
+            <select class="control-select" id="simRole">
+              <option value="45" selected>Final-Year / Thesis Student (+45 pts)</option>
+              <option value="30">Master's / Postgrad Researcher (+30 pts)</option>
+              <option value="20">Undergrad with Exam in 48h (+20 pts)</option>
+              <option value="10">General Student (+10 pts)</option>
+            </select>
+          </div>
+
+          <div class="control-row">
+            <label class="control-label" for="simExam">Exam Proximity Window</label>
+            <select class="control-select" id="simExam">
+              <option value="35" selected>Exam / Defense within 48 Hours (+35 pts)</option>
+              <option value="20">Exam within 7 Days (+20 pts)</option>
+              <option value="10">Assignment due in 2 weeks (+10 pts)</option>
+              <option value="0">Standard Term (+0 pts)</option>
+            </select>
+          </div>
+
+          <div class="gauge-display">
+            <div class="gauge-score-row">
+              <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--cream);">Computed Priority Score</span>
+              <span class="gauge-score-number" id="simScoreVal">92</span>
+            </div>
+            <div class="gauge-formula" id="simFormula">
+              Score = 45 (Role) + 35 (Exam Proximity) - 0 (0 Strikes × 15) + 12 (Check-in Bonus)
+            </div>
+          </div>
+
+          <div class="penalty-trigger-bar">
+            <div>
+              <strong style="color: #F89C90; font-size: 11.5px; text-transform: uppercase; display: block;">No-Show Strikes</strong>
+              <span style="font-size: 11.5px; color: var(--text-muted);" id="simStrikesText">0 Strikes (-0 pts)</span>
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <button class="btn btn--outline" style="padding: 5px 10px; font-size: 10.5px; border-color: var(--danger); color: #F89C90;" id="btnAddStrike">+1 No-Show Strike</button>
+              <button class="btn btn--outline" style="padding: 5px 10px; font-size: 10.5px;" id="btnResetStrikes">Clear</button>
+            </div>
+          </div>
+>>>>>>> Stashed changes
+        </div>
+      </div>
+    </section>
+
+<<<<<<< Updated upstream
     <!-- ==================== ROOM AVAILABILITY SECTION ==================== -->
     <section class="availability-section" id="hours">
+=======
+    <!-- ==================== ROOM AVAILABILITY (2X2 GRID) ==================== -->
+    <section class="availability-section" id="rooms">
+>>>>>>> Stashed changes
       <div class="availability-section__header">
         <p class="eyebrow">FIND YOUR PLACE</p>
         <h2 class="section-title">Room availability</h2>
@@ -153,15 +487,21 @@
       </div>
 
       <div class="rooms-grid">
+<<<<<<< Updated upstream
         <!-- Room Card 1 -->
         <article class="room-card">
           <div class="room-card__media">
             <img src="assets/room_long_table.jpg" alt="The long-table room with warm bay window and sofa seating" class="room-card__img" loading="lazy">
           </div>
+=======
+
+        <div class="room-card">
+>>>>>>> Stashed changes
           <div class="room-card__body">
             <span class="room-card__tag">COMMUNITY READING ROOM · NORTH WING</span>
             <h3 class="room-card__title">The long-table room</h3>
             <p class="room-card__desc">A sunlit shared room with a long table, lounge seating, and space for discussion or independent work.</p>
+<<<<<<< Updated upstream
             <button class="btn btn--room-pill" aria-label="View The long-table room">
               View this room <span class="arrow" aria-hidden="true">→</span>
             </button>
@@ -257,11 +597,38 @@
               <h3 class="feature-item__title">Rules with room to breathe</h3>
               <p class="feature-item__text">Define every limit, buffer, permission, and opening hour once.</p>
             </div>
+=======
+            <button class="btn btn--room-pill" onclick="openReservationModal('The long-table room (North Wing)')">
+              View this room <span class="arrow">→</span>
+            </button>
+          </div>
+
+          <div class="room-card__media">
+            <img src="images/room_long_table.jpg" alt="The long-table room" class="room-card__img" loading="lazy">
+            <span class="room-card__capacity-chip">12 Seats Open</span>
+          </div>
+        </div>
+
+        <div class="room-card room-card--reverse">
+          <div class="room-card__media">
+            <img src="images/room_quiet_desk.jpg" alt="The quiet desk" class="room-card__img" loading="lazy">
+            <span class="room-card__capacity-chip">4 Thesis Pods Open</span>
+          </div>
+
+          <div class="room-card__body">
+            <span class="room-card__tag">SOLO STUDY · QUIET WING</span>
+            <h3 class="room-card__title">The quiet desk</h3>
+            <p class="room-card__desc">A calm desk by the windows for deep reading, focused writing, and uninterrupted work.</p>
+            <button class="btn btn--room-pill" onclick="openReservationModal('The quiet desk (Quiet Wing)')">
+              View this room <span class="arrow">→</span>
+            </button>
+>>>>>>> Stashed changes
           </div>
         </div>
       </div>
     </section>
 
+<<<<<<< Updated upstream
   </main>
 
   <!-- ==================== SIMPLE MODAL / POPUP FOR INTERACTIVITY ==================== -->
@@ -274,17 +641,287 @@
       <form class="modal__form" onsubmit="event.preventDefault(); alert('Reservation confirmed!'); document.getElementById('reserveModal').close();">
         <label class="modal__label">Select Space
           <select class="modal__select">
+=======
+        <div class="room-card">
+          <div class="room-card__body">
+            <span class="room-card__tag">PROJECTOR ROOM · MEDIA WING</span>
+            <h3 class="room-card__title">The presentation room</h3>
+            <p class="room-card__desc">A flexible room with a large screen, long table, and space for rehearsals, seminars, or group work.</p>
+            <button class="btn btn--room-pill" onclick="openReservationModal('The presentation room (Media Wing)')">
+              View this room <span class="arrow">→</span>
+            </button>
+          </div>
+
+          <div class="room-card__media">
+            <img src="images/room_presentation.jpg" alt="The presentation room" class="room-card__img" loading="lazy">
+            <span class="room-card__capacity-chip">1 Media Suite Open</span>
+          </div>
+        </div>
+
+        <div class="room-card room-card--reverse">
+          <div class="room-card__media">
+            <img src="images/room_research.jpg" alt="The research room" class="room-card__img" loading="lazy">
+            <span class="room-card__capacity-chip">6 Archive Desks Open</span>
+          </div>
+
+          <div class="room-card__body">
+            <span class="room-card__tag">RESEARCH ROOM · ARCHIVE LEVEL</span>
+            <h3 class="room-card__title">The research room</h3>
+            <p class="room-card__desc">A quiet reference space with surrounding shelves, generous tables, and room to spread out your sources.</p>
+            <button class="btn btn--room-pill" onclick="openReservationModal('The research room (Archive Level)')">
+              View this room <span class="arrow">→</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==================== BEHIND THE DESK / ANTI-CHEAT SECTION ==================== -->
+    <section class="behind-the-desk-section" id="algorithm">
+      <div class="behind-the-desk-card">
+        <div class="desk-panel desk-panel--dark">
+          <span class="desk-panel__eyebrow">BEHIND THE DESK</span>
+          <h2 class="desk-panel__title">A library that<br>studies with you.</h2>
+          <p class="desk-panel__desc">Live availability, quiet rules, and room details—organized so your next study session feels effortless.</p>
+        </div>
+
+        <div class="desk-panel desk-panel--cream">
+          <div class="feature-item">
+            <div class="feature-item__icon-wrap">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#944638" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+            </div>
+            <div>
+              <h3 class="feature-item__title">Live availability</h3>
+              <p class="feature-item__text">No more double bookings or manual room checks.</p>
+            </div>
+          </div>
+
+          <div class="feature-item">
+            <div class="feature-item__icon-wrap">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#944638" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 11l3 3L22 4"></path>
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+              </svg>
+            </div>
+            <div>
+              <h3 class="feature-item__title">Rules with room to breathe</h3>
+              <p class="feature-item__text">Define every limit, buffer, permission, and opening hour once.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== FOOTER WITH PORTAL OPTIONS ==================== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div class="footer__brand-col">
+          <div class="brand">
+            <svg width="24" height="24" viewBox="0 0 28 28" fill="none">
+              <polygon points="14,3 25,9 14,15 3,9" fill="#F1E6D1" opacity="0.95"/>
+              <polygon points="3,9 14,15 14,25 3,19" fill="#944638"/>
+              <polygon points="14,15 25,9 25,19 14,25" fill="#4A261D"/>
+            </svg>
+            <span class="brand__name">ATLAS ROOM</span>
+          </div>
+          <p>An intelligent academic reservation network ensuring fair hold allocation, quiet zones, and thesis priority during high-demand exam weeks.</p>
+        </div>
+
+        <div>
+          <h4 class="footer__col-title">Spaces & Wings</h4>
+          <ul class="footer__links">
+            <li><a href="#spaces" class="footer__link">North Reading Wing</a></li>
+            <li><a href="#spaces" class="footer__link">Quiet Thesis Pods</a></li>
+            <li><a href="#spaces" class="footer__link">Media & Projector Suites</a></li>
+            <li><a href="#spaces" class="footer__link">Archive Research Tables</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer__col-title">System Portals</h4>
+          <ul class="footer__links">
+            <li><a href="#engine" class="footer__link">Priority Queue Engine</a></li>
+            <li><a href="#algorithm" class="footer__link">Anti-Cheat Guidelines</a></li>
+            <li><a href="#rooms" class="footer__link">Floor Plan & Radar</a></li>
+            <li><a href="#" class="footer__link" onclick="alert('Student ID Authentication Portal (Phase 2 JWT Login)')">Student Pass Login</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer__col-title">Phase 2 Architecture</h4>
+          <ul class="footer__links">
+            <li><a href="#" class="footer__link" onclick="alert('Express API Endpoint: POST /api/reservations (Server Priority Bumping)')">Express REST API</a></li>
+            <li><a href="#" class="footer__link" onclick="alert('MongoDB User & Hold Schema with noShowCount tracker')">MongoDB Schemas</a></li>
+            <li><a href="#" class="footer__link" onclick="alert('Cron Cleanup: Releasing unverified holds after 15m')">Cron Hold Sweeper</a></li>
+            <li><a href="#" class="footer__link" onclick="alert('React State Provider with PriorityContext')">React Context Hooks</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer__bottom">
+        <span>© 2026 Atlas Reading Room. All rights reserved.</span>
+        <span>Smart Academic Hold Algorithm v1.2</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==================== RESERVATION DIALOG MODAL ==================== -->
+  <dialog class="modal" id="reserveModal">
+    <div class="modal__content">
+      <button class="modal__close" id="modalClose" aria-label="Close">✕</button>
+      <span class="eyebrow">LIBRARY PASS RESERVATION</span>
+      <h3 class="modal__title" id="modalRoomTitle">Reserve your table</h3>
+      <p class="modal__text">Your current Priority Score (<strong id="modalScoreDisplay">92 pts</strong>) will be applied to this hold.</p>
+      
+      <form class="modal__form" onsubmit="event.preventDefault(); handleModalSubmit();">
+        <label class="modal__label">Select Space
+          <select class="modal__select" id="modalSpaceSelect">
+>>>>>>> Stashed changes
             <option>The long-table room (North Wing)</option>
             <option>The quiet desk (Quiet Wing)</option>
             <option>The presentation room (Media Wing)</option>
             <option>The research room (Archive Level)</option>
           </select>
         </label>
+<<<<<<< Updated upstream
         <button type="submit" class="btn btn--brick-cta modal__submit">CONFIRM SEAT →</button>
       </form>
     </div>
   </dialog>
 
   <script src="js/script.js"></script>
+=======
+
+        <label class="modal__label">Time Window
+          <select class="modal__select" id="modalTimeSelect">
+            <option>Morning (08:00 — 12:00)</option>
+            <option selected>Afternoon (12:30 — 16:30)</option>
+            <option>Evening (17:00 — 21:00)</option>
+            <option>Night Owl (21:30 — 01:30)</option>
+          </select>
+        </label>
+
+        <button type="submit" class="btn btn--brick" style="width: 100%; margin-top: 10px;">
+          CONFIRM PRIORITY HOLD →
+        </button>
+      </form>
+    </div>
+  </dialog>
+
+  <div class="toast-box" id="toastBox"></div>
+
+  <!-- ==================== JAVASCRIPT ==================== -->
+  <script>
+    let roleBase = 45;
+    let examBoost = 35;
+    let strikes = parseInt(localStorage.getItem('atlas_p2_strikes') || '0', 10);
+    const streak = 12;
+
+    function computeScore() {
+      const penalty = strikes * 15;
+      const raw = roleBase + examBoost - penalty + streak;
+      return Math.min(100, Math.max(0, raw));
+    }
+
+    function refreshSimulatorUI() {
+      const score = computeScore();
+      document.getElementById('simScoreVal').textContent = score;
+      document.getElementById('headerScore').textContent = `${score} pts (${score >= 80 ? 'Tier 1' : score >= 50 ? 'Tier 2' : 'Standard'})`;
+      document.getElementById('modalScoreDisplay').textContent = `${score} pts`;
+
+      const penalty = strikes * 15;
+      document.getElementById('simFormula').textContent = 
+        `Score = ${roleBase} (Role) + ${examBoost} (Exam Urgency) - ${penalty} (${strikes} Strikes × 15) + ${streak} (Check-in Bonus)`;
+      
+      document.getElementById('simStrikesText').textContent = 
+        `${strikes} Strikes (-${penalty} pts penalty)`;
+    }
+
+    document.getElementById('simRole').addEventListener('change', function() {
+      roleBase = parseInt(this.value, 10);
+      refreshSimulatorUI();
+      triggerToast('Updated Academic Role weight');
+    });
+
+    document.getElementById('simExam').addEventListener('change', function() {
+      examBoost = parseInt(this.value, 10);
+      refreshSimulatorUI();
+      triggerToast('Updated Exam Proximity window');
+    });
+
+    document.getElementById('btnAddStrike').addEventListener('click', function() {
+      strikes += 1;
+      localStorage.setItem('atlas_p2_strikes', strikes);
+      refreshSimulatorUI();
+      triggerToast('⚠️ Anti-Cheat: +1 No-Show Strike (-15 pts applied)');
+    });
+
+    document.getElementById('btnResetStrikes').addEventListener('click', function() {
+      strikes = 0;
+      localStorage.setItem('atlas_p2_strikes', '0');
+      refreshSimulatorUI();
+      triggerToast('✓ No-show strikes cleared');
+    });
+
+    // Modal controls
+    const reserveModal = document.getElementById('reserveModal');
+    const modalClose = document.getElementById('modalClose');
+
+    window.openReservationModal = function(roomName) {
+      if (roomName) {
+        document.getElementById('modalRoomTitle').textContent = `Reserve ${roomName.split('(')[0]}`;
+        const select = document.getElementById('modalSpaceSelect');
+        for (let i = 0; i < select.options.length; i++) {
+          if (select.options[i].text.includes(roomName.split('(')[0].trim())) {
+            select.selectedIndex = i;
+            break;
+          }
+        }
+      }
+      reserveModal.showModal();
+    };
+
+    document.getElementById('btnHeaderReserve').addEventListener('click', () => openReservationModal());
+    document.getElementById('heroCtaBtn').addEventListener('click', () => openReservationModal());
+    modalClose.addEventListener('click', () => reserveModal.close());
+
+    reserveModal.addEventListener('click', (e) => {
+      const rect = reserveModal.getBoundingClientRect();
+      if (!(rect.top <= e.clientY && e.clientY <= rect.top + rect.height && rect.left <= e.clientX && e.clientX <= rect.left + rect.width)) {
+        reserveModal.close();
+      }
+    });
+
+    window.handleModalSubmit = function() {
+      const space = document.getElementById('modalSpaceSelect').value;
+      const time = document.getElementById('modalTimeSelect').value;
+      const score = computeScore();
+      reserveModal.close();
+      triggerToast(`✓ Priority Hold Confirmed for ${space} (${time}) with Score ${score}!`);
+    };
+
+    function triggerToast(text) {
+      const container = document.getElementById('toastBox');
+      const t = document.createElement('div');
+      t.className = 'toast-msg';
+      t.textContent = text;
+      container.appendChild(t);
+      setTimeout(() => {
+        t.style.opacity = '0';
+        t.style.transition = 'opacity 0.3s';
+        setTimeout(() => t.remove(), 300);
+      }, 3200);
+    }
+
+    refreshSimulatorUI();
+  </script>
+>>>>>>> Stashed changes
 </body>
 </html>
