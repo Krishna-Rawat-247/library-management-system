@@ -157,6 +157,10 @@
 
 
 <script>
+    if (localStorage.getItem("currentUser")) {
+        window.location.href = "index.html";
+    }
+
     let form = document.getElementById("loginForm");
 
     let handleSubmit = async (event) => {

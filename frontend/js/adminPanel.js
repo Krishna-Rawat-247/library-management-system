@@ -211,7 +211,12 @@ async function updateReservationStatus(id, newStatus) {
   }
 
   if (newStatus === "confirmed") {
-    let allReservations = await fetch(`${API_BASE}/reservations`).then(res => res.json());
+    let [allReservations, resource] = await Promise.all([
+      fetch(`${API_BASE}/reservations`).then(res => res.json()),
+      fetch(`${API_BASE}/resources/${reservation.resourceId}`).then(res => res.json())
+    ]);
+
+    let capacity = resource.capacity || 1;
 
     let occupying = allReservations.filter(function (other) {
       return String(other.id) !== String(reservation.id) &&
@@ -222,8 +227,8 @@ async function updateReservationStatus(id, newStatus) {
         (other.status === "confirmed" || other.status === "pending");
     });
 
-    if (occupying.length > 0) {
-      alert("This time slot is already occupied by a confirmed booking. Force Confirm was not applied.");
+    if (occupying.length >= capacity) {
+      alert("This time slot is already fully occupied by confirmed bookings. Force Confirm was not applied.");
       return;
     }
   }
@@ -258,6 +263,16 @@ async function deleteReservation(id) {
   );
   if (confirmDelete) {
     await fetch(`${API_BASE}/reservations/${id}`, { method: "DELETE" });
+    
+    if (reservation.status === "confirmed") {
+      await promoteWaitingReservation(
+        reservation.resourceId,
+        reservation.date,
+        reservation.startTime,
+        reservation.endTime
+      );
+    }
+
     renderReservationTable();
   }
 }
@@ -278,11 +293,20 @@ async function markAsNoShow(id) {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        noShowCount: (user.noShowCount || 0) + 1,
-        reliabilityScore: Math.max(0, (typeof user.reliabilityScore === "number" ? user.reliabilityScore : 100) - 15)
+        noShowCount: (user.noShowCount || 0) + 1
       })
     });
   }
+  
+  if (reservation.status === "confirmed") {
+    await promoteWaitingReservation(
+      reservation.resourceId,
+      reservation.date,
+      reservation.startTime,
+      reservation.endTime
+    );
+  }
+
   renderReservationTable();
 }
 

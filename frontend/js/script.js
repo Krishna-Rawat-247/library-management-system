@@ -29,3 +29,17 @@ if (myBookingBtn) {
         window.location.href = "myBooking.html";
     });
 }
+
+let navLoginBtn = document.getElementById("navLoginBtn");
+let navSignupBtn = document.getElementById("navSignupBtn");
+
+if (localStorage.getItem("currentUser")) {
+    if (navLoginBtn) navLoginBtn.style.display = "none";
+    if (navSignupBtn) navSignupBtn.style.display = "none";
+    
+    let currentUser = JSON.parse(localStorage.getItem("currentUser"));
+    if (currentUser && currentUser.role === "admin") {
+        let navAdminBtn = document.getElementById("navAdminBtn");
+        if (navAdminBtn) navAdminBtn.style.display = "inline-flex";
+    }
+}

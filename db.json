@@ -674,6 +674,30 @@
       "checkedIn": false,
       "createdAt": "2026-08-21T04:01:19.375Z",
       "id": "rKo9eZfYxew"
+    },
+    {
+      "userId": "dE7LkzrSL6U",
+      "resourceId": "7",
+      "date": "2026-08-21",
+      "startTime": "09:43",
+      "endTime": "15:40",
+      "status": "waiting",
+      "priorityScore": 60,
+      "checkedIn": false,
+      "createdAt": "2026-08-23T16:14:25.265Z",
+      "id": "xEnPv_Aum4I"
+    },
+    {
+      "userId": "11",
+      "resourceId": "7",
+      "date": "2026-08-21",
+      "startTime": "08:51",
+      "endTime": "19:51",
+      "status": "waiting",
+      "priorityScore": 76,
+      "checkedIn": false,
+      "createdAt": "2026-08-23T16:22:53.834Z",
+      "id": "85Lupj3Mc0w"
     }
   ],
   "examWindows": [

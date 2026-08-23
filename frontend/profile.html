@@ -118,7 +118,7 @@
                     : "—";
                 let reliabilityScore = typeof getReliabilityScore === "function"
                     ? getReliabilityScore(user)
-                    : (typeof user.reliabilityScore === "number" ? user.reliabilityScore : (100 - (user.noShowCount || 0) * 15));
+                    : Math.max(0, 100 - (user.noShowCount || 0) * 15);
 
                 let initial = user.name ? user.name.trim().charAt(0).toUpperCase() : "U";
 

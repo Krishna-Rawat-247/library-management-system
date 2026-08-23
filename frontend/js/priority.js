@@ -82,10 +82,6 @@ function getRoleScore(user) {
 }
 
 function getReliabilityScore(user) {
-  if (typeof user.reliabilityScore === "number") {
-    return user.reliabilityScore;
-  }
-
   let strikes = Math.min(user.noShowCount || 0, 6);
 
   return Math.max(0, 100 - strikes * 15);
@@ -183,6 +179,27 @@ function getHighestPriorityReservation(reservations) {
   return sorted[0];
 }
 
+function getLowestPriorityReservation(reservations) {
+  if (reservations.length === 0) {
+    return null;
+  }
+
+  let sorted = reservations.slice();
+
+  sorted.sort(function (a, b) {
+    let scoreA = a.priorityScore || 0;
+    let scoreB = b.priorityScore || 0;
+
+    if (scoreA !== scoreB) {
+      return scoreA - scoreB; // Lowest score first
+    }
+
+    return new Date(b.createdAt) - new Date(a.createdAt); // Newest booking first (tie breaker for bumping)
+  });
+
+  return sorted[0];
+}
+
 async function bumpReservation(id) {
   await fetch(PRIORITY_API + "/reservations/" + id, {
     method: "PATCH",
@@ -195,19 +212,17 @@ async function bumpReservation(id) {
   });
 }
 
-async function resolveBookingConflict(newScore, conflicts) {
-  if (conflicts.length === 0) {
+async function resolveBookingConflict(newScore, conflicts, capacity = 1) {
+  if (conflicts.length < capacity) {
     return "confirmed";
   }
 
-  let highest = getHighestPriorityReservation(conflicts);
-  let existingScore = highest.priorityScore || 0;
+  let lowest = getLowestPriorityReservation(conflicts);
+  let existingScore = lowest.priorityScore || 0;
 
   if (newScore > existingScore) {
-    for (let i = 0; i < conflicts.length; i++) {
-      await bumpReservation(conflicts[i].id);
-    }
-
+    // Only bump the one lowest priority user needed to make space
+    await bumpReservation(lowest.id);
     return "confirmed";
   }
 
@@ -222,7 +237,11 @@ async function promoteWaitingReservation(
   startTime,
   endTime
 ) {
-  let res = await fetch(PRIORITY_API + "/reservations");
+  let res = await fetch(PRIORITY_API + "/resources/" + resourceId);
+  let resource = await res.json();
+  let capacity = resource.capacity || 1;
+
+  res = await fetch(PRIORITY_API + "/reservations");
   let reservations = await res.json();
 
   // Find waiting and bumped reservations for the same
@@ -255,15 +274,29 @@ async function promoteWaitingReservation(
     return;
   }
 
-  let winner = eligibleReservations[0];
+  for (let i = 0; i < eligibleReservations.length; i++) {
+    let candidate = eligibleReservations[i];
+    
+    // Make sure we have space for this specific candidate's timeframe
+    let candidateConflicts = getConflictingReservations(
+      reservations,
+      resourceId,
+      candidate.date,
+      candidate.startTime,
+      candidate.endTime
+    );
 
-  await fetch(PRIORITY_API + "/reservations/" + winner.id, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      status: "confirmed"
-    })
-  });
+    if (candidateConflicts.length < capacity) {
+      await fetch(PRIORITY_API + "/reservations/" + candidate.id, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          status: "confirmed"
+        })
+      });
+      break; // Only promote one person per cancellation event
+    }
+  }
 }

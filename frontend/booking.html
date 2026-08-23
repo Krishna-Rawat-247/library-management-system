@@ -185,20 +185,22 @@
             });
 
             filteredResources.forEach(resource => {
+                let conflicts = [];
                 let booked = false;
 
                 if (date !== "" && startTime !== "" && endTime !== "") {
-                    let conflicts = getConflictingReservations(
+                    conflicts = getConflictingReservations(
                         reservations,
                         resource.id,
                         date,
                         startTime,
                         endTime
                     );
-                    booked = conflicts.length > 0;
+                    booked = conflicts.length >= resource.capacity;
                 }
 
-                let status = booked ? "Reserved" : "Available";
+                let availableSeats = Math.max(0, resource.capacity - conflicts.length);
+                let status = booked ? "Full" : `Available (${availableSeats} seat${availableSeats !== 1 ? 's' : ''} left)`;
 
                 resourceMap.innerHTML += `
                     <div class="resource-card" onclick="selectResource('${resource.id}')">
@@ -254,6 +256,12 @@
                 return;
             }
 
+            let todayStr = new Date().toISOString().split("T")[0];
+            if (date < todayStr) {
+                alert("Cannot book in the past.");
+                return;
+            }
+
             if (startTime >= endTime) {
                 alert("End time must be after start time");
                 return;
@@ -278,6 +286,23 @@
             let res = await fetch("http://localhost:3000/reservations");
             let reservations = await res.json();
 
+            let existingUserBooking = reservations.find(r => 
+                String(r.userId) === String(bookingUser.id) &&
+                r.date === date &&
+                r.startTime < endTime &&
+                r.endTime > startTime &&
+                (r.status === "confirmed" || r.status === "waiting" || r.status === "pending")
+            );
+
+            if (existingUserBooking) {
+                if (String(existingUserBooking.resourceId) === String(selectedResource.id)) {
+                    alert("You already have a booking for this resource during this time slot.");
+                } else {
+                    alert("You have another booking that overlaps with this time slot.");
+                }
+                return;
+            }
+
             let calculatedPriorityScore = await calculatePriorityScore(bookingUser, date);
 
             let conflicts = getConflictingReservations(
@@ -290,7 +315,8 @@
 
             let bookingStatus = await resolveBookingConflict(
                 calculatedPriorityScore,
-                conflicts
+                conflicts,
+                selectedResource.capacity
             );
 
             let newReservation = {
@@ -319,9 +345,9 @@
             }
 
             if (bookingStatus === "waiting") {
-                alert("This resource is already booked. You were added to the waiting queue.");
-            } else if (conflicts.length > 0) {
-                alert("You have higher priority. The previous booking was bumped and yours is confirmed.");
+                alert("This resource is already fully booked. You were added to the waiting queue.");
+            } else if (conflicts.length >= selectedResource.capacity) {
+                alert("You have higher priority. A previous booking was bumped and yours is confirmed.");
             } else {
                 alert("Resource booked successfully");
             }

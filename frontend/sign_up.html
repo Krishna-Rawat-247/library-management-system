@@ -209,6 +209,9 @@
 
 
 <script>
+    if (localStorage.getItem("currentUser")) {
+        window.location.href = "index.html";
+    }
 
 function togglePassword(id, element) {
     let input = document.getElementById(id);
