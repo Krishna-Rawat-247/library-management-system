@@ -574,11 +574,11 @@
   <script>
     let roleBase = 45;
     let examBoost = 35;
-    let strikes = parseInt(localStorage.getItem('atlas_p2_strikes') || '0', 10);
+    let simulatorStrikes = 0;
     const streak = 12;
 
     function computeScore() {
-      const penalty = strikes * 15;
+      const penalty = simulatorStrikes * 15;
       const raw = roleBase + examBoost - penalty + streak;
       return Math.min(100, Math.max(0, raw));
     }
@@ -586,17 +586,13 @@
     function refreshSimulatorUI() {
       const score = computeScore();
       document.getElementById('simScoreVal').textContent = score;
-      let hs = document.getElementById('headerScore');
-      if (hs) hs.textContent = `${score} pts (${score >= 80 ? 'Tier 1' : score >= 50 ? 'Tier 2' : 'Standard'})`;
-      let ms = document.getElementById('modalScoreDisplay');
-      if (ms) ms.textContent = `${score} pts`;
 
-      const penalty = strikes * 15;
+      const penalty = simulatorStrikes * 15;
       document.getElementById('simFormula').textContent =
-        `Score = ${roleBase} (Role) + ${examBoost} (Exam Urgency) - ${penalty} (${strikes} Strikes × 15) + ${streak} (Check-in Bonus)`;
+        `Score = ${roleBase} (Role) + ${examBoost} (Exam Urgency) - ${penalty} (${simulatorStrikes} Strikes × 15) + ${streak} (Check-in Bonus)`;
 
       document.getElementById('simStrikesText').textContent =
-        `${strikes} Strikes (-${penalty} pts penalty)`;
+        `${simulatorStrikes} Strikes (-${penalty} pts penalty)`;
     }
 
     /* FULL-SCREEN GOLDEN CONSTELLATION LINE NET ANIMATION CANVAS */
@@ -701,27 +697,21 @@
     document.getElementById('simRole').addEventListener('change', function () {
       roleBase = parseInt(this.value, 10);
       refreshSimulatorUI();
-      triggerToast('Updated Academic Role weight');
     });
 
     document.getElementById('simExam').addEventListener('change', function () {
       examBoost = parseInt(this.value, 10);
       refreshSimulatorUI();
-      triggerToast('Updated Exam Proximity window');
     });
 
     document.getElementById('btnAddStrike').addEventListener('click', function () {
-      strikes += 1;
-      localStorage.setItem('atlas_p2_strikes', strikes);
+      simulatorStrikes += 1;
       refreshSimulatorUI();
-      triggerToast('⚠️ Anti-Cheat: +1 No-Show Strike (-15 pts applied)');
     });
 
     document.getElementById('btnResetStrikes').addEventListener('click', function () {
-      strikes = 0;
-      localStorage.setItem('atlas_p2_strikes', '0');
+      simulatorStrikes = 0;
       refreshSimulatorUI();
-      triggerToast('✓ No-show strikes cleared');
     });
 
     // Hero quick search handler

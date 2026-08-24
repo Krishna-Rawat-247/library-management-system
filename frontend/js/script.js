@@ -34,14 +34,24 @@ document.addEventListener("DOMContentLoaded", () => {
             if (currentUser) {
                 let initial = currentUser.name ? currentUser.name.charAt(0).toUpperCase() : "U";
                 let role = currentUser.role ? currentUser.role.toUpperCase() : "STUDENT";
-                let score = currentUser.reliabilityScore !== undefined ? `${currentUser.reliabilityScore} pts` : "";
+                let strikes = currentUser.noShowCount;
+                if (!strikes) {
+                    strikes = 0;
+                }
+                
+                let reliabilityScore = 100 - (strikes * 15);
+                if (reliabilityScore < 0) {
+                    reliabilityScore = 0;
+                }
+                
+                let score = reliabilityScore + " pts";
 
                 headerActions.innerHTML = `
                     <div class="user-pill-display" title="Signed in user">
                         <div class="user-pill-avatar" id="avatarLetter">${initial}</div>
                         <div style="display: flex; flex-direction: column;">
                             <span style="font-size: 11px; font-weight: 700; color: var(--text-cream, #f1e6d1); text-transform: uppercase;" id="userNameDisplay">${currentUser.name}</span>
-                            <span class="user-pill-score" id="headerScore">${score ? score + ' • ' : ''}${role}</span>
+                            <span class="user-pill-score" id="headerScore">${score} • ${role}</span>
                         </div>
                     </div>
                     <button id="headerLogoutBtn" class="btn-logout" title="Log Out" aria-label="Log Out">

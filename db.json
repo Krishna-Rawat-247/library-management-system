@@ -10,7 +10,7 @@
       "department": "Computer Science",
       "semester": 5,
       "noShowCount": 0,
-      "reliabilityScore": 98,
+      "reliabilityScore": 100,
       "suspended": false,
       "suspendedUntil": null,
       "suspendReason": null
@@ -25,7 +25,7 @@
       "department": "Electronics Engineering",
       "semester": 3,
       "noShowCount": 2,
-      "reliabilityScore": 84,
+      "reliabilityScore": 70,
       "suspended": false,
       "suspendedUntil": null,
       "suspendReason": null
@@ -40,7 +40,7 @@
       "department": "Mechanical Engineering",
       "semester": 7,
       "noShowCount": 5,
-      "reliabilityScore": 52,
+      "reliabilityScore": 25,
       "suspended": true,
       "suspendedUntil": "2026-09-05",
       "suspendReason": "Exceeded maximum no-show limit"
@@ -85,7 +85,7 @@
       "department": "Biotechnology",
       "semester": 4,
       "noShowCount": 1,
-      "reliabilityScore": 91,
+      "reliabilityScore": 85,
       "suspended": false,
       "suspendedUntil": null,
       "suspendReason": null
@@ -100,7 +100,7 @@
       "department": "Civil Engineering",
       "semester": 6,
       "noShowCount": 3,
-      "reliabilityScore": 70,
+      "reliabilityScore": 55,
       "suspended": false,
       "suspendedUntil": null,
       "suspendReason": null
@@ -115,7 +115,7 @@
       "department": "Computer Science",
       "semester": 5,
       "noShowCount": 0,
-      "reliabilityScore": 97,
+      "reliabilityScore": 100,
       "suspended": false,
       "suspendedUntil": null,
       "suspendReason": null
@@ -145,7 +145,7 @@
       "department": "Mathematics",
       "semester": 2,
       "noShowCount": 4,
-      "reliabilityScore": 60,
+      "reliabilityScore": 40,
       "suspended": true,
       "suspendedUntil": "2026-08-25",
       "suspendReason": "Repeated late cancellations"
@@ -160,7 +160,7 @@
       "department": "Electrical Engineering",
       "semester": 8,
       "noShowCount": 1,
-      "reliabilityScore": 88,
+      "reliabilityScore": 85,
       "suspended": false,
       "suspendedUntil": null,
       "suspendReason": null
