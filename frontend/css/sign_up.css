@@ -27,9 +27,9 @@ body {
   position: relative;
   width: 100%;
   max-width: 1040px;
-  height: 84vh;
-  max-height: 670px;
-  min-height: 540px;
+  height: 92vh;
+  max-height: 700px;
+  min-height: 560px;
   background-color: #0e1712;
   border-radius: 22px;
   overflow: hidden;
@@ -61,8 +61,8 @@ body {
   position: absolute;
   right: 0;
   top: 0;
-  width: 65%;
-  height: 100%;
+  width: 70%;
+  height: 100px;
   background-color: rgb(235, 214, 185);
   border-radius: 45px 12px 12px 45px;
   z-index: 0;
@@ -128,16 +128,29 @@ body {
   gap: 10px;
 }
 
-.login-nav {
-  color: rgb(14, 34, 25);
-  text-decoration: none;
+.login-nav, .btn-login-standout {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 18px;
+  background: #f5ede2;
+  color: #1c1512 !important;
   font-size: 11px;
+  font-weight: 800;
   letter-spacing: 1px;
-  font-weight: 500;
+  border-radius: 20px;
+  border: 1px solid #8c734b;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+  text-decoration: none;
 }
 
-.login-nav:hover {
-  color: #f3ead8;
+.login-nav:hover, .btn-login-standout:hover {
+  background: #ffffff;
+  color: #1c1512 !important;
+  border-color: #e8c382;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 16px rgba(245, 237, 226, 0.35);
 }
 
 .signup-nav {
@@ -379,17 +392,20 @@ body {
 .signup-card {
   position: absolute;
   right: 85px;
-  top: -6px;
-  bottom: 10px;
+  top: -7px;
+  bottom: 8px;
   z-index: 15;
 
-  width: 310px;
+  width: 300px;
 
   background: rgba(236, 215, 182, 0.97);
   border: 1px solid rgba(222, 209, 180, 0.7);
   border-radius: 22px;
 
-  padding: 22px 28px 18px;
+  padding: 20px 22px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 
   box-shadow:
     0 20px 50px rgba(0, 0, 0, 0.55),
@@ -451,28 +467,28 @@ body {
 
 .card-label {
   color: #a8462f;
-  font-size: 10px;
+  font-size: 9.5px;
   font-weight: 600;
   letter-spacing: 1.8px;
   text-transform: uppercase;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .signup-card h1 {
   font-family: "Playfair Display", Georgia, serif;
-  font-size: 26px;
+  font-size: 22px;
   line-height: 1.08;
   color: #1b1610;
   font-weight: 400;
-  margin-bottom: 7px;
+  margin-bottom: 10px;
   letter-spacing: -0.3px;
 }
 
 .card-text {
   color: #6b6152;
-  font-size: 10.5px;
-  line-height: 1.4;
-  margin-bottom: 9px;
+  font-size: 10px;
+  line-height: 1.35;
+  margin-bottom: 6px;
   max-width: 270px;
 }
 
@@ -480,10 +496,10 @@ body {
 
 #signupForm label {
   display: block;
-  font-size: 10px;
+  font-size: 9px;
   color: #4b4436;
-  margin-bottom: 3px;
-  margin-top: 7px;
+  margin-bottom: 2px;
+  margin-top: 4px;
   font-weight: 500;
   letter-spacing: 0.3px;
 }
@@ -495,13 +511,13 @@ body {
 .input-box {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 5px;
 
   background-color: #fbf6ea;
   border: 1.5px solid #e2d5b8;
-  border-radius: 9px;
+  border-radius: 7px;
 
-  padding: 8px 12px;
+  padding: 5px 10px;
 
   transition: border-color 0.2s, box-shadow 0.2s;
 }
@@ -512,7 +528,7 @@ body {
 }
 
 .input-box span {
-  font-size: 13px;
+  font-size: 12px;
   color: #8a7f6a;
   flex-shrink: 0;
 }
@@ -523,7 +539,7 @@ body {
   outline: none;
   background: transparent;
 
-  font-size: 12px;
+  font-size: 11.5px;
   color: #2a2419;
   font-family: inherit;
 
@@ -541,7 +557,7 @@ body {
 
 .toggle-eye {
   cursor: pointer;
-  font-size: 13px;
+  font-size: 12px;
   color: #8a7f6a;
   transition: color 0.2s;
 }
@@ -554,23 +570,23 @@ body {
 
 #signupForm button[type="submit"] {
   width: 100%;
-  margin-top: 11px;
+  margin-top: 9px;
 
-  padding: 11px;
+  padding: 9px;
 
   background-color: #1f3327;
   color: #f3ead8;
 
   border: none;
-  border-radius: 9px;
+  border-radius: 8px;
 
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
-  letter-spacing: 1.6px;
+  letter-spacing: 1.4px;
 
   cursor: pointer;
 
-  box-shadow: 0 10px 24px rgba(31, 51, 39, 0.4);
+  box-shadow: 0 8px 20px rgba(31, 51, 39, 0.4);
 
   transition:
     background-color 0.2s,
@@ -592,9 +608,10 @@ body {
 
 .login-text {
   text-align: center;
-  font-size: 11px;
+  font-size: 10.5px;
   color: #6b6152;
-  margin-top: 8px;
+  margin-top: 6px;
+  margin-bottom: 0px;
 }
 
 .login-text a {

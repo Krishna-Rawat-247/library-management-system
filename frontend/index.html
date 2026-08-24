@@ -35,11 +35,13 @@
         </div>
       </a>
 
-      <nav class="nav__links">
-        <a href="#spaces" class="nav__link">SPACES & WINGS</a>
-        <a href="#engine" class="nav__link">PRIORITY CALCULATOR</a>
-        <a href="#rooms" class="nav__link">ROOM AVAILABILITY</a>
-        <a href="#algorithm" class="nav__link">ANTI-CHEAT RULES</a>
+      <nav class="nav__links" id="navLinks" aria-label="Main Navigation">
+        <a href="booking.html" class="nav__link">RESERVE A SEAT</a>
+        <a href="myBooking.html" class="nav__link">MY BOOKINGS</a>
+        <a href="profile.html" class="nav__link">PROFILE</a>
+        <a href="admin.html" class="nav__link" id="navAdminBtn" style="display: none;">ADMIN</a>
+        <a href="login.html" class="nav__link" id="navLoginBtn">LOG IN</a>
+        <a href="sign_up.html" class="nav__link" id="navSignupBtn">SIGN UP</a>
       </nav>
 
       <div class="header__actions">
@@ -88,25 +90,15 @@
         <div class="hero-search-box">
           <div>
             <span class="search-field-label">Target Wing</span>
-            <select class="search-select" id="heroSpaceSelect">
-              <option>Community Reading Room (North Wing)</option>
-              <option>Solo Study (Quiet Wing)</option>
-              <option>Projector Room (Media Wing)</option>
-              <option>Research Room (Archive Level)</option>
-            </select>
+            <div class="search-info-box" id="heroSpaceSelect">Community Reading Room (North Wing)</div>
           </div>
           <div>
             <span class="search-field-label">Time Window</span>
-            <select class="search-select" id="heroTimeSelect">
-              <option>Morning (08:00 — 12:00)</option>
-              <option selected>Afternoon (12:30 — 16:30)</option>
-              <option>Evening (17:00 — 21:00)</option>
-              <option>Night Owl (21:30 — 01:30)</option>
-            </select>
+            <div class="search-info-box" id="heroTimeSelect">Afternoon (12:30 — 16:30)</div>
           </div>
-          <button class="btn btn--brick" style="height: 38px; align-self: flex-end;" onclick="handleHeroSearch()">
-            SEARCH SEATS →
-          </button>
+          <a href="myBooking.html" class="hero-arrow-btn" id="heroCta" title="View My Bookings" aria-label="View My Bookings" style="text-decoration: none;">
+            →
+          </a>
         </div>
 
         <div class="hero-stats-grid">
@@ -319,7 +311,7 @@
               </div>
             </div>
 
-            <button class="btn btn--room-pill" onclick="openReservationModal('The long-table room (North Wing)')">
+            <button class="btn btn--room-pill" onclick="window.location.href='booking.html?type=conference room'">
               Reserve Seat <span class="arrow">→</span>
             </button>
           </div>
@@ -354,7 +346,7 @@
               </div>
             </div>
 
-            <button class="btn btn--room-pill" onclick="openReservationModal('The quiet desk (Quiet Wing)')">
+            <button class="btn btn--room-pill" onclick="window.location.href='booking.html?zone=Silent Zone'">
               Reserve Pod <span class="arrow">→</span>
             </button>
           </div>
@@ -376,7 +368,7 @@
               </div>
             </div>
 
-            <button class="btn btn--room-pill" onclick="openReservationModal('The presentation room (Media Wing)')">
+            <button class="btn btn--room-pill" onclick="window.location.href='booking.html?type=seminar hall'">
               Reserve Media Suite <span class="arrow">→</span>
             </button>
           </div>
@@ -408,7 +400,7 @@
               </div>
             </div>
 
-            <button class="btn btn--room-pill" onclick="openReservationModal('The research room (Archive Level)')">
+            <button class="btn btn--room-pill" onclick="window.location.href='booking.html?type=discussion_room'">
               Reserve Research Desk <span class="arrow">→</span>
             </button>
           </div>
@@ -509,49 +501,50 @@
                 onclick="alert('MongoDB User & Hold Schema with noShowCount tracker')">MongoDB Schemas</a></li>
             <li><a href="#" class="footer__link"
                 onclick="alert('Cron Cleanup: Releasing unverified holds after 15m')">Cron Hold Sweeper</a></li>
-            <li><a href="#" class="footer__link" onclick="alert('React State Provider with PriorityContext')">React
-                Context Hooks</a></li>
+            <li><a href="about.html" class="footer__link" style="color: var(--gold); font-weight: 700;">About Us & Our Team</a></li>
           </ul>
         </div>
       </div>
 
       <div class="footer__bottom">
-        <span>© 2026 Atlas Reading Room. All rights reserved.</span>
+        <span>© 2026 Atlas Reading Room. All rights reserved. • <a href="about.html" style="color: var(--gold); text-decoration: none;">About Us</a></span>
         <span>Smart Academic Hold Algorithm v1.2</span>
       </div>
     </div>
   </footer>
 
-  <!-- ==================== RESERVATION DIALOG MODAL ==================== -->
+  <!-- ==================== CONTACT / LIBRARIAN DESK MODAL ==================== -->
   <dialog class="modal" id="reserveModal">
     <div class="modal__content">
       <button class="modal__close" id="modalClose" aria-label="Close">✕</button>
-      <span class="eyebrow" style="color: var(--brick);">LIBRARY PASS RESERVATION</span>
-      <h3 class="modal__title" id="modalRoomTitle">Reserve your table</h3>
-      <p class="modal__text">Your current Priority Score (<strong id="modalScoreDisplay">92 pts</strong>) will be
-        applied to this hold.</p>
+      <span class="eyebrow" style="color: var(--brick);">ATLAS ROOM DESK SUPPORT</span>
+      <h3 class="modal__title" id="modalRoomTitle">Contact Library Desk</h3>
+      <p class="modal__text">Have a question about room priority, guardian holds, or special accommodations? Send our librarians a message directly.</p>
 
       <form class="modal__form" onsubmit="event.preventDefault(); handleModalSubmit();">
-        <label class="modal__label">Select Space
-          <select class="modal__select" id="modalSpaceSelect">
-            <option>The long-table room (North Wing)</option>
-            <option>The quiet desk (Quiet Wing)</option>
-            <option>The presentation room (Media Wing)</option>
-            <option>The research room (Archive Level)</option>
+        <label class="modal__label">Your Full Name
+          <input type="text" class="modal__select" id="contactName" placeholder="Enter your full name" required style="font-family: inherit;">
+        </label>
+
+        <label class="modal__label">Email Address
+          <input type="email" class="modal__select" id="contactEmail" placeholder="your.email@university.edu" required style="font-family: inherit;">
+        </label>
+
+        <label class="modal__label">Inquiry Subject
+          <select class="modal__select" id="contactSubject">
+            <option>Guardian Hold Request</option>
+            <option>Exam Period Priority Inquiry</option>
+            <option>General Library Desk Support</option>
+            <option>Special Accommodation Request</option>
           </select>
         </label>
 
-        <label class="modal__label">Time Window
-          <select class="modal__select" id="modalTimeSelect">
-            <option>Morning (08:00 — 12:00)</option>
-            <option selected>Afternoon (12:30 — 16:30)</option>
-            <option>Evening (17:00 — 21:00)</option>
-            <option>Night Owl (21:30 — 01:30)</option>
-          </select>
+        <label class="modal__label">Message / Details
+          <textarea class="modal__select" id="contactMessage" rows="3" placeholder="Write your message here..." required style="height: auto; resize: vertical; font-family: inherit;"></textarea>
         </label>
 
         <button type="submit" class="btn btn--brick" style="width: 100%; margin-top: 10px;">
-          CONFIRM PRIORITY HOLD →
+          SEND MESSAGE →
         </button>
       </form>
     </div>
@@ -593,8 +586,10 @@
     function refreshSimulatorUI() {
       const score = computeScore();
       document.getElementById('simScoreVal').textContent = score;
-      document.getElementById('headerScore').textContent = `${score} pts (${score >= 80 ? 'Tier 1' : score >= 50 ? 'Tier 2' : 'Standard'})`;
-      document.getElementById('modalScoreDisplay').textContent = `${score} pts`;
+      let hs = document.getElementById('headerScore');
+      if (hs) hs.textContent = `${score} pts (${score >= 80 ? 'Tier 1' : score >= 50 ? 'Tier 2' : 'Standard'})`;
+      let ms = document.getElementById('modalScoreDisplay');
+      if (ms) ms.textContent = `${score} pts`;
 
       const penalty = strikes * 15;
       document.getElementById('simFormula').textContent =
@@ -741,17 +736,24 @@
     const reserveModal = document.getElementById('reserveModal');
     const modalClose = document.getElementById('modalClose');
 
-    window.openReservationModal = function (roomName) {
-      if (roomName) {
-        document.getElementById('modalRoomTitle').textContent = `Reserve ${roomName.split('(')[0]}`;
-        const select = document.getElementById('modalSpaceSelect');
-        for (let i = 0; i < select.options.length; i++) {
-          if (select.options[i].text.includes(roomName.split('(')[0].trim())) {
-            select.selectedIndex = i;
-            break;
-          }
-        }
+    window.openReservationModal = function (subjectName) {
+      const titleEl = document.getElementById('modalRoomTitle');
+      if (titleEl) {
+        titleEl.textContent = subjectName ? `Contact Desk: ${subjectName.split('(')[0]}` : 'Contact Library Desk';
       }
+
+      let currentUser = null;
+      try {
+        currentUser = JSON.parse(localStorage.getItem('currentUser'));
+      } catch (e) {}
+
+      if (currentUser) {
+        const nameEl = document.getElementById('contactName');
+        const emailEl = document.getElementById('contactEmail');
+        if (nameEl && currentUser.name) nameEl.value = currentUser.name;
+        if (emailEl && currentUser.email) emailEl.value = currentUser.email;
+      }
+
       reserveModal.showModal();
     };
 
@@ -794,11 +796,57 @@
     });
 
     window.handleModalSubmit = function () {
-      const space = document.getElementById('modalSpaceSelect').value;
-      const time = document.getElementById('modalTimeSelect').value;
-      const score = computeScore();
+      const nameEl = document.getElementById('contactName');
+      const emailEl = document.getElementById('contactEmail');
+      const subjectEl = document.getElementById('contactSubject');
+      const messageEl = document.getElementById('contactMessage');
+
+      const name = nameEl?.value || 'Student';
+      const email = emailEl?.value || '';
+      const subject = subjectEl?.value || 'Guardian Hold Request';
+      const messageText = messageEl?.value || '';
+
+      let currentUser = null;
+      try {
+        currentUser = JSON.parse(localStorage.getItem('currentUser'));
+      } catch (e) {}
+
+      const msgObj = {
+        id: "msg_" + Date.now(),
+        name: name,
+        email: email || currentUser?.email || 'N/A',
+        studentId: currentUser?.studentId || '2410805305',
+        department: currentUser?.department || 'Computer Science & Engineering',
+        semester: currentUser?.semester ? `Sem ${currentUser.semester}` : 'Sem 5',
+        role: currentUser?.role || 'student',
+        subject: subject,
+        message: messageText,
+        timestamp: new Date().toLocaleString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        status: 'unread'
+      };
+
+      // Save to localStorage so admin panel can access immediately
+      try {
+        const existing = JSON.parse(localStorage.getItem('guardianMessages') || '[]');
+        existing.unshift(msgObj);
+        localStorage.setItem('guardianMessages', JSON.stringify(existing));
+      } catch (e) {}
+
+      // Attempt async POST to db.json json-server endpoint if server running
+      fetch('http://localhost:3000/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(msgObj)
+      }).catch(() => {});
+
+      if (messageEl) messageEl.value = '';
       reserveModal.close();
-      triggerToast(`✓ Priority Hold Confirmed for ${space} (${time}) with Score ${score}!`);
+      triggerToast(`✓ Thank you ${name}! Your Guardian hold message has been dispatched to the Admin Panel.`);
     };
 
     function triggerToast(text) {
@@ -816,6 +864,7 @@
 
     refreshSimulatorUI();
   </script>
+  <script src="js/script.js"></script>
 </body>
 
 </html>

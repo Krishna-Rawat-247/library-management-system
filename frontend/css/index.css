@@ -329,6 +329,85 @@ body {
   color: var(--gold);
 }
 
+/* ==================== AUTH BUTTONS & LOGOUT PILL ==================== */
+.btn-logout {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: linear-gradient(135deg, rgba(148, 70, 56, 0.25) 0%, rgba(74, 38, 29, 0.4) 100%);
+  border: 1px solid rgba(148, 70, 56, 0.6);
+  color: #f1e6d1;
+  padding: 7px 16px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  font-family: inherit;
+}
+
+.btn-logout:hover {
+  background: linear-gradient(135deg, #944638 0%, #7d3428 100%);
+  border-color: #c45b48;
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(148, 70, 56, 0.45);
+}
+
+.btn-login-standout {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 20px;
+  background: #f5ede2;
+  color: #1c1512 !important;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 20px;
+  border: 1px solid #8c734b;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.btn-login-standout:hover {
+  background: #ffffff;
+  color: #1c1512 !important;
+  border-color: #e8c382;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 16px rgba(245, 237, 226, 0.35);
+}
+
+.btn-signup-standout {
+  border: 1.5px solid #f5ede2;
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 6px 18px;
+  border-radius: 20px;
+  color: #f5ede2;
+  background-color: transparent;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-signup-standout:hover {
+  background-color: #f5ede2;
+  color: #1c1512 !important;
+  box-shadow: 0 4px 12px rgba(245, 237, 226, 0.2);
+}
+
 /* ==================== HERO SECTION WITH SOLID TEXT FALLBACK & GUARANTEED VISIBILITY ==================== */
 .hero-split-section {
   padding: 56px 40px;
@@ -444,7 +523,7 @@ body {
   display: block;
   margin-bottom: 4px;
 }
-.search-select {
+.search-select, .search-info-box {
   width: 100%;
   background: #120C09;
   border: 1px solid var(--border-subtle);
@@ -453,6 +532,36 @@ body {
   font-size: 12.5px;
   color: var(--text-cream);
   outline: none;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
+}
+
+.hero-arrow-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #944638 0%, #7d3428 100%);
+  border: 1px solid #c45b48;
+  color: #f1e6d1;
+  font-size: 18px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 14px rgba(148, 70, 56, 0.4);
+  align-self: flex-end;
+}
+
+.hero-arrow-btn:hover {
+  background: linear-gradient(135deg, #c45b48 0%, #944638 100%);
+  color: #ffffff;
+  transform: translateY(-2px) scale(1.06);
+  box-shadow: 0 6px 20px rgba(148, 70, 56, 0.6);
 }
 
 .hero-stats-grid {

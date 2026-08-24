@@ -6,10 +6,14 @@
     <title>Member Profile — Atlas Room</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Cinzel:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/index.css">
     <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
+
+    <!-- Full-Screen Interactive Golden Constellation Canvas Animation -->
+    <canvas id="goldenConstellationCanvas" class="golden-constellation-bg"></canvas>
 
     <!-- ==================== HEADER & NAVIGATION ==================== -->
     <header class="header">
@@ -30,6 +34,9 @@
                 <a href="booking.html" class="nav__link">RESERVE A SEAT</a>
                 <a href="myBooking.html" class="nav__link">MY BOOKINGS</a>
                 <a href="profile.html" class="nav__link active">PROFILE</a>
+                <a href="admin.html" class="nav__link" id="navAdminBtn" style="display: none;">ADMIN</a>
+                <a href="login.html" class="nav__link" id="navLoginBtn">LOG IN</a>
+                <a href="sign_up.html" class="nav__link" id="navSignupBtn">SIGN UP</a>
             </nav>
 
             <!-- Right Actions -->
@@ -238,13 +245,87 @@
 
         function handleLogout() {
             localStorage.removeItem("currentUser");
+            localStorage.setItem("hasLoggedOut", "true");
             alert("Logged out successfully");
-            window.location.href = "login.html";
+            window.location.href = "index.html";
         }
 
         if (logoutBtn) {
             logoutBtn.addEventListener("click", handleLogout);
         }
+    </script>
+    <script src="js/script.js"></script>
+    <script>
+      (function () {
+        const canvas = document.getElementById('goldenConstellationCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+          width = canvas.width = window.innerWidth;
+          height = canvas.height = window.innerHeight;
+        });
+
+        const nodes = [];
+        const nodeCount = 50;
+
+        for (let i = 0; i < nodeCount; i++) {
+          nodes.push({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            vx: (Math.random() - 0.5) * 0.6,
+            vy: (Math.random() - 0.5) * 0.6,
+            radius: Math.random() * 2.5 + 1.5,
+            pulse: Math.random() * Math.PI * 2
+          });
+        }
+
+        function draw() {
+          ctx.clearRect(0, 0, width, height);
+
+          nodes.forEach((node, i) => {
+            node.x += node.vx;
+            node.y += node.vy;
+            node.pulse += 0.03;
+
+            if (node.x < 0 || node.x > width) node.vx *= -1;
+            if (node.y < 0 || node.y > height) node.vy *= -1;
+
+            const glowRad = node.radius + Math.sin(node.pulse) * 1.2;
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, Math.max(1, glowRad), 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(232, 195, 130, 0.85)';
+            ctx.shadowColor = 'rgba(232, 195, 130, 0.9)';
+            ctx.shadowBlur = 10;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            for (let j = i + 1; j < nodes.length; j++) {
+              const other = nodes[j];
+              const dx = other.x - node.x;
+              const dy = other.y - node.y;
+              const dist = Math.sqrt(dx * dx + dy * dy);
+
+              if (dist < 150) {
+                const alpha = (1 - dist / 150) * 0.38;
+                ctx.beginPath();
+                ctx.moveTo(node.x, node.y);
+                ctx.lineTo(other.x, other.y);
+                ctx.strokeStyle = `rgba(232, 195, 130, ${alpha})`;
+                ctx.lineWidth = 1;
+                ctx.stroke();
+              }
+            }
+          });
+
+          requestAnimationFrame(draw);
+        }
+
+        draw();
+      })();
     </script>
 </body>
 </html>

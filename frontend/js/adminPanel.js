@@ -739,8 +739,186 @@ function isHappeningNow(reservation) {
   return now >= start && now <= end;
 }
 
+function showAdminToast(msg) {
+  let container = document.getElementById("adminToastContainer");
+  if (!container) return;
+  let toast = document.createElement("div");
+  toast.className = "toast-msg";
+  toast.innerText = msg;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = "0";
+    toast.style.transition = "opacity 0.3s ease";
+    setTimeout(() => toast.remove(), 300);
+  }, 2500);
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+async function getGuardianMessages() {
+  let msgs = [];
+  try {
+    msgs = await fetch(`${API_BASE}/messages`).then(r => r.json());
+  } catch (e) {
+    try {
+      msgs = JSON.parse(localStorage.getItem('guardianMessages') || '[]');
+    } catch (err) {
+      msgs = [];
+    }
+  }
+
+  // If local storage is empty and fetch failed/empty, supply seed messages
+  if (!msgs || msgs.length === 0) {
+    msgs = [
+      {
+        id: "msg-101",
+        name: "Priya Nair",
+        email: "priya.nair@university.edu",
+        studentId: "2310991235",
+        department: "Electronics Engineering",
+        semester: "Sem 3",
+        role: "student",
+        subject: "Guardian Hold Request",
+        message: "Requesting a 2-hour extended guardian hold for Seat S-042 due to continuous project lab work.",
+        timestamp: "Aug 24, 2026, 04:30 AM",
+        status: "unread"
+      },
+      {
+        id: "msg-102",
+        name: "Aarav Sharma",
+        email: "aarav.sharma@university.edu",
+        studentId: "2310991234",
+        department: "Computer Science",
+        semester: "Sem 5",
+        role: "student",
+        subject: "Exam Period Priority Inquiry",
+        message: "Hi, I have mid-term practicals next week. Could you confirm if my thesis priority multiplier is active for Discussion Room D-02?",
+        timestamp: "Aug 24, 2026, 02:15 AM",
+        status: "read"
+      }
+    ];
+    try {
+      localStorage.setItem('guardianMessages', JSON.stringify(msgs));
+    } catch (e) {}
+  }
+  return msgs;
+}
+
+async function renderGuardianMessages() {
+  const container = document.getElementById("guardianMessagesContainer");
+  const emptyNote = document.getElementById("guardianMessagesEmptyNote");
+  const filterVal = document.getElementById("guardianMsgFilter")?.value || "all";
+  if (!container) return;
+
+  let msgs = await getGuardianMessages();
+
+  if (filterVal === "unread") {
+    msgs = msgs.filter(m => m.status === "unread");
+  } else if (filterVal === "guardian") {
+    msgs = msgs.filter(m => (m.subject || "").toLowerCase().includes("guardian"));
+  }
+
+  container.innerHTML = "";
+  if (emptyNote) emptyNote.hidden = msgs.length > 0;
+
+  msgs.forEach(msg => {
+    const card = document.createElement("div");
+    const isUnread = msg.status === "unread";
+    card.className = `guardian-msg-card ${isUnread ? "msg-unread" : "msg-read"}`;
+
+    card.innerHTML = `
+      <div class="msg-card-header">
+        <div class="msg-student-info">
+          <div class="msg-avatar">${(msg.name || "S")[0].toUpperCase()}</div>
+          <div>
+            <div class="msg-student-name">
+              ${escapeHtml(msg.name)} 
+              <span class="role-badge">${escapeHtml(msg.role || "student")}</span>
+            </div>
+            <div class="msg-student-meta">
+              <span class="meta-pill">ID: <strong>${escapeHtml(msg.studentId || "N/A")}</strong></span>
+              <span class="meta-pill">${escapeHtml(msg.department || "General")} (${escapeHtml(msg.semester || "Sem 1")})</span>
+              <span class="meta-email">✉️ ${escapeHtml(msg.email)}</span>
+            </div>
+          </div>
+        </div>
+        <div class="msg-card-badges">
+          <span class="subject-badge">${escapeHtml(msg.subject || "General Inquiry")}</span>
+          <span class="status-badge ${isUnread ? 'badge-unread' : 'badge-read'}">
+            ${isUnread ? '● UNREAD' : '✓ RESOLVED'}
+          </span>
+        </div>
+      </div>
+
+      <div class="msg-body-box">
+        <p>${escapeHtml(msg.message)}</p>
+      </div>
+
+      <div class="msg-card-footer">
+        <span class="msg-time">🕒 ${escapeHtml(msg.timestamp || "Recently")}</span>
+        <div class="msg-actions">
+          ${isUnread ? `<button type="button" class="btn-msg-resolve" onclick="markGuardianMsgRead('${msg.id}')">✓ Mark Resolved</button>` : ''}
+          <button type="button" class="btn-msg-delete" onclick="deleteGuardianMsg('${msg.id}')">🗑️ Delete</button>
+        </div>
+      </div>
+    `;
+
+    container.appendChild(card);
+  });
+}
+
+window.markGuardianMsgRead = async function(id) {
+  let msgs = JSON.parse(localStorage.getItem('guardianMessages') || '[]');
+  let idx = msgs.findIndex(m => String(m.id) === String(id));
+  if (idx !== -1) {
+    msgs[idx].status = 'read';
+    localStorage.setItem('guardianMessages', JSON.stringify(msgs));
+  }
+  try {
+    await fetch(`${API_BASE}/messages/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'read' })
+    });
+  } catch (e) {}
+  showAdminToast("✓ Message marked as resolved");
+  renderDashboard();
+};
+
+window.markAllGuardianMsgsRead = async function() {
+  let msgs = JSON.parse(localStorage.getItem('guardianMessages') || '[]');
+  msgs.forEach(m => m.status = 'read');
+  localStorage.setItem('guardianMessages', JSON.stringify(msgs));
+  showAdminToast("✓ All Guardian messages marked as read");
+  renderDashboard();
+};
+
+window.deleteGuardianMsg = async function(id) {
+  let msgs = JSON.parse(localStorage.getItem('guardianMessages') || '[]');
+  msgs = msgs.filter(m => String(m.id) !== String(id));
+  localStorage.setItem('guardianMessages', JSON.stringify(msgs));
+  try {
+    await fetch(`${API_BASE}/messages/${id}`, { method: 'DELETE' });
+  } catch (e) {}
+  showAdminToast("🗑️ Message deleted");
+  renderDashboard();
+};
+
 async function renderDashboardStats() {
-  let reservations = await fetch(`${API_BASE}/reservations`).then(res => res.json());
+  let reservations = [];
+  try {
+    reservations = await fetch(`${API_BASE}/reservations`).then(res => res.json());
+  } catch (e) {
+    reservations = [];
+  }
   let today = getTodayDate();
 
   let totalToday = reservations.filter((r) => r.date === today).length;
@@ -750,52 +928,61 @@ async function renderDashboardStats() {
   ).length;
   let liveNow = reservations.filter(isHappeningNow).length;
 
-  document.getElementById("statTotalToday").innerText = totalToday;
-  document.getElementById("statLiveNow").innerText = liveNow;
-  document.getElementById("statPending").innerText = pendingCount;
-  document.getElementById("statNoShowsToday").innerText = noShowsToday;
+  let msgs = await getGuardianMessages();
+  let unreadMsgs = msgs.filter(m => m.status === 'unread').length;
+
+  if (document.getElementById("statTotalToday")) document.getElementById("statTotalToday").innerText = totalToday;
+  if (document.getElementById("statLiveNow")) document.getElementById("statLiveNow").innerText = liveNow;
+  if (document.getElementById("statPending")) document.getElementById("statPending").innerText = pendingCount;
+  if (document.getElementById("statNoShowsToday")) document.getElementById("statNoShowsToday").innerText = noShowsToday;
+  if (document.getElementById("statGuardianMsgs")) document.getElementById("statGuardianMsgs").innerText = unreadMsgs;
 }
 
 async function renderLiveBookings() {
-  let [reservations, users, resources] = await Promise.all([
-    fetch(`${API_BASE}/reservations`).then(r => r.json()),
-    fetch(`${API_BASE}/users`).then(r => r.json()),
-    fetch(`${API_BASE}/resources`).then(r => r.json())
-  ]);
+  let reservations = [], users = [], resources = [];
+  try {
+    [reservations, users, resources] = await Promise.all([
+      fetch(`${API_BASE}/reservations`).then(r => r.json()),
+      fetch(`${API_BASE}/users`).then(r => r.json()),
+      fetch(`${API_BASE}/resources`).then(r => r.json())
+    ]);
+  } catch (e) {}
   let liveReservations = reservations.filter(isHappeningNow);
 
   let tbody = document.getElementById("liveBookingsTableBody");
   let emptyNote = document.getElementById("liveBookingsEmptyNote");
-  tbody.innerHTML = "";
+  if (tbody) {
+    tbody.innerHTML = "";
+    if (emptyNote) emptyNote.hidden = liveReservations.length > 0;
 
-  emptyNote.hidden = liveReservations.length > 0;
+    liveReservations.forEach((reservation) => {
+      let row = document.createElement("tr");
 
-  liveReservations.forEach((reservation) => {
-    let row = document.createElement("tr");
+      let data = [
+        getUserName(reservation.userId, users),
+        getResourceLabel(reservation.resourceId, resources),
+        reservation.startTime,
+        reservation.endTime,
+        reservation.checkedIn ? "Yes" : "No",
+      ];
 
-    let data = [
-      getUserName(reservation.userId, users),
-      getResourceLabel(reservation.resourceId, resources),
-      reservation.startTime,
-      reservation.endTime,
-      reservation.checkedIn ? "Yes" : "No",
-    ];
+      data.forEach((value) => {
+        let td = document.createElement("td");
+        td.innerText = value;
+        row.appendChild(td);
+      });
 
-    data.forEach((value) => {
-      let td = document.createElement("td");
-      td.innerText = value;
-      row.appendChild(td);
+      tbody.appendChild(row);
     });
-
-    tbody.appendChild(row);
-  });
+  }
 }
-
 
 function renderDashboard() {
   renderDashboardStats();
   renderLiveBookings();
+  renderGuardianMessages();
 }
+
 renderDashboard();
 document.addEventListener("adminview:shown", function (e) {
   if (e.detail.view === "dashboard") {

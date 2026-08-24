@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About Us — Atlas Room Priority Hold Engine</title>
+  <meta name="description"
+    content="Meet the creators and architects behind Atlas Room — the smart academic library reservation system.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Cinzel:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="css/index.css">
+  <style>
+    .about-hero-section {
+      padding: 60px 40px 40px;
+      text-align: center;
+      max-width: 900px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 5;
+    }
+
+    .about-hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(232, 195, 130, 0.1);
+      border: 1px solid var(--border-gold);
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .about-hero-title {
+      font-family: 'DM Serif Display', 'Cinzel', Georgia, serif;
+      font-size: 2.8rem;
+      color: var(--cream);
+      margin-bottom: 16px;
+      line-height: 1.2;
+    }
+
+    .about-hero-title span {
+      background: linear-gradient(135deg, #e8c382 0%, #c45b48 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .about-hero-desc {
+      font-size: 15px;
+      color: var(--cream-muted);
+      line-height: 1.7;
+      max-width: 680px;
+      margin: 0 auto 40px;
+    }
+
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      max-width: 1100px;
+      margin: 0 auto 60px;
+      padding: 0 20px;
+      position: relative;
+      z-index: 5;
+    }
+
+    .team-card {
+      background: linear-gradient(145deg, rgba(46, 33, 27, 0.85), rgba(26, 18, 14, 0.92));
+      border: 1px solid var(--border-gold);
+      border-radius: var(--radius-lg);
+      padding: 32px 24px;
+      text-align: center;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .team-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--gold), var(--brick));
+    }
+
+    .team-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 20px 40px rgba(140, 58, 36, 0.35);
+      border-color: #e8c382;
+    }
+
+    .team-avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #944638 0%, #7d3428 100%);
+      border: 2px solid var(--gold);
+      color: #f1e6d1;
+      font-family: 'Cinzel', serif;
+      font-size: 28px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+    }
+
+    .team-name {
+      font-family: 'Cinzel', serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--cream);
+      margin-bottom: 6px;
+      letter-spacing: 0.04em;
+    }
+
+    .team-role {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .team-bio {
+      font-size: 13px;
+      color: var(--cream-muted);
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .team-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: center;
+    }
+
+    .team-tag {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      padding: 4px 10px;
+      border-radius: 12px;
+      background: rgba(232, 195, 130, 0.08);
+      border: 1px solid rgba(232, 195, 130, 0.2);
+      color: var(--text-cream);
+    }
+
+    .principles-section {
+      max-width: 1100px;
+      margin: 0 auto 80px;
+      padding: 0 20px;
+      position: relative;
+      z-index: 5;
+    }
+
+    .principles-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .principle-box {
+      background: rgba(22, 15, 12, 0.8);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 24px;
+    }
+
+    .principle-num {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--brick);
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .principle-title {
+      font-family: 'Cinzel', serif;
+      font-size: 1rem;
+      color: var(--cream);
+      margin-bottom: 8px;
+    }
+
+    .principle-desc {
+      font-size: 13px;
+      color: var(--cream-muted);
+      line-height: 1.6;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Full-Screen Interactive Golden Constellation Canvas Animation -->
+  <canvas id="goldenConstellationCanvas" class="golden-constellation-bg"></canvas>
+
+  <!-- ==================== HEADER ==================== -->
+  <header class="header">
+    <div class="container header__inner">
+      <a href="index.html" class="brand">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="14,3 25,9 14,15 3,9" fill="#E8C382" opacity="0.95" />
+          <polygon points="3,9 14,15 14,25 3,19" fill="#8C3A24" />
+          <polygon points="14,15 25,9 25,19 14,25" fill="#7D8B6A" />
+        </svg>
+        <div>
+          <span class="brand__name">ATLAS ROOM</span>
+          <span class="brand__tag">PRIORITY HOLD ENGINE</span>
+        </div>
+      </a>
+
+      <nav class="nav__links" id="navLinks" aria-label="Main Navigation">
+        <a href="index.html" class="nav__link">HOME</a>
+        <a href="booking.html" class="nav__link">RESERVE A SEAT</a>
+        <a href="myBooking.html" class="nav__link">MY BOOKINGS</a>
+        <a href="profile.html" class="nav__link">PROFILE</a>
+        <a href="admin.html" class="nav__link" id="navAdminBtn" style="display: none;">ADMIN</a>
+      </nav>
+
+      <div class="header__actions">
+        <!-- Rendered by js/script.js -->
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== HERO SECTION ==================== -->
+  <main>
+    <section class="about-hero-section">
+      <div class="about-hero-badge">
+        ✨ Atlas Room Creators & Architects
+      </div>
+      <h1 class="about-hero-title">
+        Crafted for Focus. <span>Built for Scholars.</span>
+      </h1>
+      <p class="about-hero-desc">
+        Atlas Room was engineered to solve academic seat contention during peak exam weeks. By combining dark-academia atmospheric aesthetics with anti-cheat priority weighting, we ensure every student finds their dedicated sanctuary.
+      </p>
+    </section>
+
+    <!-- ==================== TEAM SHOWCASE SECTION ==================== -->
+    <section class="team-grid">
+      <!-- Member 1: Jasandeep Singh -->
+      <div class="team-card">
+        <div class="team-avatar">J</div>
+        <h2 class="team-name">Jasandeep Singh</h2>
+        <div class="team-role">Lead Systems Architect & Priority Engine Developer</div>
+        <p class="team-bio">
+          Engineered the weighted priority score calculation engine, anti-cheat hold sweeper mechanisms, and thesis student priority queue algorithms.
+        </p>
+        <div class="team-tags">
+          <span class="team-tag">Priority Logic</span>
+          <span class="team-tag">Data Structures</span>
+          <span class="team-tag">Queue Algorithms</span>
+        </div>
+      </div>
+
+      <!-- Member 2: Lovish Manchanda -->
+      <div class="team-card">
+        <div class="team-avatar">L</div>
+        <h2 class="team-name">Lovish Manchanda</h2>
+        <div class="team-role">Full-Stack Developer & Database Specialist</div>
+        <p class="team-bio">
+          Architected the REST API integration, state synchronization handlers, JSON database schemas, and role-based administrative access security.
+        </p>
+        <div class="team-tags">
+          <span class="team-tag">REST APIs</span>
+          <span class="team-tag">JSON Server DB</span>
+          <span class="team-tag">Auth Security</span>
+        </div>
+      </div>
+
+      <!-- Member 3: Krishna Rawat -->
+      <div class="team-card">
+        <div class="team-avatar">K</div>
+        <h2 class="team-name">Krishna Rawat</h2>
+        <div class="team-role">UI/UX Specialist & Frontend Designer</div>
+        <p class="team-bio">
+          Designed the dark-academia aesthetic visual system, interactive golden constellation line canvas, responsive cards, and glassmorphism layouts.
+        </p>
+        <div class="team-tags">
+          <span class="team-tag">Canvas Animation</span>
+          <span class="team-tag">Glassmorphism</span>
+          <span class="team-tag">UI/UX Design</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== CORE PRINCIPLES ==================== -->
+    <section class="principles-section">
+      <div style="text-align: center; margin-bottom: 32px;">
+        <span class="eyebrow" style="color: var(--gold);">OUR SYSTEM ARCHITECTURE</span>
+        <h2 style="font-family: 'Cinzel', serif; font-size: 1.6rem; color: var(--cream);">Built on Three Principles</h2>
+      </div>
+
+      <div class="principles-grid">
+        <div class="principle-box">
+          <span class="principle-num">01 // FAIR WEIGHTING</span>
+          <h3 class="principle-title">Academic Priority Protection</h3>
+          <p class="principle-desc">Final-year students and researchers with upcoming defense dates earn automatic priority weights during high-demand exam weeks.</p>
+        </div>
+
+        <div class="principle-box">
+          <span class="principle-num">02 // ANTI-CHEAT HOLD</span>
+          <h3 class="principle-title">Zero No-Show Sweeper</h3>
+          <p class="principle-desc">Unverified seat holds expire automatically after 15 minutes to guarantee max efficiency across all library wings.</p>
+        </div>
+
+        <div class="principle-box">
+          <span class="principle-num">03 // ATMOSPHERIC CALM</span>
+          <h3 class="principle-title">Dark Academia Sanctuary</h3>
+          <p class="principle-desc">An immersive, distraction-free environment tailored for deep reading, quiet writing, and thesis research.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div class="footer__brand-col">
+          <div class="brand">
+            <svg width="24" height="24" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <polygon points="14,3 25,9 14,15 3,9" fill="#E8C382" />
+              <polygon points="3,9 14,15 14,25 3,19" fill="#8C3A24" />
+              <polygon points="14,15 25,9 25,19 14,25" fill="#7D8B6A" />
+            </svg>
+            <span class="brand__name">ATLAS ROOM</span>
+          </div>
+          <p class="footer__desc">Smart priority queue reservation system protecting thesis research and academic study space during high-demand exam weeks.</p>
+        </div>
+
+        <div>
+          <h4 class="footer__col-title">Spaces & Wings</h4>
+          <ul class="footer__links">
+            <li><a href="index.html#spaces" class="footer__link">North Reading Wing</a></li>
+            <li><a href="index.html#spaces" class="footer__link">Quiet Thesis Pods</a></li>
+            <li><a href="index.html#spaces" class="footer__link">Media & Projector Suites</a></li>
+            <li><a href="index.html#spaces" class="footer__link">Archive Research Tables</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer__col-title">Quick Portals</h4>
+          <ul class="footer__links">
+            <li><a href="index.html" class="footer__link">Home Overview</a></li>
+            <li><a href="booking.html" class="footer__link">Reserve a Seat</a></li>
+            <li><a href="myBooking.html" class="footer__link">My Bookings</a></li>
+            <li><a href="about.html" class="footer__link" style="color: var(--gold); font-weight: 700;">About Us & Our Team</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer__col-title">The Team</h4>
+          <ul class="footer__links">
+            <li><span class="footer__link" style="color: var(--text-cream);">Jasandeep Singh</span></li>
+            <li><span class="footer__link" style="color: var(--text-cream);">Lovish Manchanda</span></li>
+            <li><span class="footer__link" style="color: var(--text-cream);">Krishna Rawat</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer__bottom">
+        <span>© 2026 Atlas Reading Room. All rights reserved. • <a href="about.html" style="color: var(--gold); text-decoration: none;">About Us</a></span>
+        <span>Smart Academic Hold Algorithm v1.2</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/script.js"></script>
+  <script>
+    // Full-Screen Interactive Golden Constellation Canvas Animation
+    (function () {
+      const canvas = document.getElementById('goldenConstellationCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+
+      let width = canvas.width = window.innerWidth;
+      let height = canvas.height = window.innerHeight;
+
+      window.addEventListener('resize', () => {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+      });
+
+      const nodes = [];
+      const nodeCount = 50;
+
+      for (let i = 0; i < nodeCount; i++) {
+        nodes.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          vx: (Math.random() - 0.5) * 0.6,
+          vy: (Math.random() - 0.5) * 0.6,
+          radius: Math.random() * 2.5 + 1.5,
+          pulse: Math.random() * Math.PI * 2
+        });
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, width, height);
+
+        nodes.forEach((node, i) => {
+          node.x += node.vx;
+          node.y += node.vy;
+          node.pulse += 0.03;
+
+          if (node.x < 0 || node.x > width) node.vx *= -1;
+          if (node.y < 0 || node.y > height) node.vy *= -1;
+
+          const glowRad = node.radius + Math.sin(node.pulse) * 1.2;
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, Math.max(1, glowRad), 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(232, 195, 130, 0.85)';
+          ctx.shadowColor = 'rgba(232, 195, 130, 0.9)';
+          ctx.shadowBlur = 10;
+          ctx.fill();
+          ctx.shadowBlur = 0;
+
+          for (let j = i + 1; j < nodes.length; j++) {
+            const other = nodes[j];
+            const dx = other.x - node.x;
+            const dy = other.y - node.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            if (dist < 150) {
+              const alpha = (1 - dist / 150) * 0.38;
+              ctx.beginPath();
+              ctx.moveTo(node.x, node.y);
+              ctx.lineTo(other.x, other.y);
+              ctx.strokeStyle = `rgba(232, 195, 130, ${alpha})`;
+              ctx.lineWidth = 1;
+              ctx.stroke();
+            }
+          }
+        });
+
+        requestAnimationFrame(draw);
+      }
+
+      draw();
+    })();
+  </script>
+</body>
+
+</html>

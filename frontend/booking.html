@@ -1,25 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reserve a Resource — Atlas Room</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Cinzel:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/index.css">
     <link rel="stylesheet" href="css/app.css">
 </head>
+
 <body>
+
+    <!-- Full-Screen Interactive Golden Constellation Canvas Animation -->
+    <canvas id="goldenConstellationCanvas" class="golden-constellation-bg"></canvas>
 
     <!-- ==================== HEADER & NAVIGATION ==================== -->
     <header class="header">
         <div class="container header__inner">
             <!-- Brand Logo -->
             <a href="index.html" class="brand" aria-label="Atlas Room Home">
-                <svg class="brand__icon" width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <polygon points="14,3 25,9 14,15 3,9" fill="#F1E6D1" opacity="0.95"/>
-                    <polygon points="3,9 14,15 14,25 3,19" fill="#944638"/>
-                    <polygon points="14,15 25,9 25,19 14,25" fill="#4A261D"/>
+                <svg class="brand__icon" width="28" height="28" viewBox="0 0 28 28" fill="none"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <polygon points="14,3 25,9 14,15 3,9" fill="#F1E6D1" opacity="0.95" />
+                    <polygon points="3,9 14,15 14,25 3,19" fill="#944638" />
+                    <polygon points="14,15 25,9 25,19 14,25" fill="#4A261D" />
                 </svg>
                 <span class="brand__name">ATLAS ROOM</span>
             </a>
@@ -30,6 +39,9 @@
                 <a href="booking.html" class="nav__link active">RESERVE A SEAT</a>
                 <a href="myBooking.html" class="nav__link">MY BOOKINGS</a>
                 <a href="profile.html" class="nav__link">PROFILE</a>
+                <a href="admin.html" class="nav__link" id="navAdminBtn" style="display: none;">ADMIN</a>
+                <a href="login.html" class="nav__link" id="navLoginBtn">LOG IN</a>
+                <a href="sign_up.html" class="nav__link" id="navSignupBtn">SIGN UP</a>
             </nav>
 
             <!-- Right Actions -->
@@ -65,7 +77,8 @@
         <div class="page-header">
             <span class="eyebrow">LIBRARY SEAT & RESOURCE RESERVATION</span>
             <h1 class="page-title">Reserve a Resource</h1>
-            <p class="page-subtitle">Select a study room, discussion carrel, or workstation. Priority Queue allocation automatically guarantees fair access for academic deadlines.</p>
+            <p class="page-subtitle">Select a study room, discussion carrel, or workstation. Priority Queue allocation
+                automatically guarantees fair access for academic deadlines.</p>
         </div>
 
         <div class="booking-layout">
@@ -81,12 +94,14 @@
                         <label class="filter-label" for="resourceType">Resource Type</label>
                         <select id="resourceType">
                             <option value="all">All Resources</option>
+                            <option value="conference room">Conference Room</option>
                             <option value="study room">Study Rooms</option>
-                            <option value="discussion_room">Discussion Rooms</option>
+                            <option value="discussion_room">Research Rooms</option>
                             <option value="carrel">Individual Carrels</option>
                             <option value="computer station">Computer Stations</option>
-                            <option value="seminar hall">Seminar Halls</option>
+                            <option value="seminar hall">Projector Room</option>
                             <option value="reading pod">Reading Pods</option>
+                            <option value="community study hall">Community Study Hall</option>
                         </select>
                     </div>
 
@@ -96,7 +111,6 @@
                             <option value="all">All Library Zones</option>
                             <option value="Silent Zone">Silent Zone</option>
                             <option value="Collaborative Zone">Collaborative Zone</option>
-                            <option value="Quiet Zone">Quiet Zone</option>
                             <option value="Digital Lab">Digital Lab</option>
                             <option value="Conference Zone">Conference Zone</option>
                             <option value="Open Reading Zone">Open Reading Zone</option>
@@ -161,6 +175,42 @@
         let getResources = async () => {
             let response = await fetch("http://localhost:3000/resources");
             resources = await response.json();
+
+            let urlParams = new URLSearchParams(window.location.search);
+            let typeParam = urlParams.get("type") || urlParams.get("resourceType");
+            if (typeParam) {
+                let resourceTypeSelect = document.getElementById("resourceType");
+                if (resourceTypeSelect) {
+                    let matchedOpt = Array.from(resourceTypeSelect.options).find(opt =>
+                        opt.value.toLowerCase() === typeParam.toLowerCase() ||
+                        opt.text.toLowerCase().includes(typeParam.toLowerCase())
+                    );
+                    if (matchedOpt) {
+                        resourceTypeSelect.value = matchedOpt.value;
+                    } else {
+                        let newOpt = new Option(typeParam, typeParam);
+                        resourceTypeSelect.add(newOpt);
+                        resourceTypeSelect.value = typeParam;
+                    }
+                }
+            }
+
+            let zoneParam = urlParams.get("zone");
+            if (zoneParam) {
+                let zoneSelect = document.getElementById("zone");
+                if (zoneSelect) {
+                    let matchedOpt = Array.from(zoneSelect.options).find(opt =>
+                        opt.value.toLowerCase() === zoneParam.toLowerCase() ||
+                        opt.text.toLowerCase().includes(zoneParam.toLowerCase()) ||
+                        (zoneParam.toLowerCase().includes("silent") && opt.value === "Silent Zone") ||
+                        (zoneParam.toLowerCase().includes("quiet") && opt.value === "Silent Zone")
+                    );
+                    if (matchedOpt) {
+                        zoneSelect.value = matchedOpt.value;
+                    }
+                }
+            }
+
             showResources();
         };
 
@@ -180,8 +230,17 @@
             let reservations = await res.json();
 
             let filteredResources = resources.filter(resource => {
-                return (resourceType === "all" || resource.type === resourceType) &&
-                    (zone === "all" || resource.zone === zone);
+                let matchesType = resourceType === "all" ||
+                    resource.type.toLowerCase() === resourceType.toLowerCase() ||
+                    (resourceType.toLowerCase() === "conference room" && (resource.type.toLowerCase().includes("discussion") || resource.type.toLowerCase().includes("community") || resource.type.toLowerCase().includes("conference"))) ||
+                    (resourceType.toLowerCase() === "seminar hall" && (resource.type.toLowerCase().includes("seminar") || resource.type.toLowerCase().includes("projector"))) ||
+                    (resourceType.toLowerCase() === "discussion_room" && (resource.type.toLowerCase().includes("discussion") || resource.type.toLowerCase().includes("research")));
+
+                let matchesZone = zone === "all" ||
+                    resource.zone === zone ||
+                    (zone === "Silent Zone" && (resource.zone === "Silent Zone" || resource.zone === "Quiet Zone" || resource.zone === "Silent Room"));
+
+                return matchesType && matchesZone;
             });
 
             filteredResources.forEach(resource => {
@@ -236,9 +295,9 @@
         bookingForm.addEventListener("submit", async (event) => {
             event.preventDefault();
 
-            let date      = document.getElementById("date").value;
+            let date = document.getElementById("date").value;
             let startTime = document.getElementById("startTime").value;
-            let endTime   = document.getElementById("endTime").value;
+            let endTime = document.getElementById("endTime").value;
 
             if (!currentUser) {
                 alert("Please login first");
@@ -286,7 +345,7 @@
             let res = await fetch("http://localhost:3000/reservations");
             let reservations = await res.json();
 
-            let existingUserBooking = reservations.find(r => 
+            let existingUserBooking = reservations.find(r =>
                 String(r.userId) === String(bookingUser.id) &&
                 r.date === date &&
                 r.startTime < endTime &&
@@ -320,15 +379,15 @@
             );
 
             let newReservation = {
-                userId:        bookingUser.id,
-                resourceId:    selectedResource.id,
-                date:          date,
-                startTime:     startTime,
-                endTime:       endTime,
-                status:        bookingStatus,
+                userId: bookingUser.id,
+                resourceId: selectedResource.id,
+                date: date,
+                startTime: startTime,
+                endTime: endTime,
+                status: bookingStatus,
                 priorityScore: calculatedPriorityScore,
-                checkedIn:     false,
-                createdAt:     new Date().toISOString()
+                checkedIn: false,
+                createdAt: new Date().toISOString()
             };
 
             let response = await fetch("http://localhost:3000/reservations", {
@@ -363,5 +422,79 @@
             showResources();
         });
     </script>
+    <script src="js/script.js"></script>
+    <script>
+      (function () {
+        const canvas = document.getElementById('goldenConstellationCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+          width = canvas.width = window.innerWidth;
+          height = canvas.height = window.innerHeight;
+        });
+
+        const nodes = [];
+        const nodeCount = 50;
+
+        for (let i = 0; i < nodeCount; i++) {
+          nodes.push({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            vx: (Math.random() - 0.5) * 0.6,
+            vy: (Math.random() - 0.5) * 0.6,
+            radius: Math.random() * 2.5 + 1.5,
+            pulse: Math.random() * Math.PI * 2
+          });
+        }
+
+        function draw() {
+          ctx.clearRect(0, 0, width, height);
+
+          nodes.forEach((node, i) => {
+            node.x += node.vx;
+            node.y += node.vy;
+            node.pulse += 0.03;
+
+            if (node.x < 0 || node.x > width) node.vx *= -1;
+            if (node.y < 0 || node.y > height) node.vy *= -1;
+
+            const glowRad = node.radius + Math.sin(node.pulse) * 1.2;
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, Math.max(1, glowRad), 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(232, 195, 130, 0.85)';
+            ctx.shadowColor = 'rgba(232, 195, 130, 0.9)';
+            ctx.shadowBlur = 10;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            for (let j = i + 1; j < nodes.length; j++) {
+              const other = nodes[j];
+              const dx = other.x - node.x;
+              const dy = other.y - node.y;
+              const dist = Math.sqrt(dx * dx + dy * dy);
+
+              if (dist < 150) {
+                const alpha = (1 - dist / 150) * 0.38;
+                ctx.beginPath();
+                ctx.moveTo(node.x, node.y);
+                ctx.lineTo(other.x, other.y);
+                ctx.strokeStyle = `rgba(232, 195, 130, ${alpha})`;
+                ctx.lineWidth = 1;
+                ctx.stroke();
+              }
+            }
+          });
+
+          requestAnimationFrame(draw);
+        }
+
+        draw();
+      })();
+    </script>
 </body>
+
 </html>
