@@ -254,6 +254,21 @@
       "suspendedUntil": null,
       "suspendReason": null,
       "id": "9pw5ktDYThA"
+    },
+    {
+      "name": "Jasan",
+      "studentId": "2410993036",
+      "email": "jasan@gmail.com",
+      "password": "123456789",
+      "role": "student",
+      "course": "B.Tech",
+      "semester": 5,
+      "noShowCount": 0,
+      "reliabilityScore": 100,
+      "suspended": false,
+      "suspendedUntil": null,
+      "suspendReason": null,
+      "id": "Vn_gYq38-Do"
     }
   ],
   "resources": [
@@ -275,7 +290,7 @@
     },
     {
       "id": "3",
-      "label": "Group Discussion Room B1",
+      "label": "Archive Research Room B1",
       "type": "discussion_room",
       "zone": "Collaborative Zone",
       "capacity": 8,
@@ -283,10 +298,18 @@
     },
     {
       "id": "4",
-      "label": "Group Discussion Room B2",
+      "label": "Archive Research Room B2",
       "type": "discussion_room",
       "zone": "Collaborative Zone",
       "capacity": 6,
+      "available": true
+    },
+    {
+      "id": "11",
+      "label": "Archive Research Room B3",
+      "type": "discussion_room",
+      "zone": "Collaborative Zone",
+      "capacity": 4,
       "available": true
     },
     {
@@ -323,10 +346,50 @@
     },
     {
       "id": "9",
-      "label": "Seminar Hall E1",
+      "label": "Media Projector Room E1",
       "type": "seminar hall",
       "zone": "Conference Zone",
-      "capacity": 30,
+      "capacity": 15,
+      "available": true
+    },
+    {
+      "id": "12",
+      "label": "Media Projector Room E2",
+      "type": "seminar hall",
+      "zone": "Conference Zone",
+      "capacity": 20,
+      "available": true
+    },
+    {
+      "id": "13",
+      "label": "Media Projector Room E3",
+      "type": "seminar hall",
+      "zone": "Conference Zone",
+      "capacity": 12,
+      "available": true
+    },
+    {
+      "id": "14",
+      "label": "Community Study Hall N1",
+      "type": "community study hall",
+      "zone": "Open Reading Zone",
+      "capacity": 12,
+      "available": true
+    },
+    {
+      "id": "15",
+      "label": "Community Study Hall N2",
+      "type": "community study hall",
+      "zone": "Open Reading Zone",
+      "capacity": 16,
+      "available": true
+    },
+    {
+      "id": "16",
+      "label": "Community Study Hall N3",
+      "type": "community study hall",
+      "zone": "Open Reading Zone",
+      "capacity": 10,
       "available": true
     },
     {
@@ -698,6 +761,78 @@
       "checkedIn": false,
       "createdAt": "2026-08-23T16:22:53.834Z",
       "id": "85Lupj3Mc0w"
+    },
+    {
+      "userId": "Vn_gYq38-Do",
+      "resourceId": "16",
+      "date": "2026-08-25",
+      "startTime": "08:00",
+      "endTime": "10:30",
+      "status": "cancelled",
+      "priorityScore": 68,
+      "checkedIn": false,
+      "createdAt": "2026-08-23T22:05:39.443Z",
+      "id": "Cn9tt_DrxK4"
+    },
+    {
+      "userId": "Vn_gYq38-Do",
+      "resourceId": "14",
+      "date": "2026-08-23",
+      "startTime": "08:00",
+      "endTime": "10:30",
+      "status": "confirmed",
+      "priorityScore": 68,
+      "checkedIn": false,
+      "createdAt": "2026-08-23T22:08:52.917Z",
+      "id": "HYOn9ko2jRs"
+    },
+    {
+      "userId": "Vn_gYq38-Do",
+      "resourceId": "15",
+      "date": "2026-08-23",
+      "startTime": "11:00",
+      "endTime": "12:30",
+      "status": "confirmed",
+      "priorityScore": 68,
+      "checkedIn": false,
+      "createdAt": "2026-08-23T22:09:29.604Z",
+      "id": "EKgUK-TtwdM"
+    },
+    {
+      "userId": "Vn_gYq38-Do",
+      "resourceId": "1",
+      "date": "2026-08-23",
+      "startTime": "10:30",
+      "endTime": "11:00",
+      "status": "confirmed",
+      "priorityScore": 68,
+      "checkedIn": false,
+      "createdAt": "2026-08-23T22:18:37.224Z",
+      "id": "oaKi2BABBh4"
+    },
+    {
+      "userId": "Vn_gYq38-Do",
+      "resourceId": "2",
+      "date": "2026-08-25",
+      "startTime": "20:00",
+      "endTime": "21:00",
+      "status": "cancelled",
+      "priorityScore": 68,
+      "checkedIn": false,
+      "createdAt": "2026-08-24T12:38:24.335Z",
+      "id": "gaSphPfU4bk"
+    },
+    {
+      "userId": "Vn_gYq38-Do",
+      "resourceId": "1",
+      "date": "2026-08-25",
+      "startTime": "22:00",
+      "endTime": "23:59",
+      "status": "cancelled",
+      "priorityScore": 68,
+      "checkedIn": false,
+      "createdAt": "2026-08-24T12:39:48.041Z",
+      "id": "RFaXU5o7CNs"
     }
   ],
   "examWindows": [
@@ -726,5 +861,58 @@
       "endDate": "2026-11-18"
     }
   ],
-  "$schema": "./node_modules/json-server/schema.json"
+  "messages": [
+    {
+      "id": "msg-101",
+      "name": "Priya Nair",
+      "email": "priya.nair@university.edu",
+      "studentId": "2310991235",
+      "department": "Electronics Engineering",
+      "semester": "Sem 3",
+      "role": "student",
+      "subject": "Guardian Hold Request",
+      "message": "Requesting a 2-hour extended guardian hold for Seat S-042 due to continuous project lab work.",
+      "timestamp": "Aug 24, 2026, 04:30 AM",
+      "status": "read"
+    },
+    {
+      "id": "msg-102",
+      "name": "Aarav Sharma",
+      "email": "aarav.sharma@university.edu",
+      "studentId": "2310991234",
+      "department": "Computer Science",
+      "semester": "Sem 5",
+      "role": "student",
+      "subject": "Exam Period Priority Inquiry",
+      "message": "Hi, I have mid-term practicals next week. Could you confirm if my thesis priority multiplier is active for Discussion Room D-02?",
+      "timestamp": "Aug 24, 2026, 02:15 AM",
+      "status": "read"
+    },
+    {
+      "id": "bcXH3B_M0es",
+      "name": "Jasan",
+      "email": "jasan@gmail.com",
+      "studentId": "2410993036",
+      "department": "Computer Science & Engineering",
+      "semester": "Sem 5",
+      "role": "student",
+      "subject": "Guardian Hold Request",
+      "message": "hello",
+      "timestamp": "Aug 24, 05:24 AM",
+      "status": "unread"
+    },
+    {
+      "id": "xcRQvwEemYs",
+      "name": "cap",
+      "email": "cap@gmail.com",
+      "studentId": "123",
+      "department": "Computer Science & Engineering",
+      "semester": "Sem 8",
+      "role": "student",
+      "subject": "Guardian Hold Request",
+      "message": "hy",
+      "timestamp": "Aug 24, 05:58 PM",
+      "status": "read"
+    }
+  ]
 }
