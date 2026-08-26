@@ -703,18 +703,6 @@
       "id": "NTX8nAHYleI"
     },
     {
-      "userId": "2tDpPDmIBvk",
-      "resourceId": "7",
-      "date": "2026-08-29",
-      "startTime": "02:02",
-      "endTime": "12:02",
-      "status": "cancelled",
-      "priorityScore": 68,
-      "checkedIn": false,
-      "createdAt": "2026-08-21T03:57:11.327Z",
-      "id": "nTjxA33JXcI"
-    },
-    {
       "userId": "b0Kr4FY7n4s",
       "resourceId": "7",
       "date": "2026-08-29",
@@ -914,5 +902,6 @@
       "timestamp": "Aug 24, 05:58 PM",
       "status": "read"
     }
-  ]
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
 }

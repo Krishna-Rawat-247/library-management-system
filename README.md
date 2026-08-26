@@ -27,6 +27,7 @@ Welcome to **Atlas Room**! A modern, smart **library seat reservation system** b
 
 ## Table of Contents
 - [Features](#features)
+- [Screenshots](#screenshots)
 - [Tech Stack](#tech-stack)
 - [Architecture & System Flows](#architecture--system-flows)
 - [REST API Reference](#rest-api-reference)
@@ -44,6 +45,33 @@ Welcome to **Atlas Room**! A modern, smart **library seat reservation system** b
 * **Anti-Cheat & Reliability Tracking:** No-shows instantly drop a user's reliability score ("strikes"). Three strikes trigger an automatic suspension.
 * **Admin Telemetry Dashboard:** Live room occupancy meters, Guardian Hold message management, and Force Confirm capabilities.
 * **Premium UI:** Glassmorphism UI, interactive golden constellation animations, and dark-mode aesthetics.
+
+---
+
+## Screenshots
+
+<table align="center">
+  <tr>
+    <td align="center">
+      <b>Home & Priority Simulator</b><br/>
+      <img src="frontend/images/home.png" width="400" alt="Home page" />
+    </td>
+    <td align="center">
+      <b>Resource Reservation</b><br/>
+      <img src="frontend/images/reserve.png" width="400" alt="Reservation page" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <b>Admin Telemetry Dashboard</b><br/>
+      <img src="frontend/images/admin1.png" width="400" alt="Admin Telemetry 1" />
+    </td>
+    <td align="center">
+      <b>Admin Message Center</b><br/>
+      <img src="frontend/images/admin2.png" width="400" alt="Admin Telemetry 2" />
+    </td>
+  </tr>
+</table>
 
 ---
 
