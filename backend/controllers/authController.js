@@ -52,9 +52,29 @@ const signup = async (req, res) => {
     }
 }
 
-// login => not written yet
+// login => check email and password, then give back a JWT
 const login = async (req, res) => {
-    res.status(501).send({message: "login not implemented yet"})
+    try {
+        const {email, password} = req.body
+        if (!email || !password) {
+            return res.status(400).send({message: "Email and password are required"})
+        }
+        const user = await User.findOne({email: email.trim().toLowerCase()}).select("+password")
+        if (!user) {
+            return res.status(401).send({message: "Invalid email or password"})
+        }
+        const isMatch = await bcrypt.compare(password, user.password)
+        if (!isMatch) {
+            return res.status(401).send({message: "Invalid email or password"})
+        }
+        res.status(200).send({
+            message: "Login successful",
+            token: makeToken(user),
+            user: userData(user)
+        })
+    } catch (error) {
+        res.status(500).send({message: error.message})
+    }
 }
 
 // getMe => not written yet
