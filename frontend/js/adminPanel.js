@@ -472,7 +472,14 @@ async function renderUserSearchResults(term) {
   let cleanTerm = term.trim().toLowerCase();
   if (!cleanTerm) return;
 
-  let users = await fetch(`${API_BASE}/users`).then(res => res.json());
+  let users;
+  try {
+    let result = await apiGet("/admin/users");
+    users = result.data;
+  } catch (error) {
+    alert(error.message);
+    return;
+  }
   let matches = users.filter((user) =>
     user.name.toLowerCase().includes(cleanTerm)
   );
@@ -514,7 +521,15 @@ async function renderUserSearchResults(term) {
 async function openUserProfile(userId) {
   selectedUserId = userId;
 
-  let user = await fetch(`${API_BASE}/users/${userId}`).then(res => res.json());
+  // there is no "one user" route for admins, so we pick the user from the list
+  let user;
+  try {
+    let result = await apiGet("/admin/users");
+    user = result.data.find((u) => String(u.id) === String(userId));
+  } catch (error) {
+    alert(error.message);
+    return;
+  }
   if (!user) return;
 
   document.getElementById("section-user-profile").hidden = false;
@@ -572,11 +587,14 @@ async function renderPriorityBreakdown(user) {
 // ---------------------------------------------------------
 
 async function renderUserBookingHistory(userId) {
-  let [reservations, resources] = await Promise.all([
-    fetch(`${API_BASE}/reservations`).then(res => res.json()),
-    fetch(`${API_BASE}/resources`).then(res => res.json())
-  ]);
-  let userReservations = reservations.filter((r) => String(r.userId) === String(userId));
+  let reservations = [];
+  try {
+    let result = await apiGet("/admin/reservations");
+    reservations = result.data;
+  } catch (error) {
+    alert(error.message);
+  }
+  let userReservations = reservations.filter((r) => r.user && String(r.user.id) === String(userId));
 
   userReservations.sort((a, b) => {
     return getDateTime(b) - getDateTime(a); // most recent first
@@ -592,7 +610,7 @@ async function renderUserBookingHistory(userId) {
     let row = document.createElement("tr");
 
     let data = [
-      getResourceLabel(reservation.resourceId, resources),
+      getResourceLabel(reservation),
       reservation.date,
       reservation.startTime + " - " + reservation.endTime,
       reservation.status,
@@ -620,7 +638,7 @@ function renderSuspendStatus(user) {
 
   if (user.suspended) {
     let untilText = user.suspendedUntil
-      ? "until " + user.suspendedUntil
+      ? "until " + user.suspendedUntil.slice(0, 10)
       : "indefinitely";
     let reasonText = user.suspendReason ? " — " + user.suspendReason : "";
 
@@ -635,40 +653,24 @@ function renderSuspendStatus(user) {
 }
 
 async function suspendUser(userId, durationValue, reason) {
-  let updates = {
-    suspended: true,
-    suspendReason: reason,
-  };
+  // days is 1, 7, 30 or null (no end date). The server calculates the end date.
+  let days = durationValue === "indefinite" ? null : Number(durationValue);
 
-  if (durationValue === "indefinite") {
-    updates.suspendedUntil = null;
-  } else {
-    let until = new Date();
-    until.setDate(until.getDate() + Number(durationValue));
-    updates.suspendedUntil = until.toISOString().slice(0, 10);
+  try {
+    let result = await apiPost(`/admin/users/${userId}/suspend`, { days: days, reason: reason });
+    renderSuspendStatus(result.data);
+  } catch (error) {
+    alert(error.message);
   }
-
-  let user = await fetch(`${API_BASE}/users/${userId}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(updates)
-  }).then(res => res.json());
-
-  renderSuspendStatus(user);
 }
 
 async function unsuspendUser(userId) {
-  let user = await fetch(`${API_BASE}/users/${userId}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      suspended: false,
-      suspendedUntil: null,
-      suspendReason: ""
-    })
-  }).then(res => res.json());
-
-  renderSuspendStatus(user);
+  try {
+    let result = await apiPost(`/admin/users/${userId}/unsuspend`, {});
+    renderSuspendStatus(result.data);
+  } catch (error) {
+    alert(error.message);
+  }
 }
 
 function wireSuspendControls() {
