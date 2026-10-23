@@ -137,9 +137,22 @@ const markNoShow = async (req, res) => {
     }
 }
 
-// deleteReservation => not written yet
+// deleteReservation => admin deletes a booking for good (any status)
 const deleteReservation = async (req, res) => {
-    res.status(501).send({message: "deleteReservation not implemented yet"})
+    try {
+        const id = req.params.id
+        if (!mongoose.isValidObjectId(id)) {
+            return res.status(400).send({message: "Invalid reservation id"})
+        }
+        const reservation = await Reservation.findByIdAndDelete(id)
+        if (!reservation) {
+            return res.status(404).send({message: "Reservation not found"})
+        }
+        await addDetails(reservation)
+        res.status(200).send({message: "Reservation deleted successfully", data: reservationRow(reservation)})
+    } catch (error) {
+        res.status(500).send({message: error.message})
+    }
 }
 
 module.exports = {getAllReservations, confirmReservation, adminCancelReservation, markNoShow, deleteReservation}
