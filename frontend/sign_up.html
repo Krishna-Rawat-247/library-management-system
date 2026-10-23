@@ -213,6 +213,7 @@
 </div>
 
 
+<script src="js/api.js"></script>
 <script>
     if (localStorage.getItem("currentUser")) {
         window.location.href = "index.html";
@@ -323,48 +324,24 @@ let handleSubmit = async (event) => {
         return;
     }
 
-    let response = await fetch("http://localhost:3000/users");
-    let users = await response.json();
-
-    let existing = users.find(
-        user => user.email === email.value.trim()
-    );
-
-    if (existing) {
-        alert("Email already registered");
-        return;
-    }
-
+    // the server checks the details, hashes the password and sets the role to student
     let newuser = {
-        name:             fullName.value.trim(),
-        studentId:        studentId.value.trim(),
-        email:            email.value.trim(),
-        password:         password.value,
-        role:             "student",
-        course:           selectedCourse,
-        semester:         selectedSemester,
-        noShowCount:      0,
-        reliabilityScore: 100,
-        suspended:        false,
-        suspendedUntil:   null,
-        suspendReason:    null
+        name:      fullName.value.trim(),
+        studentId: studentId.value.trim(),
+        email:     email.value.trim(),
+        password:  password.value,
+        course:    selectedCourse,
+        semester:  selectedSemester
     };
 
-    let postResponse = await fetch("http://localhost:3000/users", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(newuser)
-    });
-
-    if (!postResponse.ok) {
-        alert("Registration failed. Please try again.");
-        return;
+    try {
+        await apiPost("/auth/signup", newuser);
+        alert("Account created successfully");
+        window.location.href = "login.html";
+    } catch (error) {
+        // for example "Email already registered"
+        alert(error.message);
     }
-
-    alert("Account created successfully");
-    window.location.href = "login.html";
 };
 
 form.addEventListener("submit", handleSubmit);

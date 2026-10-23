@@ -161,6 +161,7 @@
   </div>
 
 
+<script src="js/api.js"></script>
 <script>
     if (localStorage.getItem("currentUser")) {
         window.location.href = "index.html";
@@ -182,29 +183,23 @@
             return;
         }
 
-        let response = await fetch("http://localhost:3000/users");
-        let all_users = await response.json();
+        try {
+            // the server checks the password and gives back a token
+            let result = await apiPost("/auth/login", {
+                email: email.value.trim(),
+                password: password.value
+            });
 
-        let exist = all_users.find(user =>
-            user.email === email.value.trim() &&
-            user.password === password.value.trim()
-        );
+            // token is used for requests. currentUser is only for showing the name
+            localStorage.setItem("token", result.token);
+            localStorage.setItem("currentUser", JSON.stringify(result.user));
 
-        if (!exist) {
-            alert("Invalid Email or Password");
-            return;
+            alert("Login successful");
+
+            window.location.href = "index.html";
+        } catch (error) {
+            alert(error.message);
         }
-
-        delete exist.password;
-
-        localStorage.setItem(
-            "currentUser",
-            JSON.stringify(exist)
-        );
-
-        alert("Login successful");
-
-        window.location.href = "index.html";
     };
 
     form.addEventListener("submit", handleSubmit);
