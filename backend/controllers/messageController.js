@@ -1,3 +1,4 @@
+const mongoose = require("mongoose")
 const {Message} = require("../models/messageModel")
 const {User} = require("../models/userModel")
 
@@ -67,14 +68,55 @@ const getMessages = async (req, res) => {
     }
 }
 
-// updateMessage => not written yet
+// updateMessage => admin marks a message read/unread or writes a reply (a reply also marks it read)
 const updateMessage = async (req, res) => {
-    res.status(501).send({message: "updateMessage not implemented yet"})
+    try {
+        const id = req.params.id
+        const {status, reply} = req.body
+        if (!mongoose.isValidObjectId(id)) {
+            return res.status(400).send({message: "Invalid message id"})
+        }
+        if (status === undefined && reply === undefined) {
+            return res.status(400).send({message: "Send a status or a reply"})
+        }
+        if (status !== undefined && !["unread", "read"].includes(status)) {
+            return res.status(400).send({message: "Status must be unread or read"})
+        }
+        const updates = {}
+        if (status !== undefined) {
+            updates.status = status
+        }
+        if (reply !== undefined) {
+            updates.reply = reply
+            if (status === undefined) {
+                updates.status = "read"
+            }
+        }
+        const message = await Message.findByIdAndUpdate(id, updates, {new: true})
+        if (!message) {
+            return res.status(404).send({message: "Message not found"})
+        }
+        res.status(200).send({message: "Message updated successfully", data: messageData(message)})
+    } catch (error) {
+        res.status(500).send({message: error.message})
+    }
 }
 
-// deleteMessage => not written yet
+// deleteMessage => admin deletes a message
 const deleteMessage = async (req, res) => {
-    res.status(501).send({message: "deleteMessage not implemented yet"})
+    try {
+        const id = req.params.id
+        if (!mongoose.isValidObjectId(id)) {
+            return res.status(400).send({message: "Invalid message id"})
+        }
+        const message = await Message.findByIdAndDelete(id)
+        if (!message) {
+            return res.status(404).send({message: "Message not found"})
+        }
+        res.status(200).send({message: "Message deleted successfully", data: messageData(message)})
+    } catch (error) {
+        res.status(500).send({message: error.message})
+    }
 }
 
 module.exports = {sendMessage, getMessages, updateMessage, deleteMessage}
