@@ -160,6 +160,7 @@
         </div>
     </footer>
 
+    <script src="js/api.js"></script>
     <script src="js/priority.js"></script>
     <script>
         let resources = [];
@@ -167,14 +168,19 @@
         let selectedResourceDiv = document.getElementById("selectedResource");
         let currentUser = JSON.parse(localStorage.getItem("currentUser"));
 
-        if (!currentUser) {
+        if (!currentUser || !localStorage.getItem("token")) {
             alert("Please login first");
             window.location.href = "login.html";
         }
 
         let getResources = async () => {
-            let response = await fetch("http://localhost:3000/resources");
-            resources = await response.json();
+            try {
+                let result = await apiGet("/resources");
+                resources = result.data;
+            } catch (error) {
+                alert(error.message);
+                return;
+            }
 
             let urlParams = new URLSearchParams(window.location.search);
             let typeParam = urlParams.get("type") || urlParams.get("resourceType");
@@ -226,10 +232,10 @@
 
             resourceMap.innerHTML = "";
 
-            let res = await fetch("http://localhost:3000/reservations");
-            let reservations = await res.json();
-
             let filteredResources = resources.filter(resource => {
+                if (resource.active === false) {
+                    return false;
+                }
                 let matchesType = resourceType === "all" ||
                     resource.type.toLowerCase() === resourceType.toLowerCase() ||
                     (resourceType.toLowerCase() === "conference room" && (resource.type.toLowerCase().includes("discussion") || resource.type.toLowerCase().includes("community") || resource.type.toLowerCase().includes("conference"))) ||
@@ -243,25 +249,28 @@
                 return matchesType && matchesZone;
             });
 
-            filteredResources.forEach(resource => {
-                let conflicts = [];
-                let booked = false;
+            let cardsHtml = "";
 
-                if (date !== "" && startTime !== "" && endTime !== "") {
-                    conflicts = getConflictingReservations(
-                        reservations,
-                        resource.id,
-                        date,
-                        startTime,
-                        endTime
-                    );
-                    booked = conflicts.length >= resource.capacity;
+            for (let i = 0; i < filteredResources.length; i++) {
+                let resource = filteredResources[i];
+                let status = `Available (${resource.capacity} seat${resource.capacity !== 1 ? 's' : ''})`;
+
+                // the server counts the booked seats for the chosen time
+                if (date !== "" && startTime !== "" && endTime !== "" && startTime < endTime) {
+                    try {
+                        let result = await apiGet(
+                            `/resources/${resource.id}/availability?date=${date}&startTime=${startTime}&endTime=${endTime}`
+                        );
+                        let availableSeats = result.data.available;
+                        status = availableSeats === 0
+                            ? "Full"
+                            : `Available (${availableSeats} seat${availableSeats !== 1 ? 's' : ''} left)`;
+                    } catch (error) {
+                        status = "Availability not known";
+                    }
                 }
 
-                let availableSeats = Math.max(0, resource.capacity - conflicts.length);
-                let status = booked ? "Full" : `Available (${availableSeats} seat${availableSeats !== 1 ? 's' : ''} left)`;
-
-                resourceMap.innerHTML += `
+                cardsHtml += `
                     <div class="resource-card" onclick="selectResource('${resource.id}')">
                         <h3>${resource.label || resource.name}</h3>
                         <p>Type: ${resource.type}</p>
@@ -270,7 +279,9 @@
                         <p>Status: ${status}</p>
                     </div>
                 `;
-            });
+            }
+
+            resourceMap.innerHTML = cardsHtml;
         };
 
         document.getElementById("resourceType").addEventListener("change", showResources);
@@ -326,89 +337,20 @@
                 return;
             }
 
-            let userResponse = await fetch("http://localhost:3000/users/" + currentUser.id);
-            if (!userResponse.ok) {
-                alert("Unable to verify your account. Please login again.");
+            // the server checks suspension, overlapping bookings, free seats and sets the status
+            try {
+                let result = await apiPost("/reservations", {
+                    resourceId: selectedResource.id,
+                    date: date,
+                    startTime: startTime,
+                    endTime: endTime
+                });
+                alert(result.message);
+            } catch (error) {
+                // for example "No seats left for that time"
+                alert(error.message);
+                showResources();
                 return;
-            }
-
-            let bookingUser = await userResponse.json();
-
-            if (bookingUser.suspended === true) {
-                let until = bookingUser.suspendedUntil
-                    ? " until " + bookingUser.suspendedUntil
-                    : " indefinitely";
-                alert("Your account is suspended" + until + ". You cannot make new bookings.");
-                return;
-            }
-
-            let res = await fetch("http://localhost:3000/reservations");
-            let reservations = await res.json();
-
-            let existingUserBooking = reservations.find(r =>
-                String(r.userId) === String(bookingUser.id) &&
-                r.date === date &&
-                r.startTime < endTime &&
-                r.endTime > startTime &&
-                (r.status === "confirmed" || r.status === "waiting" || r.status === "pending")
-            );
-
-            if (existingUserBooking) {
-                if (String(existingUserBooking.resourceId) === String(selectedResource.id)) {
-                    alert("You already have a booking for this resource during this time slot.");
-                } else {
-                    alert("You have another booking that overlaps with this time slot.");
-                }
-                return;
-            }
-
-            let calculatedPriorityScore = await calculatePriorityScore(bookingUser, date);
-
-            let conflicts = getConflictingReservations(
-                reservations,
-                selectedResource.id,
-                date,
-                startTime,
-                endTime
-            );
-
-            let bookingStatus = await resolveBookingConflict(
-                calculatedPriorityScore,
-                conflicts,
-                selectedResource.capacity
-            );
-
-            let newReservation = {
-                userId: bookingUser.id,
-                resourceId: selectedResource.id,
-                date: date,
-                startTime: startTime,
-                endTime: endTime,
-                status: bookingStatus,
-                priorityScore: calculatedPriorityScore,
-                checkedIn: false,
-                createdAt: new Date().toISOString()
-            };
-
-            let response = await fetch("http://localhost:3000/reservations", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(newReservation)
-            });
-
-            if (!response.ok) {
-                alert("Booking failed");
-                return;
-            }
-
-            if (bookingStatus === "waiting") {
-                alert("This resource is already fully booked. You were added to the waiting queue.");
-            } else if (conflicts.length >= selectedResource.capacity) {
-                alert("You have higher priority. A previous booking was bumped and yours is confirmed.");
-            } else {
-                alert("Resource booked successfully");
             }
 
             bookingForm.reset();
