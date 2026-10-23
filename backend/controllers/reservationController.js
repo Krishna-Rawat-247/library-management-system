@@ -64,6 +64,30 @@ const createReservation = async (req, res) => {
             return res.status(403).send({message: "Your account is suspended" + until + ". You cannot make new bookings"})
         }
 
+        // the user cannot have another confirmed booking at the same time (any resource)
+        const ownBooking = await Reservation.findOne({
+            user: user._id,
+            status: "confirmed",
+            date,
+            startTime: {$lt: endTime},
+            endTime: {$gt: startTime}
+        })
+        if (ownBooking) {
+            return res.status(409).send({message: "You already have a booking that overlaps this time"})
+        }
+
+        // capacity check. No bumping and no waiting list in Phase 1
+        const booked = await Reservation.countDocuments({
+            resource: resource._id,
+            status: "confirmed",
+            date,
+            startTime: {$lt: endTime},
+            endTime: {$gt: startTime}
+        })
+        if (booked >= resource.capacity) {
+            return res.status(409).send({message: "No seats left for that time"})
+        }
+
         // the score is saved only for display. It does not change the result
         const priorityScore = await calculatePriorityScore(user, date)
         const reservation = await Reservation.create({
