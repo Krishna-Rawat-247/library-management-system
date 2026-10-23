@@ -77,9 +77,17 @@ const login = async (req, res) => {
     }
 }
 
-// getMe => not written yet
+// getMe => send the logged in user's fresh data from the database
 const getMe = async (req, res) => {
-    res.status(501).send({message: "getMe not implemented yet"})
+    try {
+        const user = await User.findById(req.user.id)
+        if (!user) {
+            return res.status(404).send({message: "User not found"})
+        }
+        res.status(200).send({message: "User fetched successfully", data: userData(user)})
+    } catch (error) {
+        res.status(500).send({message: error.message})
+    }
 }
 
 module.exports = {signup, login, getMe}
