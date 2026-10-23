@@ -1,6 +1,7 @@
 const mongoose = require("mongoose")
 const {Reservation} = require("../models/reservationModel")
 const {Resource} = require("../models/resourceModel")
+const {User} = require("../models/userModel")
 
 // reservationRow => one row for the admin table. user and resource are populated,
 // but they can be empty if the user or resource was deleted later
@@ -88,14 +89,52 @@ const confirmReservation = async (req, res) => {
     }
 }
 
-// adminCancelReservation => not written yet
+// adminCancelReservation => admin cancels a pending, waiting or confirmed booking. Nobody is promoted
 const adminCancelReservation = async (req, res) => {
-    res.status(501).send({message: "adminCancelReservation not implemented yet"})
+    try {
+        const id = req.params.id
+        if (!mongoose.isValidObjectId(id)) {
+            return res.status(400).send({message: "Invalid reservation id"})
+        }
+        const reservation = await Reservation.findById(id)
+        if (!reservation) {
+            return res.status(404).send({message: "Reservation not found"})
+        }
+        if (!["pending", "waiting", "confirmed"].includes(reservation.status)) {
+            return res.status(400).send({message: "This booking cannot be cancelled"})
+        }
+        reservation.status = "cancelled"
+        await reservation.save()
+        await addDetails(reservation)
+        res.status(200).send({message: "Reservation cancelled successfully", data: reservationRow(reservation)})
+    } catch (error) {
+        res.status(500).send({message: error.message})
+    }
 }
 
-// markNoShow => not written yet
+// markNoShow => the booking becomes no_show and the user gets one more strike.
+// There is no automatic suspension in Phase 1
 const markNoShow = async (req, res) => {
-    res.status(501).send({message: "markNoShow not implemented yet"})
+    try {
+        const id = req.params.id
+        if (!mongoose.isValidObjectId(id)) {
+            return res.status(400).send({message: "Invalid reservation id"})
+        }
+        const reservation = await Reservation.findById(id)
+        if (!reservation) {
+            return res.status(404).send({message: "Reservation not found"})
+        }
+        if (reservation.status !== "confirmed") {
+            return res.status(400).send({message: "Only confirmed bookings can be marked as no-show"})
+        }
+        reservation.status = "no_show"
+        await reservation.save()
+        await User.findByIdAndUpdate(reservation.user, {$inc: {noShowCount: 1}})
+        await addDetails(reservation)
+        res.status(200).send({message: "Marked as no-show", data: reservationRow(reservation)})
+    } catch (error) {
+        res.status(500).send({message: error.message})
+    }
 }
 
 // deleteReservation => not written yet
