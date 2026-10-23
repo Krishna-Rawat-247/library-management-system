@@ -785,58 +785,30 @@
       }
     });
 
-    window.handleModalSubmit = function () {
-      const nameEl = document.getElementById('contactName');
-      const emailEl = document.getElementById('contactEmail');
+    window.handleModalSubmit = async function () {
       const subjectEl = document.getElementById('contactSubject');
       const messageEl = document.getElementById('contactMessage');
 
-      const name = nameEl?.value || 'Student';
-      const email = emailEl?.value || '';
       const subject = subjectEl?.value || 'Guardian Hold Request';
       const messageText = messageEl?.value || '';
 
-      let currentUser = null;
+      // only logged in users can write to the admin
+      if (!localStorage.getItem('token')) {
+        triggerToast('Please log in to send a message to the admin.');
+        return;
+      }
+
+      // the server takes the name, email, department and role from the account
       try {
-        currentUser = JSON.parse(localStorage.getItem('currentUser'));
-      } catch (e) {}
-
-      const msgObj = {
-        id: "msg_" + Date.now(),
-        name: name,
-        email: email || currentUser?.email || 'N/A',
-        studentId: currentUser?.studentId || '2410805305',
-        department: currentUser?.department || 'Computer Science & Engineering',
-        semester: currentUser?.semester ? `Sem ${currentUser.semester}` : 'Sem 5',
-        role: currentUser?.role || 'student',
-        subject: subject,
-        message: messageText,
-        timestamp: new Date().toLocaleString('en-US', {
-          month: 'short',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        }),
-        status: 'unread'
-      };
-
-      // Save to localStorage so admin panel can access immediately
-      try {
-        const existing = JSON.parse(localStorage.getItem('guardianMessages') || '[]');
-        existing.unshift(msgObj);
-        localStorage.setItem('guardianMessages', JSON.stringify(existing));
-      } catch (e) {}
-
-      // Attempt async POST to db.json json-server endpoint if server running
-      fetch('http://localhost:3000/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(msgObj)
-      }).catch(() => {});
+        await apiPost('/messages', { subject: subject, message: messageText });
+      } catch (error) {
+        triggerToast(error.message);
+        return;
+      }
 
       if (messageEl) messageEl.value = '';
       reserveModal.close();
-      triggerToast(`✓ Thank you ${name}! Your Guardian hold message has been dispatched to the Admin Panel.`);
+      triggerToast('✓ Thank you! Your Guardian hold message has been dispatched to the Admin Panel.');
     };
 
     function triggerToast(text) {
@@ -854,6 +826,7 @@
 
     refreshSimulatorUI();
   </script>
+  <script src="js/api.js"></script>
   <script src="js/script.js"></script>
 </body>
 
