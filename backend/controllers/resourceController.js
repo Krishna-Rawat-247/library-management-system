@@ -64,9 +64,40 @@ const getResourceById = async (req, res) => {
     }
 }
 
-// getAvailability => not written yet
+// getAvailability => how many seats are taken in the given time. Only confirmed bookings count
 const getAvailability = async (req, res) => {
-    res.status(501).send({message: "getAvailability not implemented yet"})
+    try {
+        const id = req.params.id
+        const {date, startTime, endTime} = req.query
+        if (!mongoose.isValidObjectId(id)) {
+            return res.status(400).send({message: "Invalid resource id"})
+        }
+        if (!date || !startTime || !endTime) {
+            return res.status(400).send({message: "date, startTime and endTime are required"})
+        }
+        if (startTime >= endTime) {
+            return res.status(400).send({message: "End time must be after start time"})
+        }
+        const resource = await Resource.findById(id)
+        if (!resource || (!resource.active && req.user.role !== "admin")) {
+            return res.status(404).send({message: "Resource not found"})
+        }
+        // two bookings overlap when one starts before the other ends
+        const booked = await Reservation.countDocuments({
+            resource: id,
+            status: "confirmed",
+            date,
+            startTime: {$lt: endTime},
+            endTime: {$gt: startTime}
+        })
+        const available = Math.max(0, resource.capacity - booked)
+        res.status(200).send({
+            message: "Availability fetched successfully",
+            data: {capacity: resource.capacity, booked, available}
+        })
+    } catch (error) {
+        res.status(500).send({message: error.message})
+    }
 }
 
 // createResource => admin adds a new resource
