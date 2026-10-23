@@ -1,5 +1,17 @@
 const mongoose = require("mongoose")
 const {Resource} = require("../models/resourceModel")
+const {Reservation} = require("../models/reservationModel")
+
+// the only types allowed for new or edited resources
+const ALLOWED_TYPES = [
+    "study room",
+    "discussion_room",
+    "carrel",
+    "computer station",
+    "seminar hall",
+    "community study hall",
+    "reading pod"
+]
 
 // resourceData => the resource object we send (the old pages use "id")
 const resourceData = (resource) => {
@@ -57,19 +69,96 @@ const getAvailability = async (req, res) => {
     res.status(501).send({message: "getAvailability not implemented yet"})
 }
 
-// createResource => not written yet
+// createResource => admin adds a new resource
 const createResource = async (req, res) => {
-    res.status(501).send({message: "createResource not implemented yet"})
+    try {
+        const {label, type, zone, capacity, active, image} = req.body
+        if (!label || !type || !capacity) {
+            return res.status(400).send({message: "Label, type and capacity are required"})
+        }
+        if (!ALLOWED_TYPES.includes(type)) {
+            return res.status(400).send({message: "Type must be one of: " + ALLOWED_TYPES.join(", ")})
+        }
+        if (!Number.isInteger(Number(capacity)) || Number(capacity) < 1) {
+            return res.status(400).send({message: "Capacity must be a whole number, 1 or more"})
+        }
+        const resource = await Resource.create({
+            label,
+            type,
+            zone,
+            capacity: Number(capacity),
+            active,
+            image
+        })
+        res.status(201).send({message: "Resource created successfully", data: resourceData(resource)})
+    } catch (error) {
+        res.status(500).send({message: error.message})
+    }
 }
 
-// updateResource => not written yet
+// updateResource => admin edits a resource. Only the fields sent are changed
 const updateResource = async (req, res) => {
-    res.status(501).send({message: "updateResource not implemented yet"})
+    try {
+        const id = req.params.id
+        if (!mongoose.isValidObjectId(id)) {
+            return res.status(400).send({message: "Invalid resource id"})
+        }
+        const resource = await Resource.findById(id)
+        if (!resource) {
+            return res.status(404).send({message: "Resource not found"})
+        }
+
+        const {label, type, zone, capacity, active, image} = req.body
+        // a migrated resource may have an old type, so only check the type when it changes
+        if (type !== undefined && type !== resource.type && !ALLOWED_TYPES.includes(type)) {
+            return res.status(400).send({message: "Type must be one of: " + ALLOWED_TYPES.join(", ")})
+        }
+        if (capacity !== undefined && (!Number.isInteger(Number(capacity)) || Number(capacity) < 1)) {
+            return res.status(400).send({message: "Capacity must be a whole number, 1 or more"})
+        }
+
+        const updates = {}
+        if (label !== undefined) updates.label = label
+        if (type !== undefined) updates.type = type
+        if (zone !== undefined) updates.zone = zone
+        if (capacity !== undefined) updates.capacity = Number(capacity)
+        if (active !== undefined) updates.active = active
+        if (image !== undefined) updates.image = image
+        if (Object.keys(updates).length === 0) {
+            return res.status(400).send({message: "Nothing to update"})
+        }
+
+        const data = await Resource.findByIdAndUpdate(id, updates, {new: true, runValidators: true})
+        res.status(200).send({message: "Resource updated successfully", data: resourceData(data)})
+    } catch (error) {
+        res.status(500).send({message: error.message})
+    }
 }
 
-// deleteResource => not written yet
+// deleteResource => admin deletes a resource. Not allowed while it has upcoming confirmed bookings
 const deleteResource = async (req, res) => {
-    res.status(501).send({message: "deleteResource not implemented yet"})
+    try {
+        const id = req.params.id
+        if (!mongoose.isValidObjectId(id)) {
+            return res.status(400).send({message: "Invalid resource id"})
+        }
+        const today = new Date().toISOString().split("T")[0]
+        const upcoming = await Reservation.countDocuments({
+            resource: id,
+            status: "confirmed",
+            date: {$gte: today}
+        })
+        if (upcoming > 0) {
+            return res.status(409).send({message: "This resource has upcoming confirmed bookings. Cancel them first or mark the resource inactive"})
+        }
+        const resource = await Resource.findByIdAndDelete(id)
+        if (!resource) {
+            return res.status(404).send({message: "Resource not found"})
+        }
+        res.status(200).send({message: "Resource deleted successfully", data: resourceData(resource)})
+    } catch (error) {
+        res.status(500).send({message: error.message})
+    }
 }
 
 module.exports = {getResources, getResourceById, getAvailability, createResource, updateResource, deleteResource}
