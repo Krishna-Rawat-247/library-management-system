@@ -140,6 +140,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function performLogout() {
         localStorage.removeItem("currentUser");
+        localStorage.removeItem("token");
         localStorage.setItem("hasLoggedOut", "true");
         alert("Logged out successfully");
 
@@ -205,21 +206,16 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+        // api.js must be loaded on this page (index.html) for the request below
+        if (typeof apiGet !== "function") {
+            showNoActiveReservation();
+            return;
+        }
+
         try {
-            let [resRes, resRooms] = await Promise.all([
-                fetch("http://localhost:3000/reservations"),
-                fetch("http://localhost:3000/resources")
-            ]);
-
-            if (!resRes.ok || !resRooms.ok) {
-                showNoActiveReservation();
-                return;
-            }
-
-            let allReservations = await resRes.json();
-            let resources = await resRooms.json();
-
-            let userReservations = allReservations.filter(r => String(r.userId) === String(currentUser.id));
+            // our own bookings, the resource details come inside each booking
+            let result = await apiGet("/reservations/mine");
+            let userReservations = result.data;
 
             let now = new Date();
             let todayStr = now.toISOString().split("T")[0];
@@ -257,8 +253,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             let latest = activeBookings[0];
 
-            let matchedRoom = resources.find(r => String(r.id) === String(latest.resourceId));
-            let roomName = matchedRoom ? (matchedRoom.label || matchedRoom.name) : "Room #" + latest.resourceId;
+            let roomName = latest.resource ? latest.resource.label : "Room";
             let timeSlot = `${latest.startTime || ''} — ${latest.endTime || ''} (${latest.date || ''})`.trim();
 
             heroSearchBox.style.gridTemplateColumns = "1fr 1fr auto";

@@ -91,6 +91,7 @@
         </div>
     </footer>
 
+    <script src="js/api.js"></script>
     <script src="js/priority.js"></script>
     <script>
         let profileContainer = document.getElementById("profileContainer");
@@ -98,7 +99,7 @@
 
         let currentUser = JSON.parse(localStorage.getItem("currentUser"));
 
-        if (!currentUser) {
+        if (!currentUser || !localStorage.getItem("token")) {
             alert("Please login first");
             window.location.href = "login.html";
         } else {
@@ -107,22 +108,21 @@
 
         async function loadProfile() {
             try {
-                let response = await fetch(
-                    `http://localhost:3000/users/${currentUser.id}`
-                );
-
-                if (!response.ok) {
-                    alert("Unable to load profile");
-                    return;
-                }
-
-                let user = await response.json();
+                // fresh data of the logged in user from the server
+                let result = await apiGet("/auth/me");
+                let user = result.data;
 
                 // Calculate scores using existing priority.js functions
                 let today = new Date().toISOString().slice(0, 10);
-                let priorityScore = typeof calculatePriorityScore === "function"
-                    ? await calculatePriorityScore(user, today)
-                    : "—";
+                // this score is only for display. If it cannot be calculated we show a dash
+                let priorityScore = "—";
+                try {
+                    if (typeof calculatePriorityScore === "function") {
+                        priorityScore = await calculatePriorityScore(user, today);
+                    }
+                } catch (e) {
+                    priorityScore = "—";
+                }
                 let reliabilityScore = typeof getReliabilityScore === "function"
                     ? getReliabilityScore(user)
                     : Math.max(0, 100 - (user.noShowCount || 0) * 15);
@@ -245,6 +245,7 @@
 
         function handleLogout() {
             localStorage.removeItem("currentUser");
+            localStorage.removeItem("token");
             localStorage.setItem("hasLoggedOut", "true");
             alert("Logged out successfully");
             window.location.href = "index.html";
