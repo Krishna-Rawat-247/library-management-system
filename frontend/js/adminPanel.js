@@ -743,53 +743,15 @@ function escapeHtml(str) {
     .replace(/'/g, "&#039;");
 }
 
+// all messages come from the server (the admin gets every message)
 async function getGuardianMessages() {
-  let msgs = [];
   try {
-    msgs = await fetch(`${API_BASE}/messages`).then(r => r.json());
-  } catch (e) {
-    try {
-      msgs = JSON.parse(localStorage.getItem('guardianMessages') || '[]');
-    } catch (err) {
-      msgs = [];
-    }
+    let result = await apiGet("/messages");
+    return result.data;
+  } catch (error) {
+    alert(error.message);
+    return [];
   }
-
-  // If local storage is empty and fetch failed/empty, supply seed messages
-  if (!msgs || msgs.length === 0) {
-    msgs = [
-      {
-        id: "msg-101",
-        name: "Priya Nair",
-        email: "priya.nair@university.edu",
-        studentId: "2310991235",
-        department: "Electronics Engineering",
-        semester: "Sem 3",
-        role: "student",
-        subject: "Guardian Hold Request",
-        message: "Requesting a 2-hour extended guardian hold for Seat S-042 due to continuous project lab work.",
-        timestamp: "Aug 24, 2026, 04:30 AM",
-        status: "unread"
-      },
-      {
-        id: "msg-102",
-        name: "Aarav Sharma",
-        email: "aarav.sharma@university.edu",
-        studentId: "2310991234",
-        department: "Computer Science",
-        semester: "Sem 5",
-        role: "student",
-        subject: "Exam Period Priority Inquiry",
-        message: "Hi, I have mid-term practicals next week. Could you confirm if my thesis priority multiplier is active for Discussion Room D-02?",
-        timestamp: "Aug 24, 2026, 02:15 AM",
-        status: "read"
-      }
-    ];
-    try {
-      localStorage.setItem('guardianMessages', JSON.stringify(msgs));
-    } catch (e) {}
-  }
-  return msgs;
 }
 
 async function renderGuardianMessages() {
@@ -856,46 +818,45 @@ async function renderGuardianMessages() {
 }
 
 window.markGuardianMsgRead = async function(id) {
-  let msgs = JSON.parse(localStorage.getItem('guardianMessages') || '[]');
-  let idx = msgs.findIndex(m => String(m.id) === String(id));
-  if (idx !== -1) {
-    msgs[idx].status = 'read';
-    localStorage.setItem('guardianMessages', JSON.stringify(msgs));
-  }
   try {
-    await fetch(`${API_BASE}/messages/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'read' })
-    });
-  } catch (e) {}
-  showAdminToast("✓ Message marked as resolved");
+    await apiPatch(`/messages/${id}`, { status: 'read' });
+    showAdminToast("✓ Message marked as resolved");
+  } catch (error) {
+    alert(error.message);
+  }
   renderDashboard();
 };
 
 window.markAllGuardianMsgsRead = async function() {
-  let msgs = JSON.parse(localStorage.getItem('guardianMessages') || '[]');
-  msgs.forEach(m => m.status = 'read');
-  localStorage.setItem('guardianMessages', JSON.stringify(msgs));
-  showAdminToast("✓ All Guardian messages marked as read");
+  let msgs = await getGuardianMessages();
+  let unread = msgs.filter(m => m.status === 'unread');
+
+  try {
+    for (let i = 0; i < unread.length; i++) {
+      await apiPatch(`/messages/${unread[i].id}`, { status: 'read' });
+    }
+    showAdminToast("✓ All Guardian messages marked as read");
+  } catch (error) {
+    alert(error.message);
+  }
   renderDashboard();
 };
 
 window.deleteGuardianMsg = async function(id) {
-  let msgs = JSON.parse(localStorage.getItem('guardianMessages') || '[]');
-  msgs = msgs.filter(m => String(m.id) !== String(id));
-  localStorage.setItem('guardianMessages', JSON.stringify(msgs));
   try {
-    await fetch(`${API_BASE}/messages/${id}`, { method: 'DELETE' });
-  } catch (e) {}
-  showAdminToast("🗑️ Message deleted");
+    await apiDelete(`/messages/${id}`);
+    showAdminToast("🗑️ Message deleted");
+  } catch (error) {
+    alert(error.message);
+  }
   renderDashboard();
 };
 
 async function renderDashboardStats() {
   let reservations = [];
   try {
-    reservations = await fetch(`${API_BASE}/reservations`).then(res => res.json());
+    let result = await apiGet("/admin/reservations");
+    reservations = result.data;
   } catch (e) {
     reservations = [];
   }
@@ -919,13 +880,10 @@ async function renderDashboardStats() {
 }
 
 async function renderLiveBookings() {
-  let reservations = [], users = [], resources = [];
+  let reservations = [];
   try {
-    [reservations, users, resources] = await Promise.all([
-      fetch(`${API_BASE}/reservations`).then(r => r.json()),
-      fetch(`${API_BASE}/users`).then(r => r.json()),
-      fetch(`${API_BASE}/resources`).then(r => r.json())
-    ]);
+    let result = await apiGet("/admin/reservations");
+    reservations = result.data;
   } catch (e) {}
   let liveReservations = reservations.filter(isHappeningNow);
 
@@ -939,8 +897,8 @@ async function renderLiveBookings() {
       let row = document.createElement("tr");
 
       let data = [
-        getUserName(reservation.userId, users),
-        getResourceLabel(reservation.resourceId, resources),
+        getUserName(reservation),
+        getResourceLabel(reservation),
         reservation.startTime,
         reservation.endTime,
         reservation.checkedIn ? "Yes" : "No",
@@ -975,7 +933,13 @@ document.addEventListener("adminview:shown", function (e) {
 // ********************************************************************************************************************************************************
 
 async function getExamWindows() {
-  return await fetch(`${API_BASE}/examWindows`).then(res => res.json());
+  try {
+    let result = await apiGet("/exam-windows");
+    return result.data;
+  } catch (error) {
+    alert(error.message);
+    return [];
+  }
 }
 
 
@@ -1009,7 +973,11 @@ async function renderExamWindowsTable() {
 }
 
 async function removeExamWindow(id) {
-  await fetch(`${API_BASE}/examWindows/${id}`, { method: "DELETE" });
+  try {
+    await apiDelete(`/exam-windows/${id}`);
+  } catch (error) {
+    alert(error.message);
+  }
   renderExamWindowsTable();
 }
 
@@ -1033,11 +1001,12 @@ function wireExamWindowForm() {
       endDate: end
     };
 
-    await fetch(`${API_BASE}/examWindows`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newWindow)
-    });
+    try {
+      await apiPost("/exam-windows", newWindow);
+    } catch (error) {
+      alert(error.message);
+      return;
+    }
 
     form.reset();
     renderExamWindowsTable();
