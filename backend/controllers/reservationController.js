@@ -106,14 +106,48 @@ const createReservation = async (req, res) => {
     }
 }
 
-// getMyReservations => not written yet
+// getMyReservations => all bookings of the logged in user, newest first, with resource details
 const getMyReservations = async (req, res) => {
-    res.status(501).send({message: "getMyReservations not implemented yet"})
+    try {
+        const reservations = await Reservation.find({user: req.user.id})
+            .populate("resource")
+            .sort({date: -1, startTime: -1})
+        const data = reservations.map(reservation => reservationData(reservation))
+        res.status(200).send({message: "Reservations fetched successfully", data})
+    } catch (error) {
+        res.status(500).send({message: error.message})
+    }
 }
 
-// cancelReservation => not written yet
+// cancelReservation => the owner or an admin cancels a confirmed booking that has not started.
+// nobody is promoted after a cancel
 const cancelReservation = async (req, res) => {
-    res.status(501).send({message: "cancelReservation not implemented yet"})
+    try {
+        const id = req.params.id
+        if (!mongoose.isValidObjectId(id)) {
+            return res.status(400).send({message: "Invalid reservation id"})
+        }
+        const reservation = await Reservation.findById(id)
+        if (!reservation) {
+            return res.status(404).send({message: "Reservation not found"})
+        }
+        if (String(reservation.user) !== req.user.id && req.user.role !== "admin") {
+            return res.status(403).send({message: "You can cancel only your own bookings"})
+        }
+        if (reservation.status !== "confirmed") {
+            return res.status(400).send({message: "Only confirmed bookings can be cancelled"})
+        }
+        const start = new Date(reservation.date + "T" + reservation.startTime)
+        if (start <= new Date()) {
+            return res.status(400).send({message: "A booking that has started cannot be cancelled"})
+        }
+
+        reservation.status = "cancelled"
+        await reservation.save()
+        res.status(200).send({message: "Booking cancelled successfully", data: reservationData(reservation)})
+    } catch (error) {
+        res.status(500).send({message: error.message})
+    }
 }
 
 module.exports = {createReservation, getMyReservations, cancelReservation}
