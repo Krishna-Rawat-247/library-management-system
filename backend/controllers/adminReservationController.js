@@ -1,4 +1,6 @@
+const mongoose = require("mongoose")
 const {Reservation} = require("../models/reservationModel")
+const {Resource} = require("../models/resourceModel")
 
 // reservationRow => one row for the admin table. user and resource are populated,
 // but they can be empty if the user or resource was deleted later
@@ -45,9 +47,45 @@ const getAllReservations = async (req, res) => {
     }
 }
 
-// confirmReservation => not written yet
+// confirmReservation => force confirm an old waiting/pending/bumped booking, only if a seat is free
 const confirmReservation = async (req, res) => {
-    res.status(501).send({message: "confirmReservation not implemented yet"})
+    try {
+        const id = req.params.id
+        if (!mongoose.isValidObjectId(id)) {
+            return res.status(400).send({message: "Invalid reservation id"})
+        }
+        const reservation = await Reservation.findById(id)
+        if (!reservation) {
+            return res.status(404).send({message: "Reservation not found"})
+        }
+        if (!["waiting", "pending", "bumped"].includes(reservation.status)) {
+            return res.status(400).send({message: "Only waiting, pending or bumped bookings can be force confirmed"})
+        }
+        const resource = await Resource.findById(reservation.resource)
+        if (!resource) {
+            return res.status(404).send({message: "The resource of this booking no longer exists"})
+        }
+
+        // count the other confirmed bookings in the same time on the same resource
+        const booked = await Reservation.countDocuments({
+            _id: {$ne: reservation._id},
+            resource: reservation.resource,
+            status: "confirmed",
+            date: reservation.date,
+            startTime: {$lt: reservation.endTime},
+            endTime: {$gt: reservation.startTime}
+        })
+        if (booked >= resource.capacity) {
+            return res.status(409).send({message: "This time slot is already full. Force confirm was not applied"})
+        }
+
+        reservation.status = "confirmed"
+        await reservation.save()
+        await addDetails(reservation)
+        res.status(200).send({message: "Reservation confirmed successfully", data: reservationRow(reservation)})
+    } catch (error) {
+        res.status(500).send({message: error.message})
+    }
 }
 
 // adminCancelReservation => not written yet
