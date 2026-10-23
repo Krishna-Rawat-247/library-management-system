@@ -1,25 +1,62 @@
 // ********************************************************************************************************************************************************
-const API_BASE = "http://localhost:3000";
+// Every request goes through js/api.js (apiGet, apiPost, apiPatch, apiDelete).
+// The server decides what an admin may do. This file only shows the data.
+// ********************************************************************************************************************************************************
 
+// Asks the server if the logged in user is an admin. A 403 means no.
+// (the role saved in localStorage is only for display, so it is not used here)
+async function checkAdminAccess() {
+  let response = await fetch(API_BASE + "/admin/users", {
+    headers: { Authorization: "Bearer " + localStorage.getItem("token") }
+  });
+
+  if (response.status === 401) {
+    localStorage.removeItem("token");
+    localStorage.removeItem("currentUser");
+    window.location.href = "login.html";
+  } else if (response.status === 403) {
+    alert("Access denied. Only admin users can open the admin panel.");
+    window.location.href = "index.html";
+  }
+}
+
+checkAdminAccess();
+
+// ********************************************************************************************************************************************************
 // 1. Admin Reservation OverSight Panel:
 // ********************************************************************************************************************************************************
 
-function getUserName(userId, users) {
-  let user = users.find((u) => String(u.id) === String(userId));
-  return user ? user.name : "Unknown";
+function getUserName(reservation) {
+  return reservation.user ? reservation.user.name : "Unknown";
 }
 
-function getResourceLabel(resourceId, resources) {
-  let resource = resources.find((r) => String(r.id) === String(resourceId));
-  return resource ? resource.label : "Unknown";
+function getResourceLabel(reservation) {
+  return reservation.resource ? reservation.resource.label : "Unknown";
 }
 
 async function renderReservationTable() {
-  let [reservations, users, resources] = await Promise.all([
-    fetch(`${API_BASE}/reservations`).then(r => r.json()),
-    fetch(`${API_BASE}/users`).then(r => r.json()),
-    fetch(`${API_BASE}/resources`).then(r => r.json())
-  ]);
+  let filters = currentReservationFilters();
+
+  // the server filters by status, the other filters are done here
+  let url = "/admin/reservations";
+  if (filters.status !== "all") {
+    url = url + "?status=" + filters.status;
+  }
+
+  let reservations, users, resources;
+  try {
+    let [reservationResult, userResult, resourceResult] = await Promise.all([
+      apiGet(url),
+      apiGet("/admin/users"),
+      apiGet("/resources")
+    ]);
+    reservations = reservationResult.data;
+    users = userResult.data;
+    resources = resourceResult.data;
+  } catch (error) {
+    alert(error.message);
+    return;
+  }
 
   populateReservationFilterDropdowns(users, resources);
 
@@ -29,14 +66,6 @@ async function renderReservationTable() {
   reservations.sort((a, b) => {
     return getDateTime(a) - getDateTime(b);
   });
-
-  let filters = currentReservationFilters();
-
-  if (filters.status !== "all") {
-    reservations = reservations.filter(
-      (reservation) => reservation.status === filters.status,
-    );
-  }
   if (filters.date) {
     reservations = reservations.filter(
       (reservation) => reservation.date === filters.date,
@@ -44,12 +73,12 @@ async function renderReservationTable() {
   }
   if (filters.userId !== "all") {
     reservations = reservations.filter(
-      (reservation) => String(reservation.userId) === String(filters.userId),
+      (reservation) => reservation.user && String(reservation.user.id) === String(filters.userId),
     );
   }
   if (filters.resourceId !== "all") {
     reservations = reservations.filter(
-      (reservation) => String(reservation.resourceId) === String(filters.resourceId),
+      (reservation) => reservation.resource && String(reservation.resource.id) === String(filters.resourceId),
     );
   }
 
@@ -60,8 +89,8 @@ async function renderReservationTable() {
     let row = document.createElement("tr");
 
     let data = [
-      getUserName(reservation.userId, users),
-      getResourceLabel(reservation.resourceId, resources),
+      getUserName(reservation),
+      getResourceLabel(reservation),
       reservation.date,
       reservation.startTime + " - " + reservation.endTime,
       reservation.priorityScore ?? "—",
@@ -190,7 +219,7 @@ function createActionButtons(reservation) {
   // Delete
   actionsTd.appendChild(
     createButton("Delete", function () {
-      deleteReservation(reservation.id);
+      deleteReservation(reservation);
     }),
   );
 
@@ -204,107 +233,42 @@ function createButton(text, onClick) {
   return button;
 }
 
+// Force Confirm and Cancel. The server checks if there is a free seat.
 async function updateReservationStatus(id, newStatus) {
-  let reservation = await fetch(`${API_BASE}/reservations/${id}`).then(res => res.json());
-  if (!reservation) {
-    return;
-  }
-
-  if (newStatus === "confirmed") {
-    let [allReservations, resource] = await Promise.all([
-      fetch(`${API_BASE}/reservations`).then(res => res.json()),
-      fetch(`${API_BASE}/resources/${reservation.resourceId}`).then(res => res.json())
-    ]);
-
-    let capacity = resource.capacity || 1;
-
-    let occupying = allReservations.filter(function (other) {
-      return String(other.id) !== String(reservation.id) &&
-        String(other.resourceId) === String(reservation.resourceId) &&
-        other.date === reservation.date &&
-        other.startTime < reservation.endTime &&
-        other.endTime > reservation.startTime &&
-        (other.status === "confirmed" || other.status === "pending");
-    });
-
-    if (occupying.length >= capacity) {
-      alert("This time slot is already fully occupied by confirmed bookings. Force Confirm was not applied.");
-      return;
+  try {
+    if (newStatus === "confirmed") {
+      await apiPost(`/admin/reservations/${id}/confirm`, {});
+    } else {
+      await apiPost(`/admin/reservations/${id}/cancel`, {});
     }
-  }
-
-  await fetch(`${API_BASE}/reservations/${id}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ status: newStatus })
-  });
-
-  if (reservation.status === "confirmed" && newStatus === "cancelled") {
-    await promoteWaitingReservation(
-      reservation.resourceId,
-      reservation.date,
-      reservation.startTime,
-      reservation.endTime
-    );
+  } catch (error) {
+    alert(error.message);
   }
 
   renderReservationTable();
 }
 
-async function deleteReservation(id) {
-  let reservation = await fetch(`${API_BASE}/reservations/${id}`).then(res => res.json());
-  if (!reservation) return;
-
-  let user = await fetch(`${API_BASE}/users/${reservation.userId}`).then(res => res.json());
-  let userName = user ? user.name : "Unknown";
-
+async function deleteReservation(reservation) {
   let confirmDelete = confirm(
-    `Are you sure you want to delete the reservation for ${userName} on ${reservation.date}?`
+    `Are you sure you want to delete the reservation for ${getUserName(reservation)} on ${reservation.date}?`
   );
-  if (confirmDelete) {
-    await fetch(`${API_BASE}/reservations/${id}`, { method: "DELETE" });
-    
-    if (reservation.status === "confirmed") {
-      await promoteWaitingReservation(
-        reservation.resourceId,
-        reservation.date,
-        reservation.startTime,
-        reservation.endTime
-      );
-    }
+  if (!confirmDelete) return;
 
-    renderReservationTable();
+  try {
+    await apiDelete(`/admin/reservations/${reservation.id}`);
+  } catch (error) {
+    alert(error.message);
   }
+
+  renderReservationTable();
 }
 
+// The server marks the booking and adds one strike to the user. Nobody is promoted.
 async function markAsNoShow(id) {
-  let reservation = await fetch(`${API_BASE}/reservations/${id}`).then(res => res.json());
-  if (!reservation) return;
-
-  await fetch(`${API_BASE}/reservations/${id}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ status: "no_show" })
-  });
-
-  let user = await fetch(`${API_BASE}/users/${reservation.userId}`).then(res => res.json());
-  if (user) {
-    await fetch(`${API_BASE}/users/${reservation.userId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        noShowCount: (user.noShowCount || 0) + 1
-      })
-    });
-  }
-  
-  if (reservation.status === "confirmed") {
-    await promoteWaitingReservation(
-      reservation.resourceId,
-      reservation.date,
-      reservation.startTime,
-      reservation.endTime
-    );
+  try {
+    await apiPost(`/admin/reservations/${id}/no-show`, {});
+  } catch (error) {
+    alert(error.message);
   }
 
   renderReservationTable();
@@ -318,7 +282,14 @@ wireReservationFilters();
 // ********************************************************************************************************************************************************
 
 async function renderResourcesTable() {
-  let resources = await fetch(`${API_BASE}/resources`).then(res => res.json());
+  let resources;
+  try {
+    let result = await apiGet("/resources");
+    resources = result.data;
+  } catch (error) {
+    alert(error.message);
+    return;
+  }
   let tbody = document.getElementById("resourcesTableBody");
   tbody.innerHTML = "";
 
@@ -330,6 +301,7 @@ async function renderResourcesTable() {
       resource.type.replace("_", " "),
       resource.zone,
       resource.capacity,
+      resource.active === false ? "Inactive" : "Active",
     ];
 
     data.forEach((value) => {
@@ -355,23 +327,25 @@ function createResourceButtons(resource) {
 
   actionsTd.appendChild(
     createButton("Delete", function () {
-      deleteResource(resource.id);
+      deleteResource(resource);
     }),
   );
 
   return actionsTd;
 }
 
-async function deleteResource(id) {
-  let resource = await fetch(`${API_BASE}/resources/${id}`).then(res => res.json());
-  if (!resource) return;
-
+async function deleteResource(resource) {
   let confirmDelete = confirm(
     `Are you sure you want to delete "${resource.label}"?\nExisting reservations will not be removed.`
   );
 
   if (confirmDelete) {
-    await fetch(`${API_BASE}/resources/${id}`, { method: "DELETE" });
+    try {
+      await apiDelete(`/resources/${resource.id}`);
+    } catch (error) {
+      // for example: the resource still has upcoming confirmed bookings
+      alert(error.message);
+    }
     renderResourcesTable();
   }
 }
@@ -382,6 +356,7 @@ function loadResourceIntoForm(resource) {
   document.getElementById("resourceType").value = resource.type;
   document.getElementById("resourceZone").value = resource.zone;
   document.getElementById("resourceCapacity").value = resource.capacity;
+  document.getElementById("resourceActive").checked = resource.active !== false;
 
   document.getElementById("resourceSubmitBtn").innerText = "Save Changes";
   document.getElementById("resourceCancelEditBtn").hidden = false;
@@ -392,6 +367,7 @@ function resetResourceForm() {
 
   document.getElementById("resourceForm").reset();
   document.getElementById("resourceCapacity").value = 1;
+  document.getElementById("resourceActive").checked = true;
   document.getElementById("resourceSubmitBtn").innerText = "Add Resource";
   document.getElementById("resourceCancelEditBtn").hidden = true;
 }
@@ -402,28 +378,29 @@ async function addResource(resource) {
     type: resource.type,
     zone: resource.zone,
     capacity: Number(resource.capacity),
-    available: true
+    active: resource.active
   };
 
-  await fetch(`${API_BASE}/resources`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(newResource)
-  });
+  try {
+    await apiPost("/resources", newResource);
+  } catch (error) {
+    alert(error.message);
+  }
   renderResourcesTable();
 }
 
 async function updateResource(id, resource) {
-  await fetch(`${API_BASE}/resources/${id}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
+  try {
+    await apiPatch(`/resources/${id}`, {
       label: resource.label,
       type: resource.type,
       zone: resource.zone,
-      capacity: Number(resource.capacity)
-    })
-  });
+      capacity: Number(resource.capacity),
+      active: resource.active
+    });
+  } catch (error) {
+    alert(error.message);
+  }
   renderResourcesTable();
 }
 
@@ -440,6 +417,7 @@ function wireResourceForm() {
       type: document.getElementById("resourceType").value,
       zone: document.getElementById("resourceZone").value,
       capacity: document.getElementById("resourceCapacity").value,
+      active: document.getElementById("resourceActive").checked,
     };
 
     if (id) {
