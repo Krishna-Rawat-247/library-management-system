@@ -297,6 +297,13 @@ async function markAsNoShow(id) {
 renderReservationTable();
 wireReservationFilters();
 
+// the allocation can change the statuses while you are on another tab, so reload when this tab opens
+document.addEventListener("adminview:shown", function (e) {
+  if (e.detail.view === "reservations") {
+    renderReservationTable();
+  }
+});
+
 // ********************************************************************************************************************************************************
 // 2. Admin Resource Management Panel:
 // ********************************************************************************************************************************************************
