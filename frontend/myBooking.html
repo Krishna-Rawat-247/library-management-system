@@ -87,15 +87,14 @@
         </div>
     </footer>
 
-    <script src="js/priority.js"></script>
+    <script src="js/api.js"></script>
     <script>
         let bookingsContainer = document.getElementById("bookingsContainer");
         let currentUser = JSON.parse(localStorage.getItem("currentUser"));
         
-        let resources = [];
         let myBookings = [];
 
-        if (!currentUser) {
+        if (!currentUser || !localStorage.getItem("token")) {
             alert("Please login first");
             window.location.href = "login.html";
         } else {
@@ -104,15 +103,9 @@
 
         async function loadBookings() {
             try {
-                let resResp = await fetch("http://localhost:3000/resources");
-                resources = await resResp.json();
-
-                let reqResp = await fetch("http://localhost:3000/reservations");
-                let allReservations = await reqResp.json();
-
-                myBookings = allReservations.filter(reservation =>
-                    String(reservation.userId) === String(currentUser.id)
-                );
+                // our own bookings. The resource details come inside each booking
+                let result = await apiGet("/reservations/mine");
+                myBookings = result.data;
 
                 renderBookings();
             } catch (error) {
@@ -131,8 +124,7 @@
             }
 
             myBookings.forEach(booking => {
-                let resource = resources.find(r => String(r.id) === String(booking.resourceId));
-                let resourceName = resource ? resource.label : "Unknown Resource";
+                let resourceName = booking.resource ? booking.resource.label : "Unknown Resource";
                 
                 let timeStatus = getTimeStatus(booking);
                 let displayStatus = formatBookingStatus(booking.status);
@@ -146,11 +138,8 @@
                 }
 
                 let canCancel = false;
-                if (
-                    booking.status === "pending" ||
-                    booking.status === "confirmed" ||
-                    booking.status === "waiting"
-                ) {
+                // only confirmed bookings that have not started can be cancelled
+                if (booking.status === "confirmed") {
                     if (timeStatus === "Upcoming") {
                         canCancel = true;
                     }
@@ -249,33 +238,12 @@
             }
 
             try {
-                let wasConfirmed = booking.status === "confirmed";
-
-                let response = await fetch("http://localhost:3000/reservations/" + id, {
-                    method: "PATCH",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ status: "cancelled" })
-                });
-
-                if (response.ok) {
-                    if (wasConfirmed) {
-                        await promoteWaitingReservation(
-                            booking.resourceId,
-                            booking.date,
-                            booking.startTime,
-                            booking.endTime
-                        );
-                    }
-                    alert("Booking cancelled successfully");
-                    loadBookings();
-                } else {
-                    alert("Failed to cancel booking");
-                }
+                // the server checks the owner and the start time
+                let result = await apiDelete("/reservations/" + id);
+                alert(result.message);
+                loadBookings();
             } catch (error) {
-                console.error("Error cancelling booking:", error);
-                alert("Unable to connect to server");
+                alert(error.message);
             }
         }
     </script>

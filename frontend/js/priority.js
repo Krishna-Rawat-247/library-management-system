@@ -1,8 +1,7 @@
-// Shared priority score + queue helpers.
-// Used by booking.html, myBooking.html, and adminPanel.js
-// so every page uses the same formula.
-
-const PRIORITY_API = "http://localhost:3000";
+// Priority score helpers, only for showing a score on the profile and admin pages.
+// The real score is calculated and saved by the server (backend/utils/priority.js).
+// Booking, bumping and waiting-list code was removed in Phase 1.
+// Pages that use calculatePriorityScore must load js/api.js before this file.
 
 const COURSE_DURATIONS = {
   "B.Tech": 8,
@@ -92,10 +91,16 @@ async function getExamProximityScore(user, bookingDate) {
     return 0;
   }
 
-  let res = await fetch(PRIORITY_API + "/examWindows");
-  let windows = await res.json();
+  // exam windows come from the API. If they cannot be loaded, there is no exam bonus
+  let windows = [];
+  try {
+    let result = await apiGet("/exam-windows");
+    windows = result.data;
+  } catch (error) {
+    return 0;
+  }
 
-  if (windows.length === 0) {
+  if (!windows || windows.length === 0) {
     return 0;
   }
 
@@ -136,167 +141,4 @@ async function calculatePriorityScore(user, bookingDate) {
   }
 
   return total;
-}
-
-function isOccupyingStatus(status) {
-  return status === "confirmed" || status === "pending";
-}
-
-function getConflictingReservations(
-  reservations,
-  resourceId,
-  date,
-  startTime,
-  endTime
-) {
-  return reservations.filter(function (reservation) {
-    return String(reservation.resourceId) === String(resourceId) &&
-      reservation.date === date &&
-      reservation.startTime < endTime &&
-      reservation.endTime > startTime &&
-      isOccupyingStatus(reservation.status);
-  });
-}
-
-function getHighestPriorityReservation(reservations) {
-  if (reservations.length === 0) {
-    return null;
-  }
-
-  let sorted = reservations.slice();
-
-  sorted.sort(function (a, b) {
-    let scoreA = a.priorityScore || 0;
-    let scoreB = b.priorityScore || 0;
-
-    if (scoreB !== scoreA) {
-      return scoreB - scoreA;
-    }
-
-    return new Date(a.createdAt) - new Date(b.createdAt);
-  });
-
-  return sorted[0];
-}
-
-function getLowestPriorityReservation(reservations) {
-  if (reservations.length === 0) {
-    return null;
-  }
-
-  let sorted = reservations.slice();
-
-  sorted.sort(function (a, b) {
-    let scoreA = a.priorityScore || 0;
-    let scoreB = b.priorityScore || 0;
-
-    if (scoreA !== scoreB) {
-      return scoreA - scoreB; // Lowest score first
-    }
-
-    return new Date(b.createdAt) - new Date(a.createdAt); // Newest booking first (tie breaker for bumping)
-  });
-
-  return sorted[0];
-}
-
-async function bumpReservation(id) {
-  await fetch(PRIORITY_API + "/reservations/" + id, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      status: "bumped"
-    })
-  });
-}
-
-async function resolveBookingConflict(newScore, conflicts, capacity = 1) {
-  if (conflicts.length < capacity) {
-    return "confirmed";
-  }
-
-  let lowest = getLowestPriorityReservation(conflicts);
-  let existingScore = lowest.priorityScore || 0;
-
-  if (newScore > existingScore) {
-    // Only bump the one lowest priority user needed to make space
-    await bumpReservation(lowest.id);
-    return "confirmed";
-  }
-
-  return "waiting";
-}
-
-// Promotes the highest-priority waiting OR bumped reservation
-// after a confirmed booking is cancelled.
-async function promoteWaitingReservation(
-  resourceId,
-  date,
-  startTime,
-  endTime
-) {
-  let res = await fetch(PRIORITY_API + "/resources/" + resourceId);
-  let resource = await res.json();
-  let capacity = resource.capacity || 1;
-
-  res = await fetch(PRIORITY_API + "/reservations");
-  let reservations = await res.json();
-
-  // Find waiting and bumped reservations for the same
-  // resource, date and overlapping time.
-  let eligibleReservations = reservations.filter(function (reservation) {
-    return String(reservation.resourceId) === String(resourceId) &&
-      reservation.date === date &&
-      reservation.startTime < endTime &&
-      reservation.endTime > startTime &&
-      (
-        reservation.status === "waiting" ||
-        reservation.status === "bumped"
-      );
-  });
-
-  // Highest priority first.
-  // If priority is equal, earlier booking wins.
-  eligibleReservations.sort(function (a, b) {
-    let scoreA = a.priorityScore || 0;
-    let scoreB = b.priorityScore || 0;
-
-    if (scoreB !== scoreA) {
-      return scoreB - scoreA;
-    }
-
-    return new Date(a.createdAt) - new Date(b.createdAt);
-  });
-
-  if (eligibleReservations.length === 0) {
-    return;
-  }
-
-  for (let i = 0; i < eligibleReservations.length; i++) {
-    let candidate = eligibleReservations[i];
-    
-    // Make sure we have space for this specific candidate's timeframe
-    let candidateConflicts = getConflictingReservations(
-      reservations,
-      resourceId,
-      candidate.date,
-      candidate.startTime,
-      candidate.endTime
-    );
-
-    if (candidateConflicts.length < capacity) {
-      await fetch(PRIORITY_API + "/reservations/" + candidate.id, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          status: "confirmed"
-        })
-      });
-      break; // Only promote one person per cancellation event
-    }
-  }
 }
