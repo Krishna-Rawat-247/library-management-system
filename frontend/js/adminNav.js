@@ -8,7 +8,7 @@
  * -----------------------------------------------------------------
  */
 
-const VIEW_NAMES = ["dashboard", "reservations", "resources", "users", "settings"];
+const VIEW_NAMES = ["dashboard", "reservations", "resources", "users", "allocation", "settings"];
 const DEFAULT_VIEW = "dashboard";
 
 function showAdminView(name) {
