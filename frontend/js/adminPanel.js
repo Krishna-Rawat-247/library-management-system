@@ -567,31 +567,27 @@ async function openUserProfile(userId) {
   document.getElementById("userProfileNoShows").innerText =
     user.noShowCount || 0;
   document.getElementById("userProfileReliability").innerText =
-    getReliabilityScore(user);
+    user.priority ? user.priority.reliabilityScore + " / 10" : "—";
 
-  await renderPriorityBreakdown(user);
+  renderPriorityBreakdown(user);
   renderUserBookingHistory(userId);
   renderSuspendStatus(user);
 }
 
-async function renderPriorityBreakdown(user) {
+// The numbers come from the server (user.priority in /admin/users). Nothing is calculated here.
+// Inside the same purpose tier the request with the higher score is allocated first.
+function renderPriorityBreakdown(user) {
   let breakdownList = document.getElementById("userProfilePriorityBreakdown");
   breakdownList.innerHTML = "";
 
-  let roleRaw = getRoleScore(user);
-  let reliRaw = getReliabilityScore(user);
-  let examRaw = await getExamProximityScore(user, getTodayDate());
-  let roleWeighted = roleRaw * 0.5;
-  let reliWeighted = reliRaw * 0.3;
-  let examWeighted = examRaw * 0.2;
-
-  let total = await calculatePriorityScore(user, getTodayDate());
+  let priority = user.priority || { roleScore: 0, reliabilityScore: 0, recentNoShows: 0 };
+  let roleMax = user.role === "faculty" ? 15 : 10;
+  let total = priority.roleScore + priority.reliabilityScore;
 
   let rows = [
-    { label: "Role (" + (ROLE_LABELS[user.role] || user.role) + ")", value: roleRaw + " → " + roleWeighted.toFixed(1) },
-    { label: "Reliability", value: reliRaw + " → " + reliWeighted.toFixed(1) },
-    { label: "Exam proximity", value: examRaw + " → " + examWeighted.toFixed(1) },
-    { label: "Total priority score", value: total },
+    { label: "Role (" + (ROLE_LABELS[user.role] || user.role) + ")", value: priority.roleScore + " / " + roleMax },
+    { label: "Reliability (no-shows in the last 90 days: " + priority.recentNoShows + ")", value: priority.reliabilityScore + " / 10" },
+    { label: "Score inside the purpose tier", value: total },
   ];
 
   rows.forEach((row) => {
