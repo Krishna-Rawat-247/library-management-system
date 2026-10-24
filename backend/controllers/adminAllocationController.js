@@ -91,9 +91,25 @@ const runAllocation = async (req, res) => {
     }
 }
 
-// getAllocationRuns => not written yet
+// getAllocationRuns => the history of all runs, newest first
 const getAllocationRuns = async (req, res) => {
-    res.status(501).send({message: "getAllocationRuns not implemented yet"})
+    try {
+        const runs = await AllocationRun.find().sort({ranAt: -1}).populate("ranBy", "name")
+        const data = runs.map(run => {
+            return {
+                id: run._id,
+                date: run.date,
+                ranBy: run.ranBy ? run.ranBy.name : "Unknown",
+                ranAt: run.ranAt,
+                considered: run.considered,
+                confirmed: run.confirmed,
+                unallocated: run.unallocated
+            }
+        })
+        res.status(200).send({message: "Allocation runs fetched successfully", data})
+    } catch (error) {
+        res.status(500).send({message: error.message})
+    }
 }
 
 module.exports = {runAllocation, getAllocationRuns}
