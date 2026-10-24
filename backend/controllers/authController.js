@@ -2,6 +2,7 @@ const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
 const {User} = require("../models/userModel")
 const {userData} = require("../utils/userData")
+const {getPriorityBreakdown} = require("../utils/priority")
 
 // makeToken => JWT with only {id, role}. Suspension is checked from the database, not from the token
 const makeToken = (user) => {
@@ -84,7 +85,9 @@ const getMe = async (req, res) => {
         if (!user) {
             return res.status(404).send({message: "User not found"})
         }
-        res.status(200).send({message: "User fetched successfully", data: userData(user)})
+        // priority is what the allocation uses to order requests (calculated by the server)
+        const priority = await getPriorityBreakdown(user)
+        res.status(200).send({message: "User fetched successfully", data: {...userData(user), priority}})
     } catch (error) {
         res.status(500).send({message: error.message})
     }
