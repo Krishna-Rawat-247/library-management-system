@@ -112,20 +112,10 @@
                 let result = await apiGet("/auth/me");
                 let user = result.data;
 
-                // Calculate scores using existing priority.js functions
-                let today = new Date().toISOString().slice(0, 10);
-                // this score is only for display. If it cannot be calculated we show a dash
-                let priorityScore = "—";
-                try {
-                    if (typeof calculatePriorityScore === "function") {
-                        priorityScore = await calculatePriorityScore(user, today);
-                    }
-                } catch (e) {
-                    priorityScore = "—";
-                }
-                let reliabilityScore = typeof getReliabilityScore === "function"
-                    ? getReliabilityScore(user)
-                    : Math.max(0, 100 - (user.noShowCount || 0) * 15);
+                // the priority numbers come from the server (role score up to 15, reliability up to 10)
+                let priority = user.priority || { roleScore: 0, reliabilityScore: 0, recentNoShows: 0 };
+                let priorityScore = priority.roleScore + priority.reliabilityScore;
+                let reliabilityScore = priority.reliabilityScore;
 
                 let initial = user.name ? user.name.trim().charAt(0).toUpperCase() : "U";
 
@@ -215,10 +205,10 @@
                                     </div>
                                     <div class="info-row">
                                         <span class="info-label">Reliability Score</span>
-                                        <strong class="info-value text-olive">${reliabilityScore} / 100</strong>
+                                        <strong class="info-value text-olive">${reliabilityScore} / 10 (${priority.recentNoShows} no-show${priority.recentNoShows === 1 ? "" : "s"} in the last 90 days)</strong>
                                     </div>
                                     <div class="info-row">
-                                        <span class="info-label">Priority Calculation Score</span>
+                                        <span class="info-label">Priority Score (role ${priority.roleScore} + reliability ${reliabilityScore})</span>
                                         <strong class="info-value text-amber">${priorityScore} pts</strong>
                                     </div>
                                 </div>
