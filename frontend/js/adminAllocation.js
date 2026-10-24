@@ -29,6 +29,24 @@ function buildAllocationPage() {
 
     <p class="hint" id="allocationSummary"></p>
 
+    <!-- decisions -->
+    <table class="admin-table" id="allocationDecisionsTable" hidden>
+      <thead>
+        <tr>
+          <th>Student</th>
+          <th>Resource</th>
+          <th>Time</th>
+          <th>Purpose</th>
+          <th>Group</th>
+          <th>Tier</th>
+          <th>Score</th>
+          <th>Result</th>
+          <th>Reason</th>
+        </tr>
+      </thead>
+      <tbody id="allocationDecisionsBody"></tbody>
+    </table>
+    <!-- /decisions -->
 
   `;
 }
@@ -52,6 +70,29 @@ function showAllocationSummary(run) {
     run.confirmed + " newly confirmed, " + run.unallocated + " unallocated.";
 }
 
+// ---- decisions table ----
+
+function showAllocationDecisions(decisions) {
+  let table = document.getElementById("allocationDecisionsTable");
+  let tbody = document.getElementById("allocationDecisionsBody");
+  tbody.innerHTML = "";
+  table.hidden = decisions.length === 0;
+
+  decisions.forEach((d) => {
+    addAllocationRow(tbody, [
+      d.user,
+      d.resource,
+      d.startTime + " - " + d.endTime,
+      PURPOSE_LABELS[d.purpose] || d.purpose,
+      d.groupSize,
+      d.tier,
+      d.score,
+      d.status,
+      d.reason || ""
+    ]);
+  });
+}
+
 // ---- run button ----
 
 async function runAllocationForDate(date) {
@@ -61,6 +102,7 @@ async function runAllocationForDate(date) {
   try {
     let result = await apiPost("/admin/allocate", { date: date });
     showAllocationSummary(result.data.run);
+    showAllocationDecisions(result.data.decisions);
   } catch (error) {
     alert(error.message);
   }
