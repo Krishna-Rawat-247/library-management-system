@@ -2,6 +2,7 @@ const mongoose = require("mongoose")
 const {Reservation} = require("../models/reservationModel")
 const {Resource} = require("../models/resourceModel")
 const {User} = require("../models/userModel")
+const {getSeatsUsed, allocateReservation} = require("../utils/allocation")
 
 // reservationRow => one row for the admin table. user and resource are populated,
 // but they can be empty if the user or resource was deleted later
@@ -58,7 +59,8 @@ const getAllReservations = async (req, res) => {
     }
 }
 
-// confirmReservation => force confirm an old waiting/pending/bumped booking, only if a seat is free
+// confirmReservation => force confirm a booking that is waiting, pending, unallocated or bumped.
+// It can skip the priority order, but it can never take more seats than the resource has
 const confirmReservation = async (req, res) => {
     try {
         const id = req.params.id
@@ -69,28 +71,29 @@ const confirmReservation = async (req, res) => {
         if (!reservation) {
             return res.status(404).send({message: "Reservation not found"})
         }
-        if (!["waiting", "pending", "bumped"].includes(reservation.status)) {
-            return res.status(400).send({message: "Only waiting, pending or bumped bookings can be force confirmed"})
+        if (!["waiting", "pending", "unallocated", "bumped"].includes(reservation.status)) {
+            return res.status(400).send({message: "Only waiting, pending, unallocated or bumped bookings can be force confirmed"})
         }
         const resource = await Resource.findById(reservation.resource)
         if (!resource) {
             return res.status(404).send({message: "The resource of this booking no longer exists"})
         }
-
-        // count the other confirmed bookings in the same time on the same resource
-        const booked = await Reservation.countDocuments({
-            _id: {$ne: reservation._id},
-            resource: reservation.resource,
-            status: "confirmed",
-            date: reservation.date,
-            startTime: {$lt: reservation.endTime},
-            endTime: {$gt: reservation.startTime}
-        })
-        if (booked >= resource.capacity) {
-            return res.status(409).send({message: "This time slot is already full. Force confirm was not applied"})
+        if (!resource.active) {
+            return res.status(400).send({message: "This resource is not available for booking"})
         }
 
-        reservation.status = "confirmed"
+        // do the seats of the other confirmed bookings leave room for the whole group?
+        const used = await getSeatsUsed(resource._id, reservation.date, reservation.startTime, reservation.endTime, reservation._id)
+        if (used + (reservation.groupSize || 1) > resource.capacity) {
+            return res.status(409).send({message: "There are not enough free seats for this group in that time slot. Force confirm was not applied"})
+        }
+
+        // the same capacity rule as the allocation run
+        await allocateReservation(reservation, resource)
+        if (reservation.status !== "confirmed") {
+            return res.status(409).send({message: reservation.reason})
+        }
+        reservation.reason = "Confirmed by an admin"
         await reservation.save()
         await addDetails(reservation)
         res.status(200).send({message: "Reservation confirmed successfully", data: reservationRow(reservation)})
