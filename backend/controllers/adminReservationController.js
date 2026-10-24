@@ -16,6 +16,10 @@ const reservationRow = (reservation) => {
         startTime: reservation.startTime,
         endTime: reservation.endTime,
         status: reservation.status,
+        purpose: reservation.purpose,
+        eventDate: reservation.eventDate,
+        groupSize: reservation.groupSize || 1,
+        reason: reservation.reason,
         priorityScore: reservation.priorityScore,
         checkedIn: reservation.checkedIn,
         createdAt: reservation.createdAt
@@ -30,12 +34,18 @@ const addDetails = async (reservation) => {
     ])
 }
 
-// getAllReservations => every booking with the user and resource, optional ?status=
+// getAllReservations => every booking with the user and resource, optional ?status= and ?date=
 const getAllReservations = async (req, res) => {
     try {
         const filter = {}
         if (req.query.status) {
             filter.status = req.query.status
+        }
+        if (req.query.date) {
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(req.query.date)) {
+                return res.status(400).send({message: "date must be like 2026-10-25"})
+            }
+            filter.date = req.query.date
         }
         const reservations = await Reservation.find(filter)
             .populate("user", "name email")
