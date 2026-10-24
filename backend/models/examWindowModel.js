@@ -5,6 +5,7 @@ const examWindowSchema = mongoose.Schema({
     title: {type: String, required: true, trim: true},
     startDate: {type: String, required: true},
     endDate: {type: String, required: true},
+    kind: {type: String, enum: ["mid_semester_exam", "end_semester_exam", "other"], default: "other"},
     legacyId: {type: String}
 })
 
