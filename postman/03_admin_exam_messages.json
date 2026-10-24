@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Atlas Room - 03 Admin, Exam Windows and Messages",
-    "description": "Note: the no-show request adds one strike to the student who made the booking. Reset it in Atlas afterwards if you use a real account.",
+    "description": "Phase 2. A new booking is a pending request. The no-show request adds one strike to the student who owns that booking (Aarav). Reset it in Atlas afterwards if you use a real account.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -43,6 +43,14 @@
     },
     {
       "key": "reservationId2",
+      "value": ""
+    },
+    {
+      "key": "reservationId3",
+      "value": ""
+    },
+    {
+      "key": "today",
       "value": ""
     }
   ],
@@ -215,7 +223,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"startDate\": \"2027-05-01\",\n  \"endDate\": \"2027-05-10\"\n}",
+              "raw": "{\n  \"startDate\": \"2027-05-01\",\n  \"endDate\": \"2027-05-10\",\n  \"kind\": \"other\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -305,7 +313,7 @@
           }
         },
         {
-          "name": "Create as admin",
+          "name": "Create without a kind (400)",
           "request": {
             "method": "POST",
             "header": [
@@ -335,7 +343,47 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"Postman Finals\",\n  \"startDate\": \"2027-05-01\",\n  \"endDate\": \"2027-05-10\"\n}",
+              "raw": "{\n  \"startDate\": \"2027-05-01\",\n  \"endDate\": \"2027-05-10\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Create as admin (with a kind)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/exam-windows",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "exam-windows"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Postman Finals\",\n  \"startDate\": \"2027-05-01\",\n  \"endDate\": \"2027-05-10\",\n  \"kind\": \"mid_semester_exam\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1015,7 +1063,7 @@
       "name": "Admin reservations",
       "item": [
         {
-          "name": "Create a test resource",
+          "name": "Create a test resource (1 seat)",
           "request": {
             "method": "POST",
             "header": [
@@ -1067,7 +1115,7 @@
           ]
         },
         {
-          "name": "Student books it",
+          "name": "Student asks for a seat (the request is pending)",
           "request": {
             "method": "POST",
             "header": [
@@ -1097,7 +1145,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"resourceId\": \"{{resourceId}}\",\n  \"date\": \"2027-04-01\",\n  \"startTime\": \"10:00\",\n  \"endTime\": \"12:00\"\n}",
+              "raw": "{\n  \"resourceId\": \"{{resourceId}}\",\n  \"startTime\": \"10:00\",\n  \"endTime\": \"12:00\",\n  \"date\": \"2027-04-01\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1112,14 +1160,15 @@
                 "type": "text/javascript",
                 "exec": [
                   "const data = pm.response.json();",
-                  "pm.collectionVariables.set('reservationId', data.data.id);"
+                  "pm.collectionVariables.set('reservationId', data.data.id);",
+                  "pm.test('pending', () => pm.expect(data.data.status).to.eql('pending'));"
                 ]
               }
             }
           ]
         },
         {
-          "name": "Second student books another day",
+          "name": "Second student asks for another day (pending)",
           "request": {
             "method": "POST",
             "header": [
@@ -1149,7 +1198,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"resourceId\": \"{{resourceId}}\",\n  \"date\": \"2027-04-02\",\n  \"startTime\": \"10:00\",\n  \"endTime\": \"12:00\"\n}",
+              "raw": "{\n  \"resourceId\": \"{{resourceId}}\",\n  \"startTime\": \"10:00\",\n  \"endTime\": \"12:00\",\n  \"date\": \"2027-04-02\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1198,7 +1247,7 @@
           }
         },
         {
-          "name": "List all as admin",
+          "name": "List all as admin (rows show purpose, group size, reason)",
           "request": {
             "method": "GET",
             "header": [],
@@ -1225,12 +1274,12 @@
           }
         },
         {
-          "name": "List confirmed only",
+          "name": "List pending requests of one date",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/admin/reservations?status=confirmed",
+              "raw": "{{baseUrl}}/admin/reservations?status=pending&date=2027-04-01",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1241,7 +1290,11 @@
               "query": [
                 {
                   "key": "status",
-                  "value": "confirmed"
+                  "value": "pending"
+                },
+                {
+                  "key": "date",
+                  "value": "2027-04-01"
                 }
               ]
             },
@@ -1258,25 +1311,24 @@
           }
         },
         {
-          "name": "Force confirm a confirmed booking (400)",
+          "name": "List with a wrong date (400)",
           "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
+            "method": "GET",
+            "header": [],
             "url": {
-              "raw": "{{baseUrl}}/admin/reservations/{{reservationId}}/confirm",
+              "raw": "{{baseUrl}}/admin/reservations?date=1-Apr",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "admin",
-                "reservations",
-                "{{reservationId}}",
-                "confirm"
+                "reservations"
+              ],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "1-Apr"
+                }
               ]
             },
             "auth": {
@@ -1288,20 +1340,11 @@
                   "type": "string"
                 }
               ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
             }
           }
         },
         {
-          "name": "Cancel as student on admin route (403)",
+          "name": "Cancel as student on an admin route (403)",
           "request": {
             "method": "POST",
             "header": [
@@ -1344,7 +1387,105 @@
           }
         },
         {
-          "name": "Mark no-show (strike +1, no suspension)",
+          "name": "Force confirm a pending request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/reservations/{{reservationId}}/confirm",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "reservations",
+                "{{reservationId}}",
+                "confirm"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const data = pm.response.json();",
+                  "pm.test('confirmed by an admin', () => { pm.expect(data.data.status).to.eql('confirmed'); pm.expect(data.data.reason).to.eql('Confirmed by an admin'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Force confirm again (400, it is already confirmed)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/reservations/{{reservationId}}/confirm",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "reservations",
+                "{{reservationId}}",
+                "confirm"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Mark no-show before the booking has started (400)",
           "request": {
             "method": "POST",
             "header": [
@@ -1387,6 +1528,154 @@
           }
         },
         {
+          "name": "Student asks for a seat today at 00:00 (it has already started)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reservations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservations"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"resourceId\": \"{{resourceId}}\",\n  \"date\": \"{{today}}\",\n  \"startTime\": \"00:00\",\n  \"endTime\": \"00:30\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// today's date in library time (UTC+5:30)",
+                  "pm.collectionVariables.set('today', new Date(Date.now() + 330 * 60 * 1000).toISOString().slice(0, 10));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const data = pm.response.json();",
+                  "pm.collectionVariables.set('reservationId3', data.data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Force confirm the started booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/reservations/{{reservationId3}}/confirm",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "reservations",
+                "{{reservationId3}}",
+                "confirm"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Mark no-show (strike +1, no suspension)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/reservations/{{reservationId3}}/no-show",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "reservations",
+                "{{reservationId3}}",
+                "no-show"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
           "name": "Mark no-show again (400)",
           "request": {
             "method": "POST",
@@ -1397,14 +1686,14 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/admin/reservations/{{reservationId}}/no-show",
+              "raw": "{{baseUrl}}/admin/reservations/{{reservationId3}}/no-show",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "admin",
                 "reservations",
-                "{{reservationId}}",
+                "{{reservationId3}}",
                 "no-show"
               ]
             },
@@ -1457,7 +1746,7 @@
           }
         },
         {
-          "name": "Admin cancels the second booking",
+          "name": "Admin cancels the second request",
           "request": {
             "method": "POST",
             "header": [
@@ -1571,7 +1860,7 @@
           }
         },
         {
-          "name": "Delete first booking",
+          "name": "Delete request 1",
           "request": {
             "method": "DELETE",
             "header": [],
@@ -1599,7 +1888,7 @@
           }
         },
         {
-          "name": "Delete second booking",
+          "name": "Delete request 2",
           "request": {
             "method": "DELETE",
             "header": [],
@@ -1627,19 +1916,47 @@
           }
         },
         {
-          "name": "Delete again (404)",
+          "name": "Delete request 3",
           "request": {
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/admin/reservations/{{reservationId2}}",
+              "raw": "{{baseUrl}}/admin/reservations/{{reservationId3}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "admin",
                 "reservations",
-                "{{reservationId2}}"
+                "{{reservationId3}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete again (404)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/reservations/{{reservationId3}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "reservations",
+                "{{reservationId3}}"
               ]
             },
             "auth": {
