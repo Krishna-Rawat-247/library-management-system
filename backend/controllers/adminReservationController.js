@@ -102,7 +102,7 @@ const confirmReservation = async (req, res) => {
     }
 }
 
-// adminCancelReservation => admin cancels a pending, waiting or confirmed booking. Nobody is promoted
+// adminCancelReservation => admin cancels a pending, waiting, unallocated or confirmed booking. Nobody is promoted
 const adminCancelReservation = async (req, res) => {
     try {
         const id = req.params.id
@@ -113,10 +113,11 @@ const adminCancelReservation = async (req, res) => {
         if (!reservation) {
             return res.status(404).send({message: "Reservation not found"})
         }
-        if (!["pending", "waiting", "confirmed"].includes(reservation.status)) {
+        if (!["pending", "waiting", "unallocated", "confirmed"].includes(reservation.status)) {
             return res.status(400).send({message: "This booking cannot be cancelled"})
         }
         reservation.status = "cancelled"
+        reservation.reason = "Cancelled by an admin"
         await reservation.save()
         await addDetails(reservation)
         res.status(200).send({message: "Reservation cancelled successfully", data: reservationRow(reservation)})
