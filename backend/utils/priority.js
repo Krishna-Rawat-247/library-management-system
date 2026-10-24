@@ -1,8 +1,8 @@
-const {ExamWindow} = require("../models/examWindowModel")
+// Phase 2 priority rules. The server calculates everything, the browser never does.
+// A request is ranked by its purpose TIER first. Inside a tier the SCORE decides.
+// score = role score (up to 15) + reliability score (up to 10)
 
-// The priority score is the old formula from the frontend, now calculated on the server.
-// In Phase 1 it is only saved and shown. It does not decide who gets a seat.
-
+// the length of each course in semesters
 const COURSE_DURATIONS = {
     "B.Tech": 8,
     "BSc": 6,
@@ -13,6 +13,7 @@ const COURSE_DURATIONS = {
     "PhD": 8
 }
 
+// if the user has no course we guess it from the department
 const DEPARTMENT_TO_COURSE = {
     "Computer Science": "B.Tech",
     "Electronics Engineering": "B.Tech",
@@ -25,7 +26,7 @@ const DEPARTMENT_TO_COURSE = {
     "Management": "BBA"
 }
 
-// getCourseDuration => number of semesters of the user's course (0 if unknown)
+// getCourseDuration => number of semesters of the user's course (8 if we do not know it)
 const getCourseDuration = (user) => {
     let course = ""
     if (user.course && COURSE_DURATIONS[user.course]) {
@@ -33,68 +34,39 @@ const getCourseDuration = (user) => {
     } else if (user.department && DEPARTMENT_TO_COURSE[user.department]) {
         course = DEPARTMENT_TO_COURSE[user.department]
     }
-    return COURSE_DURATIONS[course] || 0
+    return COURSE_DURATIONS[course] || 8
 }
 
-// a student is in the final year when the semester is in the last two semesters
-const isFinalYear = (user) => {
-    const max = getCourseDuration(user)
-    if (!max) {
-        return false
-    }
-    return user.semester >= max - 1
+// PURPOSE_TIER => a higher tier always beats a lower tier. Academic year can never beat purpose
+const PURPOSE_TIER = {
+    job_interview: 5,
+    end_semester_exam: 4,
+    mid_semester_exam: 3,
+    quarterly_test: 2,
+    project_work: 2,
+    general_study: 1
 }
 
-// role score: faculty 50, other staff 30, final year student 100, senior student 75, junior student 60
+// getRoleScore => faculty 15, other staff 10, student: how far they are in the course (0 to 10)
 const getRoleScore = (user) => {
     if (user.role === "faculty") {
-        return 50
+        return 15
     }
     if (user.role !== "student") {
-        return 30
+        return 10
     }
-    if (isFinalYear(user)) {
-        return 100
-    }
-    const max = getCourseDuration(user) || 8
-    const midPoint = Math.floor(max / 2)
-    if (user.semester > midPoint) {
-        return 75
-    }
-    return 60
+    const semester = user.semester || 0
+    const score = Math.min(10, (semester / getCourseDuration(user)) * 10)
+    return Math.round(score * 10) / 10
 }
 
-// every no-show takes 15 points (at most 6 strikes count)
-const getReliabilityScore = (user) => {
-    const strikes = Math.min(user.noShowCount || 0, 6)
-    return Math.max(0, 100 - strikes * 15)
-}
-
-// final year students get a bonus when the booking date is inside an exam window
-const getExamProximityScore = async (user, bookingDate) => {
-    if (!isFinalYear(user)) {
-        return 0
-    }
-    const windows = await ExamWindow.find()
-    const checkDate = new Date(bookingDate + "T00:00:00")
-    for (const window of windows) {
-        const start = new Date(window.startDate + "T00:00:00")
-        const end = new Date(window.endDate + "T23:59:59")
-        if (checkDate >= start && checkDate <= end) {
-            const daysToExam = Math.ceil((end - checkDate) / (1000 * 60 * 60 * 24))
-            return Math.max(0, 100 - daysToExam * 8)
-        }
-    }
-    return 0
-}
-
-// calculatePriorityScore => role 50% + reliability 30% + exam 20%, between 0 and 100
+// calculatePriorityScore => kept so the Phase 1 booking code keeps working. Same number as getPriority().score
 const calculatePriorityScore = async (user, bookingDate) => {
-    const roleScore = getRoleScore(user)
-    const reliabilityScore = getReliabilityScore(user)
-    const examScore = await getExamProximityScore(user, bookingDate)
-    const total = Math.round(roleScore * 0.5 + reliabilityScore * 0.3 + examScore * 0.2)
-    return Math.min(100, Math.max(0, total))
+    return getRoleScore(user)
 }
 
-module.exports = {calculatePriorityScore}
+module.exports = {
+    PURPOSE_TIER,
+    getRoleScore,
+    calculatePriorityScore
+}
