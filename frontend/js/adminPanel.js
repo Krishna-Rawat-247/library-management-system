@@ -26,6 +26,16 @@ checkAdminAccess();
 // 1. Admin Reservation OverSight Panel:
 // ********************************************************************************************************************************************************
 
+// the purposes written in plain words (the name is different from the one in adminAllocation.js on purpose)
+let RESERVATION_PURPOSES = {
+  job_interview: "Job interview",
+  end_semester_exam: "End semester exam",
+  mid_semester_exam: "Mid semester exam",
+  quarterly_test: "Quarterly test",
+  project_work: "Project work",
+  general_study: "General study"
+};
+
 function getUserName(reservation) {
   return reservation.user ? reservation.user.name : "Unknown";
 }
@@ -37,10 +47,17 @@ function getResourceLabel(reservation) {
 async function renderReservationTable() {
   let filters = currentReservationFilters();
 
-  // the server filters by status, the other filters are done here
+  // the server filters by status and date, the user and resource filters are done here
   let url = "/admin/reservations";
+  let query = [];
   if (filters.status !== "all") {
-    url = url + "?status=" + filters.status;
+    query.push("status=" + filters.status);
+  }
+  if (filters.date) {
+    query.push("date=" + filters.date);
+  }
+  if (query.length > 0) {
+    url = url + "?" + query.join("&");
   }
 
   let reservations, users, resources;
@@ -66,11 +83,6 @@ async function renderReservationTable() {
   reservations.sort((a, b) => {
     return getDateTime(a) - getDateTime(b);
   });
-  if (filters.date) {
-    reservations = reservations.filter(
-      (reservation) => reservation.date === filters.date,
-    );
-  }
   if (filters.userId !== "all") {
     reservations = reservations.filter(
       (reservation) => reservation.user && String(reservation.user.id) === String(filters.userId),
@@ -93,8 +105,11 @@ async function renderReservationTable() {
       getResourceLabel(reservation),
       reservation.date,
       reservation.startTime + " - " + reservation.endTime,
+      RESERVATION_PURPOSES[reservation.purpose] || reservation.purpose || "General study",
+      reservation.groupSize || 1,
       reservation.priorityScore ?? "—",
       reservation.status,
+      reservation.reason || "",
       reservation.checkedIn ? "Yes" : "No",
     ];
 
@@ -188,8 +203,12 @@ function wireReservationFilters() {
 function createActionButtons(reservation) {
   let actionsTd = document.createElement("td");
 
-  // Force Confirm Button
-  if (reservation.status === "pending" || reservation.status === "waiting") {
+  // Force Confirm Button (the server still refuses it if the whole group does not fit)
+  if (
+    reservation.status === "pending" ||
+    reservation.status === "waiting" ||
+    reservation.status === "unallocated"
+  ) {
     actionsTd.appendChild(
       createButton("Force Confirm", function () {
         updateReservationStatus(reservation.id, "confirmed");
@@ -208,7 +227,8 @@ function createActionButtons(reservation) {
   if (
     reservation.status === "pending" ||
     reservation.status === "confirmed" ||
-    reservation.status === "waiting"
+    reservation.status === "waiting" ||
+    reservation.status === "unallocated"
   ) {
     actionsTd.appendChild(
       createButton("Cancel", function () {
@@ -276,6 +296,13 @@ async function markAsNoShow(id) {
 
 renderReservationTable();
 wireReservationFilters();
+
+// the allocation can change the statuses while you are on another tab, so reload when this tab opens
+document.addEventListener("adminview:shown", function (e) {
+  if (e.detail.view === "reservations") {
+    renderReservationTable();
+  }
+});
 
 // ********************************************************************************************************************************************************
 // 2. Admin Resource Management Panel:
@@ -540,31 +567,27 @@ async function openUserProfile(userId) {
   document.getElementById("userProfileNoShows").innerText =
     user.noShowCount || 0;
   document.getElementById("userProfileReliability").innerText =
-    getReliabilityScore(user);
+    user.priority ? user.priority.reliabilityScore + " / 10" : "—";
 
-  await renderPriorityBreakdown(user);
+  renderPriorityBreakdown(user);
   renderUserBookingHistory(userId);
   renderSuspendStatus(user);
 }
 
-async function renderPriorityBreakdown(user) {
+// The numbers come from the server (user.priority in /admin/users). Nothing is calculated here.
+// Inside the same purpose tier the request with the higher score is allocated first.
+function renderPriorityBreakdown(user) {
   let breakdownList = document.getElementById("userProfilePriorityBreakdown");
   breakdownList.innerHTML = "";
 
-  let roleRaw = getRoleScore(user);
-  let reliRaw = getReliabilityScore(user);
-  let examRaw = await getExamProximityScore(user, getTodayDate());
-  let roleWeighted = roleRaw * 0.5;
-  let reliWeighted = reliRaw * 0.3;
-  let examWeighted = examRaw * 0.2;
-
-  let total = await calculatePriorityScore(user, getTodayDate());
+  let priority = user.priority || { roleScore: 0, reliabilityScore: 0, recentNoShows: 0 };
+  let roleMax = user.role === "faculty" ? 15 : 10;
+  let total = priority.roleScore + priority.reliabilityScore;
 
   let rows = [
-    { label: "Role (" + (ROLE_LABELS[user.role] || user.role) + ")", value: roleRaw + " → " + roleWeighted.toFixed(1) },
-    { label: "Reliability", value: reliRaw + " → " + reliWeighted.toFixed(1) },
-    { label: "Exam proximity", value: examRaw + " → " + examWeighted.toFixed(1) },
-    { label: "Total priority score", value: total },
+    { label: "Role (" + (ROLE_LABELS[user.role] || user.role) + ")", value: priority.roleScore + " / " + roleMax },
+    { label: "Reliability (no-shows in the last 90 days: " + priority.recentNoShows + ")", value: priority.reliabilityScore + " / 10" },
+    { label: "Score inside the purpose tier", value: total },
   ];
 
   rows.forEach((row) => {
@@ -864,6 +887,7 @@ async function renderDashboardStats() {
 
   let totalToday = reservations.filter((r) => r.date === today).length;
   let pendingCount = reservations.filter((r) => r.status === "pending").length;
+  let unallocatedCount = reservations.filter((r) => r.status === "unallocated").length;
   let noShowsToday = reservations.filter(
     (r) => r.date === today && r.status === "no_show"
   ).length;
@@ -875,6 +899,7 @@ async function renderDashboardStats() {
   if (document.getElementById("statTotalToday")) document.getElementById("statTotalToday").innerText = totalToday;
   if (document.getElementById("statLiveNow")) document.getElementById("statLiveNow").innerText = liveNow;
   if (document.getElementById("statPending")) document.getElementById("statPending").innerText = pendingCount;
+  if (document.getElementById("statUnallocated")) document.getElementById("statUnallocated").innerText = unallocatedCount;
   if (document.getElementById("statNoShowsToday")) document.getElementById("statNoShowsToday").innerText = noShowsToday;
   if (document.getElementById("statGuardianMsgs")) document.getElementById("statGuardianMsgs").innerText = unreadMsgs;
 }
@@ -932,6 +957,12 @@ document.addEventListener("adminview:shown", function (e) {
 // 5. Admin Settings — Exam Window Management:
 // ********************************************************************************************************************************************************
 
+let EXAM_KINDS = {
+  mid_semester_exam: "Mid semester exam",
+  end_semester_exam: "End semester exam",
+  other: "Other"
+};
+
 async function getExamWindows() {
   try {
     let result = await apiGet("/exam-windows");
@@ -952,7 +983,7 @@ async function renderExamWindowsTable() {
   windows.forEach((window) => {
     let row = document.createElement("tr");
 
-    let data = [window.startDate, window.endDate];
+    let data = [window.startDate, window.endDate, EXAM_KINDS[window.kind] || "Other"];
 
     data.forEach((value) => {
       let td = document.createElement("td");
@@ -998,7 +1029,8 @@ function wireExamWindowForm() {
     let newWindow = {
       title: "Exam Window " + start + " to " + end,
       startDate: start,
-      endDate: end
+      endDate: end,
+      kind: document.getElementById("examKind").value
     };
 
     try {

@@ -2,6 +2,8 @@ const mongoose = require("mongoose")
 const {Reservation} = require("../models/reservationModel")
 const {Resource} = require("../models/resourceModel")
 const {User} = require("../models/userModel")
+const {getSeatsUsed, allocateReservation} = require("../utils/allocation")
+const {hasStarted} = require("../utils/timeCheck")
 
 // reservationRow => one row for the admin table. user and resource are populated,
 // but they can be empty if the user or resource was deleted later
@@ -16,6 +18,10 @@ const reservationRow = (reservation) => {
         startTime: reservation.startTime,
         endTime: reservation.endTime,
         status: reservation.status,
+        purpose: reservation.purpose,
+        eventDate: reservation.eventDate,
+        groupSize: reservation.groupSize || 1,
+        reason: reservation.reason,
         priorityScore: reservation.priorityScore,
         checkedIn: reservation.checkedIn,
         createdAt: reservation.createdAt
@@ -30,12 +36,18 @@ const addDetails = async (reservation) => {
     ])
 }
 
-// getAllReservations => every booking with the user and resource, optional ?status=
+// getAllReservations => every booking with the user and resource, optional ?status= and ?date=
 const getAllReservations = async (req, res) => {
     try {
         const filter = {}
         if (req.query.status) {
             filter.status = req.query.status
+        }
+        if (req.query.date) {
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(req.query.date)) {
+                return res.status(400).send({message: "date must be like 2026-10-25"})
+            }
+            filter.date = req.query.date
         }
         const reservations = await Reservation.find(filter)
             .populate("user", "name email")
@@ -48,7 +60,8 @@ const getAllReservations = async (req, res) => {
     }
 }
 
-// confirmReservation => force confirm an old waiting/pending/bumped booking, only if a seat is free
+// confirmReservation => force confirm a booking that is waiting, pending, unallocated or bumped.
+// It can skip the priority order, but it can never take more seats than the resource has
 const confirmReservation = async (req, res) => {
     try {
         const id = req.params.id
@@ -59,28 +72,29 @@ const confirmReservation = async (req, res) => {
         if (!reservation) {
             return res.status(404).send({message: "Reservation not found"})
         }
-        if (!["waiting", "pending", "bumped"].includes(reservation.status)) {
-            return res.status(400).send({message: "Only waiting, pending or bumped bookings can be force confirmed"})
+        if (!["waiting", "pending", "unallocated", "bumped"].includes(reservation.status)) {
+            return res.status(400).send({message: "Only waiting, pending, unallocated or bumped bookings can be force confirmed"})
         }
         const resource = await Resource.findById(reservation.resource)
         if (!resource) {
             return res.status(404).send({message: "The resource of this booking no longer exists"})
         }
-
-        // count the other confirmed bookings in the same time on the same resource
-        const booked = await Reservation.countDocuments({
-            _id: {$ne: reservation._id},
-            resource: reservation.resource,
-            status: "confirmed",
-            date: reservation.date,
-            startTime: {$lt: reservation.endTime},
-            endTime: {$gt: reservation.startTime}
-        })
-        if (booked >= resource.capacity) {
-            return res.status(409).send({message: "This time slot is already full. Force confirm was not applied"})
+        if (!resource.active) {
+            return res.status(400).send({message: "This resource is not available for booking"})
         }
 
-        reservation.status = "confirmed"
+        // do the seats of the other confirmed bookings leave room for the whole group?
+        const used = await getSeatsUsed(resource._id, reservation.date, reservation.startTime, reservation.endTime, reservation._id)
+        if (used + (reservation.groupSize || 1) > resource.capacity) {
+            return res.status(409).send({message: "There are not enough free seats for this group in that time slot. Force confirm was not applied"})
+        }
+
+        // the same capacity rule as the allocation run
+        await allocateReservation(reservation, resource)
+        if (reservation.status !== "confirmed") {
+            return res.status(409).send({message: reservation.reason})
+        }
+        reservation.reason = "Confirmed by an admin"
         await reservation.save()
         await addDetails(reservation)
         res.status(200).send({message: "Reservation confirmed successfully", data: reservationRow(reservation)})
@@ -89,7 +103,7 @@ const confirmReservation = async (req, res) => {
     }
 }
 
-// adminCancelReservation => admin cancels a pending, waiting or confirmed booking. Nobody is promoted
+// adminCancelReservation => admin cancels a pending, waiting, unallocated or confirmed booking. Nobody is promoted
 const adminCancelReservation = async (req, res) => {
     try {
         const id = req.params.id
@@ -100,10 +114,11 @@ const adminCancelReservation = async (req, res) => {
         if (!reservation) {
             return res.status(404).send({message: "Reservation not found"})
         }
-        if (!["pending", "waiting", "confirmed"].includes(reservation.status)) {
+        if (!["pending", "waiting", "unallocated", "confirmed"].includes(reservation.status)) {
             return res.status(400).send({message: "This booking cannot be cancelled"})
         }
         reservation.status = "cancelled"
+        reservation.reason = "Cancelled by an admin"
         await reservation.save()
         await addDetails(reservation)
         res.status(200).send({message: "Reservation cancelled successfully", data: reservationRow(reservation)})
@@ -112,8 +127,9 @@ const adminCancelReservation = async (req, res) => {
     }
 }
 
-// markNoShow => the booking becomes no_show and the user gets one more strike.
-// There is no automatic suspension in Phase 1
+// markNoShow => only for a confirmed booking that has already started. The booking becomes no_show and
+// the user gets one more strike (shown only). Three recent no-shows lower the reliability score,
+// but nobody is suspended automatically
 const markNoShow = async (req, res) => {
     try {
         const id = req.params.id
@@ -126,6 +142,9 @@ const markNoShow = async (req, res) => {
         }
         if (reservation.status !== "confirmed") {
             return res.status(400).send({message: "Only confirmed bookings can be marked as no-show"})
+        }
+        if (!hasStarted(reservation.date, reservation.startTime)) {
+            return res.status(400).send({message: "A booking can be marked as no-show only after it has started"})
         }
         reservation.status = "no_show"
         await reservation.save()

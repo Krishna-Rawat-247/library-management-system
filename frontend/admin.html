@@ -109,7 +109,11 @@
           </div>
           <div class="stat-card">
             <span class="stat-value" id="statPending">—</span>
-            <span class="stat-label">Pending Approval</span>
+            <span class="stat-label">Waiting for Allocation</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value" id="statUnallocated">—</span>
+            <span class="stat-label">Unallocated</span>
           </div>
           <div class="stat-card">
             <span class="stat-value" id="statNoShowsToday">—</span>
@@ -212,6 +216,7 @@
               <option value="all">All</option>
               <option value="pending">Pending</option>
               <option value="confirmed">Confirmed</option>
+              <option value="unallocated">Unallocated</option>
               <option value="waiting">Waiting</option>
               <option value="bumped">Bumped</option>
               <option value="cancelled">Cancelled</option>
@@ -245,8 +250,11 @@
               <th>Resource</th>
               <th>Date</th>
               <th>Time</th>
+              <th>Purpose</th>
+              <th>Group</th>
               <th>Priority</th>
               <th>Status</th>
+              <th>Reason</th>
               <th>Checked in</th>
               <th>Actions</th>
             </tr>
@@ -338,7 +346,7 @@
 
           <div class="profile-block">
             <h3>Priority Breakdown</h3>
-            <p class="hint">Score if this user booked something right now.</p>
+            <p class="hint">The numbers the allocation uses to order requests inside the same purpose tier (calculated by the server).</p>
             <ul id="userProfilePriorityBreakdown" class="simple-list"></ul>
           </div>
 
@@ -401,8 +409,8 @@
 
       <section class="admin-section" id="section-exam-windows">
         <h2>Exam Window Management</h2>
-        <p class="hint">Reservations inside a window get exam-proximity priority boost for final-year/thesis and PG
-          students.</p>
+        <p class="hint">A student can ask for an exam purpose (mid or end semester) only if the exam date is inside a
+          window of the same kind. Windows of kind "other" do not unlock any exam purpose.</p>
 
         <form id="examWindowForm" class="inline-form">
           <label>
@@ -413,6 +421,14 @@
             End date
             <input type="date" id="examEnd" required>
           </label>
+          <label>
+            Kind
+            <select id="examKind">
+              <option value="mid_semester_exam">Mid semester exam</option>
+              <option value="end_semester_exam">End semester exam</option>
+              <option value="other">Other</option>
+            </select>
+          </label>
           <button type="submit">Add window</button>
         </form>
 
@@ -421,6 +437,7 @@
             <tr>
               <th>Start</th>
               <th>End</th>
+              <th>Kind</th>
               <th>Actions</th>
             </tr>
           </thead>
