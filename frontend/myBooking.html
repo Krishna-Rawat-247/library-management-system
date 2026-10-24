@@ -156,8 +156,8 @@
                 }
 
                 let canCancel = false;
-                // only confirmed bookings that have not started can be cancelled
-                if (booking.status === "confirmed") {
+                // only the person who made the booking can cancel it, and only before it starts
+                if (booking.isRequester && ["pending", "unallocated", "confirmed"].includes(booking.status)) {
                     if (timeStatus === "Upcoming") {
                         canCancel = true;
                     }
