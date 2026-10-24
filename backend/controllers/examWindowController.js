@@ -7,7 +7,8 @@ const examData = (examWindow) => {
         id: examWindow._id,
         title: examWindow.title,
         startDate: examWindow.startDate,
-        endDate: examWindow.endDate
+        endDate: examWindow.endDate,
+        kind: examWindow.kind
     }
 }
 
@@ -22,12 +23,16 @@ const getExamWindows = async (req, res) => {
     }
 }
 
-// createExamWindow => admin adds an exam period. The title is made from the dates if it is empty
+// createExamWindow => admin adds an exam period. The title is made from the dates if it is empty.
+// kind says which exam it is, so a student can book "end semester exam" only inside an end semester window
 const createExamWindow = async (req, res) => {
     try {
-        const {title, startDate, endDate} = req.body
+        const {title, startDate, endDate, kind} = req.body
         if (!startDate || !endDate) {
             return res.status(400).send({message: "startDate and endDate are required"})
+        }
+        if (!["mid_semester_exam", "end_semester_exam", "other"].includes(kind)) {
+            return res.status(400).send({message: "kind must be mid_semester_exam, end_semester_exam or other"})
         }
         if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate) || !/^\d{4}-\d{2}-\d{2}$/.test(endDate)) {
             return res.status(400).send({message: "Dates must be like 2026-10-25"})
@@ -38,7 +43,8 @@ const createExamWindow = async (req, res) => {
         const examWindow = await ExamWindow.create({
             title: title || "Exam Window " + startDate + " to " + endDate,
             startDate,
-            endDate
+            endDate,
+            kind
         })
         res.status(201).send({message: "Exam window created successfully", data: examData(examWindow)})
     } catch (error) {

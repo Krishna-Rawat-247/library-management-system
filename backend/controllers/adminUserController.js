@@ -1,12 +1,22 @@
 const mongoose = require("mongoose")
 const {User} = require("../models/userModel")
 const {userData} = require("../utils/userData")
+const {getRoleScore, reliabilityFromNoShows, getRecentNoShowCounts} = require("../utils/priority")
 
 // getAllUsers => admin sees every user (no passwords)
 const getAllUsers = async (req, res) => {
     try {
         const users = await User.find()
-        const data = users.map(user => userData(user))
+        const noShowCounts = await getRecentNoShowCounts() // recent no-shows of every user, one query
+        const data = users.map(user => {
+            const recentNoShows = noShowCounts.get(String(user._id)) || 0
+            const priority = {
+                roleScore: getRoleScore(user),
+                reliabilityScore: reliabilityFromNoShows(recentNoShows),
+                recentNoShows
+            }
+            return {...userData(user), priority}
+        })
         res.status(200).send({message: "Users fetched successfully", data})
     } catch (error) {
         res.status(500).send({message: error.message})

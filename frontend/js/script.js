@@ -39,12 +39,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     strikes = 0;
                 }
                 
-                let reliabilityScore = 100 - (strikes * 15);
-                if (reliabilityScore < 0) {
-                    reliabilityScore = 0;
-                }
-                
-                let score = reliabilityScore + " pts";
+                // the priority score is shown on the profile page. Here we show the strikes
+                let score = strikes + (strikes === 1 ? " strike" : " strikes");
 
                 headerActions.innerHTML = `
                     <div class="user-pill-display" title="Signed in user">
