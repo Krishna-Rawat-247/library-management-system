@@ -48,6 +48,23 @@ function buildAllocationPage() {
     </table>
     <!-- /decisions -->
 
+    <!-- history -->
+    <h3>Run history</h3>
+    <table class="admin-table" id="allocationRunsTable">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Run by</th>
+          <th>Run at</th>
+          <th>Considered</th>
+          <th>Confirmed</th>
+          <th>Unallocated</th>
+        </tr>
+      </thead>
+      <tbody id="allocationRunsBody"></tbody>
+    </table>
+    <p class="empty-note" id="allocationRunsEmpty" hidden>No allocation has been run yet.</p>
+    <!-- /history -->
   `;
 }
 
@@ -93,6 +110,36 @@ function showAllocationDecisions(decisions) {
   });
 }
 
+// ---- run history ----
+
+async function loadAllocationRuns() {
+  let tbody = document.getElementById("allocationRunsBody");
+  let emptyNote = document.getElementById("allocationRunsEmpty");
+  if (!tbody) return;
+
+  let runs = [];
+  try {
+    let result = await apiGet("/admin/allocation-runs");
+    runs = result.data;
+  } catch (error) {
+    alert(error.message);
+    return;
+  }
+
+  tbody.innerHTML = "";
+  emptyNote.hidden = runs.length > 0;
+  runs.forEach((run) => {
+    addAllocationRow(tbody, [
+      run.date,
+      run.ranBy,
+      new Date(run.ranAt).toLocaleString(),
+      run.considered,
+      run.confirmed,
+      run.unallocated
+    ]);
+  });
+}
+
 // ---- run button ----
 
 async function runAllocationForDate(date) {
@@ -103,6 +150,7 @@ async function runAllocationForDate(date) {
     let result = await apiPost("/admin/allocate", { date: date });
     showAllocationSummary(result.data.run);
     showAllocationDecisions(result.data.decisions);
+    loadAllocationRuns();
   } catch (error) {
     alert(error.message);
   }
@@ -124,3 +172,11 @@ function wireAllocationForm() {
 
 buildAllocationPage();
 wireAllocationForm();
+loadAllocationRuns();
+
+// reload the history each time the tab is opened
+document.addEventListener("adminview:shown", function (e) {
+  if (e.detail.view === "allocation") {
+    loadAllocationRuns();
+  }
+});
