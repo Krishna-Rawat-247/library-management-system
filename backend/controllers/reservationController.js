@@ -139,6 +139,27 @@ const createReservation = async (req, res) => {
             return res.status(400).send({message: "Group is bigger than this resource's capacity"})
         }
 
+        // 5. nobody in the group may have another pending or confirmed booking at that time
+        const people = [{id: user._id, email: user.email, isRequester: true}]
+        for (const member of members) {
+            people.push({id: member._id, email: member.email, isRequester: false})
+        }
+        for (const person of people) {
+            const busy = await Reservation.findOne({
+                status: {$in: ["pending", "confirmed"]},
+                date,
+                startTime: {$lt: endTime},
+                endTime: {$gt: startTime},
+                $or: [{user: person.id}, {members: person.id}]
+            })
+            if (busy) {
+                const message = person.isRequester
+                    ? "You already have a booking that overlaps this time"
+                    : person.email + " already has a booking at that time"
+                return res.status(409).send({message})
+            }
+        }
+
         // 6. save the request as pending. The score is saved only to be shown
         const priorityScore = await calculatePriorityScore(user, date)
         const reservation = await Reservation.create({
