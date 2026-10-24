@@ -3,6 +3,7 @@ const {Reservation} = require("../models/reservationModel")
 const {Resource} = require("../models/resourceModel")
 const {User} = require("../models/userModel")
 const {getSeatsUsed, allocateReservation} = require("../utils/allocation")
+const {hasStarted} = require("../utils/timeCheck")
 
 // reservationRow => one row for the admin table. user and resource are populated,
 // but they can be empty if the user or resource was deleted later
@@ -126,8 +127,9 @@ const adminCancelReservation = async (req, res) => {
     }
 }
 
-// markNoShow => the booking becomes no_show and the user gets one more strike.
-// There is no automatic suspension in Phase 1
+// markNoShow => only for a confirmed booking that has already started. The booking becomes no_show and
+// the user gets one more strike (shown only). Three recent no-shows lower the reliability score,
+// but nobody is suspended automatically
 const markNoShow = async (req, res) => {
     try {
         const id = req.params.id
@@ -140,6 +142,9 @@ const markNoShow = async (req, res) => {
         }
         if (reservation.status !== "confirmed") {
             return res.status(400).send({message: "Only confirmed bookings can be marked as no-show"})
+        }
+        if (!hasStarted(reservation.date, reservation.startTime)) {
+            return res.status(400).send({message: "A booking can be marked as no-show only after it has started"})
         }
         reservation.status = "no_show"
         await reservation.save()
