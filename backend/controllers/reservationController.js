@@ -113,9 +113,31 @@ const createReservation = async (req, res) => {
             return res.status(403).send({message: "Your account is suspended" + until + ". You cannot make new bookings"})
         }
 
-        // (group members, the busy check and the allocation come in the next commits)
+        // 4. the other members of the group (their emails). The requester is not listed
+        const memberEmails = req.body.memberEmails || []
+        if (!Array.isArray(memberEmails)) {
+            return res.status(400).send({message: "memberEmails must be a list of emails"})
+        }
+        const emails = memberEmails.map(email => String(email).trim().toLowerCase()).filter(email => email !== "")
+        if (new Set(emails).size !== emails.length) {
+            return res.status(400).send({message: "The same member email is listed twice"})
+        }
+        if (emails.includes(user.email)) {
+            return res.status(400).send({message: "You are the person who books, do not list your own email as a member"})
+        }
         const members = []
-        const groupSize = 1
+        for (const email of emails) {
+            const member = await User.findOne({email})
+            if (!member) {
+                return res.status(400).send({message: "No user has the email " + email})
+            }
+            members.push(member)
+        }
+        // the group size is calculated here, never taken from the client
+        const groupSize = 1 + members.length
+        if (groupSize > resource.capacity) {
+            return res.status(400).send({message: "Group is bigger than this resource's capacity"})
+        }
 
         // 6. save the request as pending. The score is saved only to be shown
         const priorityScore = await calculatePriorityScore(user, date)
