@@ -139,15 +139,37 @@
 
                     <div class="form-group">
                         <label for="startTime">Start Time</label>
-                        <input type="time" id="startTime" required>
+                        <input type="time" id="startTime" step="1800" required>
                     </div>
 
                     <div class="form-group">
                         <label for="endTime">End Time</label>
-                        <input type="time" id="endTime" required>
+                        <input type="time" id="endTime" step="1800" required>
                     </div>
 
-                    <button type="submit" class="btn btn--brick-cta">CONFIRM RESERVATION →</button>
+                    <div class="form-group">
+                        <label for="purpose">Purpose</label>
+                        <select id="purpose">
+                            <option value="general_study">General study</option>
+                            <option value="project_work">Project work</option>
+                            <option value="quarterly_test">Quarterly test</option>
+                            <option value="mid_semester_exam">Mid semester exam</option>
+                            <option value="end_semester_exam">End semester exam</option>
+                            <option value="job_interview">Job interview</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="eventDateGroup" hidden>
+                        <label for="eventDate">Event date (day of the exam or interview)</label>
+                        <input type="date" id="eventDate">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="memberEmails">Other group members' emails (optional)</label>
+                        <input type="text" id="memberEmails" placeholder="friend1@university.edu, friend2@university.edu">
+                    </div>
+
+                    <button type="submit" class="btn btn--brick-cta">SEND REQUEST →</button>
                 </form>
             </section>
         </div>
@@ -302,6 +324,13 @@
 
         let bookingForm = document.getElementById("bookingForm");
 
+        // the event date is only needed when the purpose is not general study
+        function toggleEventDate() {
+            let purpose = document.getElementById("purpose").value;
+            document.getElementById("eventDateGroup").hidden = purpose === "general_study";
+        }
+        document.getElementById("purpose").addEventListener("change", toggleEventDate);
+
         bookingForm.addEventListener("submit", async (event) => {
             event.preventDefault();
 
@@ -353,6 +382,7 @@
             }
 
             bookingForm.reset();
+            toggleEventDate();
 
             selectedResource = null;
 
