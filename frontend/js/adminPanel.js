@@ -887,6 +887,7 @@ async function renderDashboardStats() {
 
   let totalToday = reservations.filter((r) => r.date === today).length;
   let pendingCount = reservations.filter((r) => r.status === "pending").length;
+  let unallocatedCount = reservations.filter((r) => r.status === "unallocated").length;
   let noShowsToday = reservations.filter(
     (r) => r.date === today && r.status === "no_show"
   ).length;
@@ -898,6 +899,7 @@ async function renderDashboardStats() {
   if (document.getElementById("statTotalToday")) document.getElementById("statTotalToday").innerText = totalToday;
   if (document.getElementById("statLiveNow")) document.getElementById("statLiveNow").innerText = liveNow;
   if (document.getElementById("statPending")) document.getElementById("statPending").innerText = pendingCount;
+  if (document.getElementById("statUnallocated")) document.getElementById("statUnallocated").innerText = unallocatedCount;
   if (document.getElementById("statNoShowsToday")) document.getElementById("statNoShowsToday").innerText = noShowsToday;
   if (document.getElementById("statGuardianMsgs")) document.getElementById("statGuardianMsgs").innerText = unreadMsgs;
 }
