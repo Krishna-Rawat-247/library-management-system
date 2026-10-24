@@ -611,7 +611,8 @@ button {
   color: var(--text-muted);
 }
 
-.form-group input {
+.form-group input,
+.form-group select {
   width: 100%;
   padding: 12px 14px;
   background: var(--card-dark-inset);
@@ -624,7 +625,8 @@ button {
   transition: all 0.2s ease;
 }
 
-.form-group input:focus {
+.form-group input:focus,
+.form-group select:focus {
   border-color: var(--brick);
   box-shadow: 0 0 0 2px rgba(148, 70, 56, 0.25);
   background: var(--card-dark-hover);
