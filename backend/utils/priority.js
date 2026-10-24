@@ -1,3 +1,6 @@
+const {Reservation} = require("../models/reservationModel")
+const {getToday} = require("./timeCheck")
+
 // Phase 2 priority rules. The server calculates everything, the browser never does.
 // A request is ranked by its purpose TIER first. Inside a tier the SCORE decides.
 // score = role score (up to 15) + reliability score (up to 10)
@@ -60,13 +63,42 @@ const getRoleScore = (user) => {
     return Math.round(score * 10) / 10
 }
 
+// getCutoffDate => the date 90 days ago in library time. Older no-shows stop counting
+const getCutoffDate = () => {
+    const date = new Date(getToday() + "T00:00:00Z")
+    date.setUTCDate(date.getUTCDate() - 90)
+    return date.toISOString().slice(0, 10)
+}
+
+// getRecentNoShows => how many no-show bookings the user had in the last 90 days
+const getRecentNoShows = async (userId) => {
+    return await Reservation.countDocuments({
+        user: userId,
+        status: "no_show",
+        date: {$gte: getCutoffDate()}
+    })
+}
+
+// reliabilityFromNoShows => 10 points, minus 3 for every recent no-show, never below 0
+const reliabilityFromNoShows = (noShows) => {
+    return Math.max(0, 10 - 3 * noShows)
+}
+
+// getReliabilityScore => the reliability score of one user
+const getReliabilityScore = async (userId) => {
+    return reliabilityFromNoShows(await getRecentNoShows(userId))
+}
+
 // calculatePriorityScore => kept so the Phase 1 booking code keeps working. Same number as getPriority().score
 const calculatePriorityScore = async (user, bookingDate) => {
-    return getRoleScore(user)
+    return getRoleScore(user) + await getReliabilityScore(user._id)
 }
 
 module.exports = {
     PURPOSE_TIER,
     getRoleScore,
+    getRecentNoShows,
+    reliabilityFromNoShows,
+    getReliabilityScore,
     calculatePriorityScore
 }
