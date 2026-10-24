@@ -89,9 +89,55 @@ const getReliabilityScore = async (userId) => {
     return reliabilityFromNoShows(await getRecentNoShows(userId))
 }
 
+// getPriorityBreakdown => the numbers we show on the profile page and in the admin panel
+const getPriorityBreakdown = async (user) => {
+    const recentNoShows = await getRecentNoShows(user._id)
+    return {
+        roleScore: getRoleScore(user),
+        reliabilityScore: reliabilityFromNoShows(recentNoShows),
+        recentNoShows
+    }
+}
+
+// getRecentNoShowCounts => recent no-shows of ALL users in one query (a Map: user id -> number)
+const getRecentNoShowCounts = async () => {
+    const bookings = await Reservation.find({status: "no_show", date: {$gte: getCutoffDate()}})
+    const counts = new Map()
+    for (const booking of bookings) {
+        const id = String(booking.user)
+        counts.set(id, (counts.get(id) || 0) + 1)
+    }
+    return counts
+}
+
+// getPriority => the tier and the score of one request. Only the requester counts, never the group members
+const getPriority = async (user, reservation) => {
+    const tier = PURPOSE_TIER[reservation.purpose] || 1
+    const breakdown = await getPriorityBreakdown(user)
+    return {tier, score: breakdown.roleScore + breakdown.reliabilityScore}
+}
+
+// compareReservations => the sort order: tier (high first), score (high first),
+// then the older request, then the smaller _id. a and b look like {tier, score, createdAt, _id}
+const compareReservations = (a, b) => {
+    if (b.tier !== a.tier) {
+        return b.tier - a.tier
+    }
+    if (b.score !== a.score) {
+        return b.score - a.score
+    }
+    const timeA = new Date(a.createdAt).getTime()
+    const timeB = new Date(b.createdAt).getTime()
+    if (timeA !== timeB) {
+        return timeA - timeB
+    }
+    return String(a._id).localeCompare(String(b._id))
+}
+
 // calculatePriorityScore => kept so the Phase 1 booking code keeps working. Same number as getPriority().score
 const calculatePriorityScore = async (user, bookingDate) => {
-    return getRoleScore(user) + await getReliabilityScore(user._id)
+    const breakdown = await getPriorityBreakdown(user)
+    return breakdown.roleScore + breakdown.reliabilityScore
 }
 
 module.exports = {
@@ -100,5 +146,9 @@ module.exports = {
     getRecentNoShows,
     reliabilityFromNoShows,
     getReliabilityScore,
+    getPriorityBreakdown,
+    getRecentNoShowCounts,
+    getPriority,
+    compareReservations,
     calculatePriorityScore
 }
