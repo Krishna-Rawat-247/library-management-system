@@ -365,13 +365,30 @@
                 return;
             }
 
-            // the server checks suspension, overlapping bookings, free seats and sets the status
+            let purpose = document.getElementById("purpose").value;
+            let eventDate = document.getElementById("eventDate").value;
+            if (purpose !== "general_study" && eventDate === "") {
+                alert("Please pick the event date (the day of the exam or interview)");
+                return;
+            }
+
+            // the other members of the group, written as emails separated by commas
+            let memberEmails = document.getElementById("memberEmails").value
+                .split(",")
+                .map(email => email.trim())
+                .filter(email => email !== "");
+
+            // the server checks everything. It saves the request as pending, or allocates it at once
+            // when the admin has already run the allocation for that date. The answer says which one
             try {
                 let result = await apiPost("/reservations", {
                     resourceId: selectedResource.id,
                     date: date,
                     startTime: startTime,
-                    endTime: endTime
+                    endTime: endTime,
+                    purpose: purpose,
+                    eventDate: purpose === "general_study" ? undefined : eventDate,
+                    memberEmails: memberEmails
                 });
                 alert(result.message);
             } catch (error) {
