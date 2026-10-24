@@ -215,8 +215,8 @@ const getMyReservations = async (req, res) => {
     }
 }
 
-// cancelReservation => the owner or an admin cancels a confirmed booking that has not started.
-// nobody is promoted after a cancel
+// cancelReservation => the person who made the booking (or an admin) cancels a pending, unallocated
+// or confirmed booking that has not started. A group member cannot cancel. Nobody is promoted
 const cancelReservation = async (req, res) => {
     try {
         const id = req.params.id
@@ -228,19 +228,23 @@ const cancelReservation = async (req, res) => {
             return res.status(404).send({message: "Reservation not found"})
         }
         if (String(reservation.user) !== req.user.id && req.user.role !== "admin") {
-            return res.status(403).send({message: "You can cancel only your own bookings"})
+            const isMember = reservation.members.some(member => String(member) === req.user.id)
+            const message = isMember
+                ? "Only the person who made this booking can cancel it"
+                : "You can cancel only your own bookings"
+            return res.status(403).send({message})
         }
-        if (reservation.status !== "confirmed") {
-            return res.status(400).send({message: "Only confirmed bookings can be cancelled"})
+        if (!["pending", "unallocated", "confirmed"].includes(reservation.status)) {
+            return res.status(400).send({message: "This booking cannot be cancelled"})
         }
-        const start = new Date(reservation.date + "T" + reservation.startTime)
-        if (start <= new Date()) {
+        if (hasStarted(reservation.date, reservation.startTime)) {
             return res.status(400).send({message: "A booking that has started cannot be cancelled"})
         }
 
         reservation.status = "cancelled"
+        reservation.reason = "Cancelled"
         await reservation.save()
-        res.status(200).send({message: "Booking cancelled successfully", data: reservationData(reservation)})
+        res.status(200).send({message: "Booking cancelled successfully", data: reservationData(reservation, req.user.id)})
     } catch (error) {
         res.status(500).send({message: error.message})
     }
