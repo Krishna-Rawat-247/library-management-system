@@ -2,13 +2,21 @@ const mongoose = require("mongoose")
 const {Reservation} = require("../models/reservationModel")
 const {Resource} = require("../models/resourceModel")
 const {User} = require("../models/userModel")
+const {ExamWindow} = require("../models/examWindowModel")
+const {AllocationRun} = require("../models/allocationRunModel")
+const {allocateReservation} = require("../utils/allocation")
+const {getToday, hasStarted, isSlotAligned} = require("../utils/timeCheck")
 const {calculatePriorityScore} = require("../utils/priority")
 
+// the purposes a request can have (the tier of each purpose is in utils/priority.js)
+const PURPOSES = ["job_interview", "end_semester_exam", "mid_semester_exam", "quarterly_test", "project_work", "general_study"]
+
 // reservationData => the booking object we send (the old pages use "id").
-// resource is the full resource when populated, otherwise only its id
-const reservationData = (reservation) => {
+// myId is the logged in user. With it we also say if he made the booking or is only a group member
+const reservationData = (reservation, myId) => {
     const resource = reservation.resource
-    return {
+    const user = reservation.user
+    const data = {
         id: reservation._id,
         resource: resource && resource.label
             ? {id: resource._id, label: resource.label, type: resource.type, zone: resource.zone, capacity: resource.capacity}
@@ -17,17 +25,35 @@ const reservationData = (reservation) => {
         startTime: reservation.startTime,
         endTime: reservation.endTime,
         status: reservation.status,
+        purpose: reservation.purpose,
+        eventDate: reservation.eventDate,
+        groupSize: reservation.groupSize || 1,
+        reason: reservation.reason,
         priorityScore: reservation.priorityScore,
         checkedIn: reservation.checkedIn,
-        createdAt: reservation.createdAt
+        createdAt: reservation.createdAt,
+        members: (reservation.members || []).filter(member => member && member.name).map(member => {
+            return {name: member.name, email: member.email}
+        })
     }
+    if (myId) {
+        const ownerId = user && user._id ? user._id : user
+        data.isRequester = String(ownerId) === String(myId)
+        data.requester = user && user.name ? {name: user.name} : null
+    }
+    return data
 }
 
-// createReservation => the booking rules of Phase 1. The server decides everything.
-// user, status and priorityScore sent in the body are ignored
+// createReservation => a student asks for a resource. The server decides everything.
+// user, status, priorityScore, groupSize and reason sent in the body are ignored.
+// The request waits as "pending" until the admin runs the allocation for that date.
+// If a run for that date already exists, the request is allocated at once.
 const createReservation = async (req, res) => {
     try {
-        const {resourceId, date, startTime, endTime} = req.body
+        const {resourceId, date, startTime, endTime, eventDate} = req.body
+        const purpose = req.body.purpose || "general_study"
+
+        // 1. the basic checks
         if (!resourceId || !date || !startTime || !endTime) {
             return res.status(400).send({message: "resourceId, date, startTime and endTime are required"})
         }
@@ -37,12 +63,37 @@ const createReservation = async (req, res) => {
         if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{2}:\d{2}$/.test(startTime) || !/^\d{2}:\d{2}$/.test(endTime)) {
             return res.status(400).send({message: "Date must be YYYY-MM-DD and times must be HH:MM"})
         }
+        if (!isSlotAligned(startTime) || !isSlotAligned(endTime)) {
+            return res.status(400).send({message: "Times must be on the hour or half hour, like 10:00 or 10:30"})
+        }
         if (startTime >= endTime) {
             return res.status(400).send({message: "End time must be after start time"})
         }
-        const today = new Date().toISOString().split("T")[0]
-        if (date < today) {
+        if (date < getToday()) {
             return res.status(400).send({message: "Cannot book in the past"})
+        }
+        if (!PURPOSES.includes(purpose)) {
+            return res.status(400).send({message: "Purpose must be one of: " + PURPOSES.join(", ")})
+        }
+
+        // 2. the rules of the purpose. Exams need an exam window of the same kind on the event date
+        if (purpose !== "general_study") {
+            if (!eventDate || !/^\d{4}-\d{2}-\d{2}$/.test(eventDate)) {
+                return res.status(400).send({message: "eventDate (the day of the interview or exam, YYYY-MM-DD) is required for this purpose"})
+            }
+            if (eventDate < date) {
+                return res.status(400).send({message: "The event date cannot be before the booking date"})
+            }
+            if (purpose === "end_semester_exam" || purpose === "mid_semester_exam") {
+                const examWindow = await ExamWindow.findOne({
+                    kind: purpose,
+                    startDate: {$lte: eventDate},
+                    endDate: {$gte: eventDate}
+                })
+                if (!examWindow) {
+                    return res.status(400).send({message: "There is no " + purpose.replace(/_/g, " ") + " window on " + eventDate})
+                }
+            }
         }
 
         // the resource must exist and be active
@@ -64,31 +115,54 @@ const createReservation = async (req, res) => {
             return res.status(403).send({message: "Your account is suspended" + until + ". You cannot make new bookings"})
         }
 
-        // the user cannot have another confirmed booking at the same time (any resource)
-        const ownBooking = await Reservation.findOne({
-            user: user._id,
-            status: "confirmed",
-            date,
-            startTime: {$lt: endTime},
-            endTime: {$gt: startTime}
-        })
-        if (ownBooking) {
-            return res.status(409).send({message: "You already have a booking that overlaps this time"})
+        // 4. the other members of the group (their emails). The requester is not listed
+        const memberEmails = req.body.memberEmails || []
+        if (!Array.isArray(memberEmails)) {
+            return res.status(400).send({message: "memberEmails must be a list of emails"})
+        }
+        const emails = memberEmails.map(email => String(email).trim().toLowerCase()).filter(email => email !== "")
+        if (new Set(emails).size !== emails.length) {
+            return res.status(400).send({message: "The same member email is listed twice"})
+        }
+        if (emails.includes(user.email)) {
+            return res.status(400).send({message: "You are the person who books, do not list your own email as a member"})
+        }
+        const members = []
+        for (const email of emails) {
+            const member = await User.findOne({email})
+            if (!member) {
+                return res.status(400).send({message: "No user has the email " + email})
+            }
+            members.push(member)
+        }
+        // the group size is calculated here, never taken from the client
+        const groupSize = 1 + members.length
+        if (groupSize > resource.capacity) {
+            return res.status(400).send({message: "Group is bigger than this resource's capacity"})
         }
 
-        // capacity check. No bumping and no waiting list in Phase 1
-        const booked = await Reservation.countDocuments({
-            resource: resource._id,
-            status: "confirmed",
-            date,
-            startTime: {$lt: endTime},
-            endTime: {$gt: startTime}
-        })
-        if (booked >= resource.capacity) {
-            return res.status(409).send({message: "No seats left for that time"})
+        // 5. nobody in the group may have another pending or confirmed booking at that time
+        const people = [{id: user._id, email: user.email, isRequester: true}]
+        for (const member of members) {
+            people.push({id: member._id, email: member.email, isRequester: false})
+        }
+        for (const person of people) {
+            const busy = await Reservation.findOne({
+                status: {$in: ["pending", "confirmed"]},
+                date,
+                startTime: {$lt: endTime},
+                endTime: {$gt: startTime},
+                $or: [{user: person.id}, {members: person.id}]
+            })
+            if (busy) {
+                const message = person.isRequester
+                    ? "You already have a booking that overlaps this time"
+                    : person.email + " already has a booking at that time"
+                return res.status(409).send({message})
+            }
         }
 
-        // the score is saved only for display. It does not change the result
+        // 6. save the request as pending. The score is saved only to be shown
         const priorityScore = await calculatePriorityScore(user, date)
         const reservation = await Reservation.create({
             user: user._id,
@@ -96,31 +170,53 @@ const createReservation = async (req, res) => {
             date,
             startTime,
             endTime,
-            status: "confirmed",
+            purpose,
+            eventDate: purpose === "general_study" ? undefined : eventDate,
+            members: members.map(member => member._id),
+            groupSize,
+            status: "pending",
+            reason: "Waiting for the allocation run for " + date,
             priorityScore
         })
+
+        // 7. if the admin already ran the allocation for this date, allocate this request at once.
+        // It only uses the seats that are left, a confirmed booking is never replaced
+        const run = await AllocationRun.findOne({date})
+        if (run) {
+            await allocateReservation(reservation, resource)
+        }
+
         reservation.resource = resource
-        res.status(201).send({message: "Resource booked successfully", data: reservationData(reservation)})
+        await reservation.populate("members", "name email")
+        let message = "Request received. Seats are assigned when the admin runs the allocation for " + date
+        if (reservation.status === "confirmed") {
+            message = "Booked. Your seats are confirmed"
+        } else if (reservation.status === "unallocated") {
+            message = reservation.reason
+        }
+        res.status(201).send({message, data: reservationData(reservation, req.user.id)})
     } catch (error) {
         res.status(500).send({message: error.message})
     }
 }
 
-// getMyReservations => all bookings of the logged in user, newest first, with resource details
+// getMyReservations => the bookings I made and the group bookings I am a member of, newest first
 const getMyReservations = async (req, res) => {
     try {
-        const reservations = await Reservation.find({user: req.user.id})
+        const reservations = await Reservation.find({$or: [{user: req.user.id}, {members: req.user.id}]})
             .populate("resource")
+            .populate("user", "name")
+            .populate("members", "name email")
             .sort({date: -1, startTime: -1})
-        const data = reservations.map(reservation => reservationData(reservation))
+        const data = reservations.map(reservation => reservationData(reservation, req.user.id))
         res.status(200).send({message: "Reservations fetched successfully", data})
     } catch (error) {
         res.status(500).send({message: error.message})
     }
 }
 
-// cancelReservation => the owner or an admin cancels a confirmed booking that has not started.
-// nobody is promoted after a cancel
+// cancelReservation => the person who made the booking (or an admin) cancels a pending, unallocated
+// or confirmed booking that has not started. A group member cannot cancel. Nobody is promoted
 const cancelReservation = async (req, res) => {
     try {
         const id = req.params.id
@@ -132,19 +228,23 @@ const cancelReservation = async (req, res) => {
             return res.status(404).send({message: "Reservation not found"})
         }
         if (String(reservation.user) !== req.user.id && req.user.role !== "admin") {
-            return res.status(403).send({message: "You can cancel only your own bookings"})
+            const isMember = reservation.members.some(member => String(member) === req.user.id)
+            const message = isMember
+                ? "Only the person who made this booking can cancel it"
+                : "You can cancel only your own bookings"
+            return res.status(403).send({message})
         }
-        if (reservation.status !== "confirmed") {
-            return res.status(400).send({message: "Only confirmed bookings can be cancelled"})
+        if (!["pending", "unallocated", "confirmed"].includes(reservation.status)) {
+            return res.status(400).send({message: "This booking cannot be cancelled"})
         }
-        const start = new Date(reservation.date + "T" + reservation.startTime)
-        if (start <= new Date()) {
+        if (hasStarted(reservation.date, reservation.startTime)) {
             return res.status(400).send({message: "A booking that has started cannot be cancelled"})
         }
 
         reservation.status = "cancelled"
+        reservation.reason = "Cancelled"
         await reservation.save()
-        res.status(200).send({message: "Booking cancelled successfully", data: reservationData(reservation)})
+        res.status(200).send({message: "Booking cancelled successfully", data: reservationData(reservation, req.user.id)})
     } catch (error) {
         res.status(500).send({message: error.message})
     }

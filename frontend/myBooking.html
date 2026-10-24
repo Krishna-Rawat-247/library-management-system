@@ -94,6 +94,24 @@
         
         let myBookings = [];
 
+        let PURPOSE_LABELS = {
+            job_interview: "Job interview",
+            end_semester_exam: "End semester exam",
+            mid_semester_exam: "Mid semester exam",
+            quarterly_test: "Quarterly test",
+            project_work: "Project work",
+            general_study: "General study"
+        };
+
+        // names and reasons can contain any text, so we make them safe before showing them
+        function escapeHtml(text) {
+            return String(text === undefined || text === null ? "" : text)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;");
+        }
+
         if (!currentUser || !localStorage.getItem("token")) {
             alert("Please login first");
             window.location.href = "login.html";
@@ -138,11 +156,23 @@
                 }
 
                 let canCancel = false;
-                // only confirmed bookings that have not started can be cancelled
-                if (booking.status === "confirmed") {
+                // only the person who made the booking can cancel it, and only before it starts
+                if (booking.isRequester && ["pending", "unallocated", "confirmed"].includes(booking.status)) {
                     if (timeStatus === "Upcoming") {
                         canCancel = true;
                     }
+                }
+
+                let purposeText = PURPOSE_LABELS[booking.purpose] || booking.purpose;
+                let groupText = "Just me";
+                if (booking.groupSize > 1) {
+                    let names = booking.members.map(member => member.name).join(", ");
+                    groupText = "Group of " + booking.groupSize + (names ? " (with " + names + ")" : "");
+                }
+                let memberNote = "";
+                if (booking.isRequester === false) {
+                    let who = booking.requester ? booking.requester.name : "another student";
+                    memberNote = `<p><strong>You are a member of this group. Booked by ${escapeHtml(who)}.</strong></p>`;
                 }
 
                 bookingsContainer.innerHTML += `
@@ -150,7 +180,11 @@
                         <h3>Resource: ${resourceName}</h3>
                         <p>Date: ${booking.date}</p>
                         <p>Time: ${booking.startTime} - ${booking.endTime}</p>
+                        <p>Purpose: ${escapeHtml(purposeText)}</p>
+                        <p>Seats for: ${escapeHtml(groupText)}</p>
                         <p>Status: ${displayStatus}${timeStatus ? ` (${timeStatus})` : ""}</p>
+                        ${booking.reason ? `<p>Reason: ${escapeHtml(booking.reason)}</p>` : ""}
+                        ${memberNote}
                         ${
                             canCancel
                             ? `
@@ -180,7 +214,10 @@
                 return "Cancelled";
             }
             if (status === "pending") {
-                return "Pending";
+                return "Pending (waiting for the allocation)";
+            }
+            if (status === "unallocated") {
+                return "Not allocated";
             }
             if (status === "completed") {
                 return "Completed";

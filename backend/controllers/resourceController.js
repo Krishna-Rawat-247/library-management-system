@@ -1,6 +1,8 @@
 const mongoose = require("mongoose")
 const {Resource} = require("../models/resourceModel")
 const {Reservation} = require("../models/reservationModel")
+const {getSeatsUsed} = require("../utils/allocation")
+const {getToday} = require("../utils/timeCheck")
 
 // the only types allowed for new or edited resources
 const ALLOWED_TYPES = [
@@ -64,7 +66,8 @@ const getResourceById = async (req, res) => {
     }
 }
 
-// getAvailability => how many seats are taken in the given time. Only confirmed bookings count
+// getAvailability => how many seats are taken in the given time.
+// Only confirmed bookings use seats, and a group uses as many seats as its group size
 const getAvailability = async (req, res) => {
     try {
         const id = req.params.id
@@ -82,14 +85,7 @@ const getAvailability = async (req, res) => {
         if (!resource || (!resource.active && req.user.role !== "admin")) {
             return res.status(404).send({message: "Resource not found"})
         }
-        // two bookings overlap when one starts before the other ends
-        const booked = await Reservation.countDocuments({
-            resource: id,
-            status: "confirmed",
-            date,
-            startTime: {$lt: endTime},
-            endTime: {$gt: startTime}
-        })
+        const booked = await getSeatsUsed(id, date, startTime, endTime)
         const available = Math.max(0, resource.capacity - booked)
         res.status(200).send({
             message: "Availability fetched successfully",
@@ -166,21 +162,20 @@ const updateResource = async (req, res) => {
     }
 }
 
-// deleteResource => admin deletes a resource. Not allowed while it has upcoming confirmed bookings
+// deleteResource => admin deletes a resource. Not allowed while it has upcoming pending or confirmed bookings
 const deleteResource = async (req, res) => {
     try {
         const id = req.params.id
         if (!mongoose.isValidObjectId(id)) {
             return res.status(400).send({message: "Invalid resource id"})
         }
-        const today = new Date().toISOString().split("T")[0]
         const upcoming = await Reservation.countDocuments({
             resource: id,
-            status: "confirmed",
-            date: {$gte: today}
+            status: {$in: ["pending", "confirmed"]},
+            date: {$gte: getToday()}
         })
         if (upcoming > 0) {
-            return res.status(409).send({message: "This resource has upcoming confirmed bookings. Cancel them first or mark the resource inactive"})
+            return res.status(409).send({message: "This resource has upcoming bookings. Cancel them first or mark the resource inactive"})
         }
         const resource = await Resource.findByIdAndDelete(id)
         if (!resource) {
