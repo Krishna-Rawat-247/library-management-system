@@ -26,6 +26,16 @@ checkAdminAccess();
 // 1. Admin Reservation OverSight Panel:
 // ********************************************************************************************************************************************************
 
+// the purposes written in plain words (the name is different from the one in adminAllocation.js on purpose)
+let RESERVATION_PURPOSES = {
+  job_interview: "Job interview",
+  end_semester_exam: "End semester exam",
+  mid_semester_exam: "Mid semester exam",
+  quarterly_test: "Quarterly test",
+  project_work: "Project work",
+  general_study: "General study"
+};
+
 function getUserName(reservation) {
   return reservation.user ? reservation.user.name : "Unknown";
 }
@@ -37,10 +47,17 @@ function getResourceLabel(reservation) {
 async function renderReservationTable() {
   let filters = currentReservationFilters();
 
-  // the server filters by status, the other filters are done here
+  // the server filters by status and date, the user and resource filters are done here
   let url = "/admin/reservations";
+  let query = [];
   if (filters.status !== "all") {
-    url = url + "?status=" + filters.status;
+    query.push("status=" + filters.status);
+  }
+  if (filters.date) {
+    query.push("date=" + filters.date);
+  }
+  if (query.length > 0) {
+    url = url + "?" + query.join("&");
   }
 
   let reservations, users, resources;
@@ -66,11 +83,6 @@ async function renderReservationTable() {
   reservations.sort((a, b) => {
     return getDateTime(a) - getDateTime(b);
   });
-  if (filters.date) {
-    reservations = reservations.filter(
-      (reservation) => reservation.date === filters.date,
-    );
-  }
   if (filters.userId !== "all") {
     reservations = reservations.filter(
       (reservation) => reservation.user && String(reservation.user.id) === String(filters.userId),
@@ -93,8 +105,11 @@ async function renderReservationTable() {
       getResourceLabel(reservation),
       reservation.date,
       reservation.startTime + " - " + reservation.endTime,
+      RESERVATION_PURPOSES[reservation.purpose] || reservation.purpose || "General study",
+      reservation.groupSize || 1,
       reservation.priorityScore ?? "—",
       reservation.status,
+      reservation.reason || "",
       reservation.checkedIn ? "Yes" : "No",
     ];
 
@@ -188,8 +203,12 @@ function wireReservationFilters() {
 function createActionButtons(reservation) {
   let actionsTd = document.createElement("td");
 
-  // Force Confirm Button
-  if (reservation.status === "pending" || reservation.status === "waiting") {
+  // Force Confirm Button (the server still refuses it if the whole group does not fit)
+  if (
+    reservation.status === "pending" ||
+    reservation.status === "waiting" ||
+    reservation.status === "unallocated"
+  ) {
     actionsTd.appendChild(
       createButton("Force Confirm", function () {
         updateReservationStatus(reservation.id, "confirmed");
@@ -208,7 +227,8 @@ function createActionButtons(reservation) {
   if (
     reservation.status === "pending" ||
     reservation.status === "confirmed" ||
-    reservation.status === "waiting"
+    reservation.status === "waiting" ||
+    reservation.status === "unallocated"
   ) {
     actionsTd.appendChild(
       createButton("Cancel", function () {
