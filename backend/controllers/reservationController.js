@@ -200,13 +200,15 @@ const createReservation = async (req, res) => {
     }
 }
 
-// getMyReservations => all bookings of the logged in user, newest first, with resource details
+// getMyReservations => the bookings I made and the group bookings I am a member of, newest first
 const getMyReservations = async (req, res) => {
     try {
-        const reservations = await Reservation.find({user: req.user.id})
+        const reservations = await Reservation.find({$or: [{user: req.user.id}, {members: req.user.id}]})
             .populate("resource")
+            .populate("user", "name")
+            .populate("members", "name email")
             .sort({date: -1, startTime: -1})
-        const data = reservations.map(reservation => reservationData(reservation))
+        const data = reservations.map(reservation => reservationData(reservation, req.user.id))
         res.status(200).send({message: "Reservations fetched successfully", data})
     } catch (error) {
         res.status(500).send({message: error.message})
