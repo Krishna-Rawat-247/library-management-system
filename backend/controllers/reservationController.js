@@ -3,6 +3,8 @@ const {Reservation} = require("../models/reservationModel")
 const {Resource} = require("../models/resourceModel")
 const {User} = require("../models/userModel")
 const {ExamWindow} = require("../models/examWindowModel")
+const {AllocationRun} = require("../models/allocationRunModel")
+const {allocateReservation} = require("../utils/allocation")
 const {getToday, hasStarted, isSlotAligned} = require("../utils/timeCheck")
 const {calculatePriorityScore} = require("../utils/priority")
 
@@ -176,6 +178,13 @@ const createReservation = async (req, res) => {
             reason: "Waiting for the allocation run for " + date,
             priorityScore
         })
+
+        // 7. if the admin already ran the allocation for this date, allocate this request at once.
+        // It only uses the seats that are left, a confirmed booking is never replaced
+        const run = await AllocationRun.findOne({date})
+        if (run) {
+            await allocateReservation(reservation, resource)
+        }
 
         reservation.resource = resource
         await reservation.populate("members", "name email")
