@@ -1,6 +1,7 @@
 const mongoose = require("mongoose")
 const {Resource} = require("../models/resourceModel")
 const {Reservation} = require("../models/reservationModel")
+const {getSeatsUsed} = require("../utils/allocation")
 
 // the only types allowed for new or edited resources
 const ALLOWED_TYPES = [
@@ -64,7 +65,8 @@ const getResourceById = async (req, res) => {
     }
 }
 
-// getAvailability => how many seats are taken in the given time. Only confirmed bookings count
+// getAvailability => how many seats are taken in the given time.
+// Only confirmed bookings use seats, and a group uses as many seats as its group size
 const getAvailability = async (req, res) => {
     try {
         const id = req.params.id
@@ -82,14 +84,7 @@ const getAvailability = async (req, res) => {
         if (!resource || (!resource.active && req.user.role !== "admin")) {
             return res.status(404).send({message: "Resource not found"})
         }
-        // two bookings overlap when one starts before the other ends
-        const booked = await Reservation.countDocuments({
-            resource: id,
-            status: "confirmed",
-            date,
-            startTime: {$lt: endTime},
-            endTime: {$gt: startTime}
-        })
+        const booked = await getSeatsUsed(id, date, startTime, endTime)
         const available = Math.max(0, resource.capacity - booked)
         res.status(200).send({
             message: "Availability fetched successfully",
