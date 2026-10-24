@@ -959,6 +959,12 @@ document.addEventListener("adminview:shown", function (e) {
 // 5. Admin Settings — Exam Window Management:
 // ********************************************************************************************************************************************************
 
+let EXAM_KINDS = {
+  mid_semester_exam: "Mid semester exam",
+  end_semester_exam: "End semester exam",
+  other: "Other"
+};
+
 async function getExamWindows() {
   try {
     let result = await apiGet("/exam-windows");
@@ -979,7 +985,7 @@ async function renderExamWindowsTable() {
   windows.forEach((window) => {
     let row = document.createElement("tr");
 
-    let data = [window.startDate, window.endDate];
+    let data = [window.startDate, window.endDate, EXAM_KINDS[window.kind] || "Other"];
 
     data.forEach((value) => {
       let td = document.createElement("td");
@@ -1025,7 +1031,8 @@ function wireExamWindowForm() {
     let newWindow = {
       title: "Exam Window " + start + " to " + end,
       startDate: start,
-      endDate: end
+      endDate: end,
+      kind: document.getElementById("examKind").value
     };
 
     try {
