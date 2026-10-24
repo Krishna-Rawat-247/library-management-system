@@ -73,6 +73,7 @@
       <button class="tab-btn" data-view="reservations">Reservations</button>
       <button class="tab-btn" data-view="resources">Resources</button>
       <button class="tab-btn" data-view="users">Users</button>
+      <button class="tab-btn" data-view="allocation">Allocation</button>
       <button class="tab-btn" data-view="settings">Settings</button>
     </nav>
 
@@ -384,6 +385,18 @@
     <!-- ============================================================ -->
     <!-- [SETTINGS] — exam windows, manual sweep, export                -->
     <!-- ============================================================ -->
+    <!-- ============================================================ -->
+    <!-- [ALLOCATION] — run the allocation for a date (js/adminAllocation.js) -->
+    <!-- ============================================================ -->
+    <section class="view" id="view-allocation" hidden>
+      <section class="admin-section" id="section-allocation">
+        <h2>Allocation</h2>
+        <p class="hint">Pick a booking date and run the allocation. Pending and unallocated requests of that date are ranked and
+          confirmed in order while seats are left.</p>
+        <div id="allocationRoot"></div>
+      </section>
+    </section>
+
     <section class="view" id="view-settings" hidden>
 
       <section class="admin-section" id="section-exam-windows">
@@ -437,6 +450,7 @@
   <script src="js/api.js"></script>
   <script src="js/priority.js"></script>
   <script src="js/adminPanel.js"></script>
+  <script src="js/adminAllocation.js"></script>
   <script src="js/script.js"></script>
   <script>
     (function () {
