@@ -38,4 +38,10 @@ const isSlotAligned = (time) => {
     return /^([01]\d|2[0-3]):(00|30)$/.test(String(time))
 }
 
-module.exports = {getToday, hasStarted, isSlotAligned}
+// toLibraryDate => the real moment (a Date) when a booking starts.
+// The text "2026-10-25" + "10:00" is library time, so we take the offset away to get the real moment
+const toLibraryDate = (date, startTime) => {
+    return new Date(Date.parse(date + "T" + startTime + ":00Z") - getOffsetMinutes() * 60 * 1000)
+}
+
+module.exports = {getToday, hasStarted, isSlotAligned, toLibraryDate}
