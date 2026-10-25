@@ -5,15 +5,31 @@ const {User} = require("../models/userModel")
 const {ExamWindow} = require("../models/examWindowModel")
 const {AllocationRun} = require("../models/allocationRunModel")
 const {allocateReservation} = require("../utils/allocation")
+const {createOffer, expireOfferIfNeeded} = require("../utils/alternatives")
+const {getQueuePosition, reconsiderWaitlist} = require("../utils/waitlist")
 const {getToday, hasStarted, isSlotAligned} = require("../utils/timeCheck")
 const {calculatePriorityScore} = require("../utils/priority")
 
 // the purposes a request can have (the tier of each purpose is in utils/priority.js)
 const PURPOSES = ["job_interview", "end_semester_exam", "mid_semester_exam", "quarterly_test", "project_work", "general_study"]
 
+// offerData => the alternative offer of a booking (the offered resource has its label), or null if there is none
+const offerData = (offer) => {
+    if (!offer || !offer.status) {
+        return null
+    }
+    const resource = offer.resource
+    return {
+        status: offer.status,
+        expiresAt: offer.expiresAt,
+        resource: resource && resource.label ? {id: resource._id, label: resource.label, zone: resource.zone} : null
+    }
+}
+
 // reservationData => the booking object we send (the old pages use "id").
-// myId is the logged in user. With it we also say if he made the booking or is only a group member
-const reservationData = (reservation, myId) => {
+// myId is the logged in user. With it we also say if he made the booking or is only a group member.
+// queuePosition is only given for a waitlisted booking (1 = first in the queue)
+const reservationData = (reservation, myId, queuePosition) => {
     const resource = reservation.resource
     const user = reservation.user
     const data = {
@@ -32,6 +48,12 @@ const reservationData = (reservation, myId) => {
         priorityScore: reservation.priorityScore,
         checkedIn: reservation.checkedIn,
         createdAt: reservation.createdAt,
+        offer: offerData(reservation.offer),
+        originalResource: reservation.originalResource && reservation.originalResource.label
+            ? {id: reservation.originalResource._id, label: reservation.originalResource.label}
+            : null,
+        waitlistedAt: reservation.waitlistedAt,
+        queuePosition: queuePosition || null,
         members: (reservation.members || []).filter(member => member && member.name).map(member => {
             return {name: member.name, email: member.email}
         })
@@ -187,7 +209,17 @@ const createReservation = async (req, res) => {
         }
 
         reservation.resource = resource
-        await reservation.populate("members", "name email")
+
+        // Phase 3: a request that could not be seated gets ONE alternative offer, if another resource
+        // of the same type is free. The student answers it in My Bookings
+        if (reservation.status === "unallocated") {
+            await createOffer(reservation)
+        }
+        await reservation.populate([
+            {path: "members", select: "name email"},
+            {path: "originalResource", select: "label"},
+            {path: "offer.resource", select: "label zone"}
+        ])
         let message = "Request received. Seats are assigned when the admin runs the allocation for " + date
         if (reservation.status === "confirmed") {
             message = "Booked. Your seats are confirmed"
@@ -207,16 +239,30 @@ const getMyReservations = async (req, res) => {
             .populate("resource")
             .populate("user", "name")
             .populate("members", "name email")
+            .populate("originalResource", "label")
+            .populate("offer.resource", "label zone")
             .sort({date: -1, startTime: -1})
-        const data = reservations.map(reservation => reservationData(reservation, req.user.id))
+
+        // an open offer that is too old is closed when it is read (there is no background job)
+        for (const reservation of reservations) {
+            if (reservation.offer && reservation.offer.status === "offered") {
+                await expireOfferIfNeeded(reservation)
+            }
+        }
+        const data = []
+        for (const reservation of reservations) {
+            const queuePosition = await getQueuePosition(reservation)
+            data.push(reservationData(reservation, req.user.id, queuePosition))
+        }
         res.status(200).send({message: "Reservations fetched successfully", data})
     } catch (error) {
         res.status(500).send({message: error.message})
     }
 }
 
-// cancelReservation => the person who made the booking (or an admin) cancels a pending, unallocated
-// or confirmed booking that has not started. A group member cannot cancel. Nobody is promoted
+// cancelReservation => the person who made the booking (or an admin) cancels a pending, unallocated,
+// waitlisted or confirmed booking that has not started. A group member cannot cancel.
+// When a confirmed booking is cancelled its seats are free, so the waitlist of that resource is reconsidered
 const cancelReservation = async (req, res) => {
     try {
         const id = req.params.id
@@ -234,16 +280,20 @@ const cancelReservation = async (req, res) => {
                 : "You can cancel only your own bookings"
             return res.status(403).send({message})
         }
-        if (!["pending", "unallocated", "confirmed"].includes(reservation.status)) {
+        if (!["pending", "unallocated", "waitlisted", "confirmed"].includes(reservation.status)) {
             return res.status(400).send({message: "This booking cannot be cancelled"})
         }
         if (hasStarted(reservation.date, reservation.startTime)) {
             return res.status(400).send({message: "A booking that has started cannot be cancelled"})
         }
 
+        const wasConfirmed = reservation.status === "confirmed"
         reservation.status = "cancelled"
         reservation.reason = "Cancelled"
         await reservation.save()
+        if (wasConfirmed) {
+            await reconsiderWaitlist(reservation.resource, reservation.date, reservation.startTime, reservation.endTime)
+        }
         res.status(200).send({message: "Booking cancelled successfully", data: reservationData(reservation, req.user.id)})
     } catch (error) {
         res.status(500).send({message: error.message})

@@ -157,7 +157,7 @@
 
                 let canCancel = false;
                 // only the person who made the booking can cancel it, and only before it starts
-                if (booking.isRequester && ["pending", "unallocated", "confirmed"].includes(booking.status)) {
+                if (booking.isRequester && ["pending", "unallocated", "waitlisted", "confirmed"].includes(booking.status)) {
                     if (timeStatus === "Upcoming") {
                         canCancel = true;
                     }
@@ -169,10 +169,39 @@
                     let names = booking.members.map(member => member.name).join(", ");
                     groupText = "Group of " + booking.groupSize + (names ? " (with " + names + ")" : "");
                 }
+                let queueNote = "";
+                if (booking.status === "waitlisted" && booking.queuePosition) {
+                    queueNote = `<p><strong>Position ${booking.queuePosition} in the queue.</strong></p>`;
+                }
+                let movedNote = "";
+                if (booking.originalResource) {
+                    movedNote = `<p><strong>Moved from ${escapeHtml(booking.originalResource.label)} (you accepted the offer).</strong></p>`;
+                }
                 let memberNote = "";
                 if (booking.isRequester === false) {
                     let who = booking.requester ? booking.requester.name : "another student";
                     memberNote = `<p><strong>You are a member of this group. Booked by ${escapeHtml(who)}.</strong></p>`;
+                }
+
+                // an open offer: the server suggests another resource of the same type at the same time
+                let offerBox = "";
+                if (booking.isRequester && booking.status === "unallocated" && booking.offer && booking.offer.status === "offered" && booking.offer.resource) {
+                    let offered = booking.offer.resource;
+                    offerBox = `
+                        <div class="offer-box" style="border: 1px solid #944638; border-radius: 8px; padding: 12px; margin: 8px 0;">
+                            <p><strong>Alternative offered: ${escapeHtml(offered.label)}${offered.zone ? " (" + escapeHtml(offered.zone) + ")" : ""}</strong> at the same time.</p>
+                            <p>The offer is open until ${new Date(booking.offer.expiresAt).toLocaleString()}. It does not hold the seats.</p>
+                            <button onclick="answerOffer('${booking.id}', 'accept')">Accept</button>
+                            <button onclick="answerOffer('${booking.id}', 'reject')">Reject</button>
+                        </div>
+                    `;
+                }
+
+                // an unallocated request without an open offer (none was possible, rejected or expired)
+                // can join the waitlist. This is always the student's own choice
+                let canJoinWaitlist = false;
+                if (booking.isRequester && booking.status === "unallocated" && timeStatus === "Upcoming") {
+                    canJoinWaitlist = !booking.offer || booking.offer.status !== "offered";
                 }
 
                 bookingsContainer.innerHTML += `
@@ -183,8 +212,21 @@
                         <p>Purpose: ${escapeHtml(purposeText)}</p>
                         <p>Seats for: ${escapeHtml(groupText)}</p>
                         <p>Status: ${displayStatus}${timeStatus ? ` (${timeStatus})` : ""}</p>
+                        ${statusHelp(booking, timeStatus) ? `<p>${statusHelp(booking, timeStatus)}</p>` : ""}
                         ${booking.reason ? `<p>Reason: ${escapeHtml(booking.reason)}</p>` : ""}
                         ${memberNote}
+                        ${queueNote}
+                        ${movedNote}
+                        ${offerBox}
+                        ${
+                            canJoinWaitlist
+                            ? `
+                                <button onclick="joinWaitlist('${booking.id}')">
+                                    Join waitlist
+                                </button>
+                            `
+                            : ""
+                        }
                         ${
                             canCancel
                             ? `
@@ -198,6 +240,35 @@
                     <hr>
                 `;
             });
+        }
+
+        // one plain sentence that tells the student what the status means for them
+        function statusHelp(booking, timeStatus) {
+            if (booking.status === "pending") {
+                return "Your request is waiting. Seats are given when the admin runs the allocation for this date.";
+            }
+            if (booking.status === "confirmed") {
+                if (timeStatus === "Upcoming") {
+                    return "Your seats are booked.";
+                }
+                return timeStatus === "Active" ? "Your booking is on now." : "";
+            }
+            if (booking.status === "unallocated") {
+                if (booking.offer && booking.offer.status === "offered") {
+                    return "There was no room for your whole group. Accept or reject the alternative below, or choose to wait.";
+                }
+                return "There was no room for your whole group. You can join the waitlist, book another time or resource, or cancel.";
+            }
+            if (booking.status === "waitlisted") {
+                return "You are waiting in the queue. You are confirmed automatically if a seat frees up.";
+            }
+            if (booking.status === "cancelled") {
+                return "This booking was cancelled.";
+            }
+            if (booking.status === "no_show") {
+                return "You did not come to this booking.";
+            }
+            return "";
         }
 
         function formatBookingStatus(status) {
@@ -218,6 +289,9 @@
             }
             if (status === "unallocated") {
                 return "Not allocated";
+            }
+            if (status === "waitlisted") {
+                return "Waitlisted";
             }
             if (status === "completed") {
                 return "Completed";
@@ -242,6 +316,28 @@
             }
 
             return "Completed";
+        }
+
+        // accept or reject the alternative offer. The server checks the seats again when we accept
+        async function answerOffer(id, action) {
+            try {
+                let result = await apiPost("/reservations/" + id + "/offer/" + action, {});
+                alert(result.message);
+            } catch (error) {
+                alert(error.message);
+            }
+            loadBookings();
+        }
+
+        // the student chooses to wait: the booking is confirmed automatically if a seat frees up
+        async function joinWaitlist(id) {
+            try {
+                let result = await apiPost("/reservations/" + id + "/waitlist", {});
+                alert(result.message);
+            } catch (error) {
+                alert(error.message);
+            }
+            loadBookings();
         }
 
         async function cancelBooking(id) {
