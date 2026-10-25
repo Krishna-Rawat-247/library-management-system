@@ -157,7 +157,7 @@
 
                 let canCancel = false;
                 // only the person who made the booking can cancel it, and only before it starts
-                if (booking.isRequester && ["pending", "unallocated", "confirmed"].includes(booking.status)) {
+                if (booking.isRequester && ["pending", "unallocated", "waitlisted", "confirmed"].includes(booking.status)) {
                     if (timeStatus === "Upcoming") {
                         canCancel = true;
                     }
@@ -168,6 +168,14 @@
                 if (booking.groupSize > 1) {
                     let names = booking.members.map(member => member.name).join(", ");
                     groupText = "Group of " + booking.groupSize + (names ? " (with " + names + ")" : "");
+                }
+                let queueNote = "";
+                if (booking.status === "waitlisted" && booking.queuePosition) {
+                    queueNote = `<p><strong>Position ${booking.queuePosition} in the queue.</strong></p>`;
+                }
+                let movedNote = "";
+                if (booking.originalResource) {
+                    movedNote = `<p><strong>Moved from ${escapeHtml(booking.originalResource.label)} (you accepted the offer).</strong></p>`;
                 }
                 let memberNote = "";
                 if (booking.isRequester === false) {
@@ -206,6 +214,8 @@
                         <p>Status: ${displayStatus}${timeStatus ? ` (${timeStatus})` : ""}</p>
                         ${booking.reason ? `<p>Reason: ${escapeHtml(booking.reason)}</p>` : ""}
                         ${memberNote}
+                        ${queueNote}
+                        ${movedNote}
                         ${offerBox}
                         ${
                             canJoinWaitlist
@@ -249,6 +259,9 @@
             }
             if (status === "unallocated") {
                 return "Not allocated";
+            }
+            if (status === "waitlisted") {
+                return "Waitlisted";
             }
             if (status === "completed") {
                 return "Completed";
