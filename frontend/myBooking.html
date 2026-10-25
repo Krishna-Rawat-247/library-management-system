@@ -175,6 +175,20 @@
                     memberNote = `<p><strong>You are a member of this group. Booked by ${escapeHtml(who)}.</strong></p>`;
                 }
 
+                // an open offer: the server suggests another resource of the same type at the same time
+                let offerBox = "";
+                if (booking.isRequester && booking.status === "unallocated" && booking.offer && booking.offer.status === "offered" && booking.offer.resource) {
+                    let offered = booking.offer.resource;
+                    offerBox = `
+                        <div class="offer-box" style="border: 1px solid #944638; border-radius: 8px; padding: 12px; margin: 8px 0;">
+                            <p><strong>Alternative offered: ${escapeHtml(offered.label)}${offered.zone ? " (" + escapeHtml(offered.zone) + ")" : ""}</strong> at the same time.</p>
+                            <p>The offer is open until ${new Date(booking.offer.expiresAt).toLocaleString()}. It does not hold the seats.</p>
+                            <button onclick="answerOffer('${booking.id}', 'accept')">Accept</button>
+                            <button onclick="answerOffer('${booking.id}', 'reject')">Reject</button>
+                        </div>
+                    `;
+                }
+
                 bookingsContainer.innerHTML += `
                     <div>
                         <h3>Resource: ${resourceName}</h3>
@@ -185,6 +199,7 @@
                         <p>Status: ${displayStatus}${timeStatus ? ` (${timeStatus})` : ""}</p>
                         ${booking.reason ? `<p>Reason: ${escapeHtml(booking.reason)}</p>` : ""}
                         ${memberNote}
+                        ${offerBox}
                         ${
                             canCancel
                             ? `
@@ -242,6 +257,17 @@
             }
 
             return "Completed";
+        }
+
+        // accept or reject the alternative offer. The server checks the seats again when we accept
+        async function answerOffer(id, action) {
+            try {
+                let result = await apiPost("/reservations/" + id + "/offer/" + action, {});
+                alert(result.message);
+            } catch (error) {
+                alert(error.message);
+            }
+            loadBookings();
         }
 
         async function cancelBooking(id) {
