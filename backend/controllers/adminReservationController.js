@@ -3,6 +3,7 @@ const {Reservation} = require("../models/reservationModel")
 const {Resource} = require("../models/resourceModel")
 const {User} = require("../models/userModel")
 const {getSeatsUsed, allocateReservation} = require("../utils/allocation")
+const {expireOfferIfNeeded} = require("../utils/alternatives")
 const {getQueuePosition} = require("../utils/waitlist")
 const {hasStarted} = require("../utils/timeCheck")
 
@@ -77,6 +78,13 @@ const getAllReservations = async (req, res) => {
             .populate("originalResource", "label")
             .populate("offer.resource", "label zone")
             .sort({date: 1, startTime: 1})
+
+        // an open offer that is too old is closed when it is read, so the table never shows an expired offer as open
+        for (const reservation of reservations) {
+            if (reservation.offer && reservation.offer.status === "offered") {
+                await expireOfferIfNeeded(reservation)
+            }
+        }
         const data = []
         for (const reservation of reservations) {
             const queuePosition = await getQueuePosition(reservation)
