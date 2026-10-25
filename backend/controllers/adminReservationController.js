@@ -4,7 +4,7 @@ const {Resource} = require("../models/resourceModel")
 const {User} = require("../models/userModel")
 const {getSeatsUsed, allocateReservation} = require("../utils/allocation")
 const {expireOfferIfNeeded} = require("../utils/alternatives")
-const {getQueuePosition} = require("../utils/waitlist")
+const {getQueuePosition, reconsiderWaitlist} = require("../utils/waitlist")
 const {hasStarted} = require("../utils/timeCheck")
 
 // offerRow => the alternative offer of a booking (the offered resource has its label), or null if there is none
@@ -139,7 +139,9 @@ const confirmReservation = async (req, res) => {
     }
 }
 
-// adminCancelReservation => admin cancels a pending, waiting, unallocated, waitlisted or confirmed booking
+// adminCancelReservation => admin cancels a pending, waiting, unallocated, waitlisted or confirmed booking.
+// When a confirmed booking is cancelled its seats are free, so the waitlist of that resource is reconsidered.
+// The answer says how many waitlisted requests were confirmed
 const adminCancelReservation = async (req, res) => {
     try {
         const id = req.params.id
@@ -153,11 +155,16 @@ const adminCancelReservation = async (req, res) => {
         if (!["pending", "waiting", "unallocated", "waitlisted", "confirmed"].includes(reservation.status)) {
             return res.status(400).send({message: "This booking cannot be cancelled"})
         }
+        const wasConfirmed = reservation.status === "confirmed"
         reservation.status = "cancelled"
         reservation.reason = "Cancelled by an admin"
         await reservation.save()
+        let waitlistConfirmed = 0
+        if (wasConfirmed) {
+            waitlistConfirmed = await reconsiderWaitlist(reservation.resource, reservation.date, reservation.startTime, reservation.endTime)
+        }
         await addDetails(reservation)
-        res.status(200).send({message: "Reservation cancelled successfully", data: reservationRow(reservation)})
+        res.status(200).send({message: "Reservation cancelled successfully", data: Object.assign(reservationRow(reservation), {waitlistConfirmed})})
     } catch (error) {
         res.status(500).send({message: error.message})
     }
