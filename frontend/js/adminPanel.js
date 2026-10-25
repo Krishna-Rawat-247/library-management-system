@@ -44,6 +44,34 @@ function getResourceLabel(reservation) {
   return reservation.resource ? reservation.resource.label : "Unknown";
 }
 
+// the alternative offer of a reservation as short text, for example "offered (Study Room B2) until 14:30"
+function getOfferText(reservation) {
+  let offer = reservation.offer;
+  if (!offer) return "—";
+  let text = offer.status;
+  if (offer.resource) {
+    text = text + " (" + offer.resource.label + ")";
+  }
+  if (offer.status === "offered" && offer.expiresAt) {
+    text = text + " until " + new Date(offer.expiresAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  }
+  return text;
+}
+
+// the place in the waitlist queue (only waitlisted reservations have one)
+function getQueueText(reservation) {
+  return reservation.queuePosition ? "#" + reservation.queuePosition : "—";
+}
+
+// the resource, and the first choice when the student accepted an offer for another one
+function getResourceText(reservation) {
+  let text = getResourceLabel(reservation);
+  if (reservation.originalResource) {
+    text = text + " (moved from " + reservation.originalResource.label + ")";
+  }
+  return text;
+}
+
 async function renderReservationTable() {
   let filters = currentReservationFilters();
 
@@ -102,7 +130,7 @@ async function renderReservationTable() {
 
     let data = [
       getUserName(reservation),
-      getResourceLabel(reservation),
+      getResourceText(reservation),
       reservation.date,
       reservation.startTime + " - " + reservation.endTime,
       RESERVATION_PURPOSES[reservation.purpose] || reservation.purpose || "General study",
@@ -110,6 +138,8 @@ async function renderReservationTable() {
       reservation.priorityScore ?? "—",
       reservation.status,
       reservation.reason || "",
+      getOfferText(reservation),
+      getQueueText(reservation),
       reservation.checkedIn ? "Yes" : "No",
     ];
 
