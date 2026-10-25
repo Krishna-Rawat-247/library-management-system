@@ -5,6 +5,7 @@ const {User} = require("../models/userModel")
 const {ExamWindow} = require("../models/examWindowModel")
 const {AllocationRun} = require("../models/allocationRunModel")
 const {allocateReservation} = require("../utils/allocation")
+const {createOffer} = require("../utils/alternatives")
 const {getToday, hasStarted, isSlotAligned} = require("../utils/timeCheck")
 const {calculatePriorityScore} = require("../utils/priority")
 
@@ -187,6 +188,12 @@ const createReservation = async (req, res) => {
         }
 
         reservation.resource = resource
+
+        // Phase 3: a request that could not be seated gets ONE alternative offer, if another resource
+        // of the same type is free. The student answers it in My Bookings
+        if (reservation.status === "unallocated") {
+            await createOffer(reservation)
+        }
         await reservation.populate("members", "name email")
         let message = "Request received. Seats are assigned when the admin runs the allocation for " + date
         if (reservation.status === "confirmed") {
