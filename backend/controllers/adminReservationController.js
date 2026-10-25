@@ -209,7 +209,8 @@ const markNoShow = async (req, res) => {
     }
 }
 
-// deleteReservation => admin deletes a booking for good (any status)
+// deleteReservation => admin deletes a booking for good (any status).
+// A confirmed booking that has not started frees its seats, so the waitlist is reconsidered
 const deleteReservation = async (req, res) => {
     try {
         const id = req.params.id
@@ -220,8 +221,12 @@ const deleteReservation = async (req, res) => {
         if (!reservation) {
             return res.status(404).send({message: "Reservation not found"})
         }
+        let waitlistConfirmed = 0
+        if (reservation.status === "confirmed" && !hasStarted(reservation.date, reservation.startTime)) {
+            waitlistConfirmed = await reconsiderWaitlist(reservation.resource, reservation.date, reservation.startTime, reservation.endTime)
+        }
         await addDetails(reservation)
-        res.status(200).send({message: "Reservation deleted successfully", data: reservationRow(reservation)})
+        res.status(200).send({message: "Reservation deleted successfully", data: Object.assign(reservationRow(reservation), {waitlistConfirmed})})
     } catch (error) {
         res.status(500).send({message: error.message})
     }
