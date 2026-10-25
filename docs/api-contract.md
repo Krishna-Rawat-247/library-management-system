@@ -1,4 +1,4 @@
-# Atlas Room API Contract (Phase 1 and Phase 2)
+# Atlas Room API Contract (Phase 1, Phase 2 and Phase 3)
 
 Shared agreement between the 3 members. Do not change a path or a response shape without telling the others.
 All paths start with `/api`. Protected routes need the header `Authorization: Bearer <token>`.
@@ -28,14 +28,14 @@ All paths start with `/api`. Protected routes need the header `Authorization: Be
 | POST `/resources` | admin | Jasandeep | `createResource` | create (type must be one of the 7 allowed) |
 | PATCH `/resources/:id` | admin | Jasandeep | `updateResource` | edit |
 | DELETE `/resources/:id` | admin | Jasandeep | `deleteResource` | delete |
-| POST `/reservations` | auth | Jasandeep | `createReservation` | Phase 2 body: `resourceId`, `date`, `startTime`, `endTime`, `purpose`, `eventDate`, `memberEmails` (array, optional). Times must be on `:00` or `:30`. Saved as `pending`; if an allocation run already exists for that `date` it is allocated at once. Answer has `status` (`pending`, `confirmed` or `unallocated`) and `reason` |
-| GET `/reservations/mine` | auth | Jasandeep | `getMyReservations` | own bookings and bookings where I am a group member. Each row: `purpose`, `groupSize`, `status`, `reason`, populated `resource` and `members` (name and email only), `isRequester` (true/false) and `requester { name }` |
-| DELETE `/reservations/:id` | requester or admin | Jasandeep | `cancelReservation` | `pending`, `unallocated` or `confirmed` booking that has not started becomes `cancelled`. A group member cannot cancel |
-| GET `/admin/reservations?status=&date=` | admin | Krishna | `getAllReservations` | all reservations, user and resource populated. Phase 2: `date` filter and `purpose`, `groupSize`, `priorityScore`, `reason` in each row |
-| POST `/admin/reservations/:id/confirm` | admin | Krishna | `confirmReservation` | force confirm a `waiting`, `pending`, `unallocated` or `bumped` booking. Goes through `allocateReservation`, so it can skip the priority order but never exceed capacity (409 if it does not fit, status unchanged) |
-| POST `/admin/reservations/:id/cancel` | admin | Krishna | `adminCancelReservation` | cancel |
+| POST `/reservations` | auth | Jasandeep | `createReservation` | Phase 2 body: `resourceId`, `date`, `startTime`, `endTime`, `purpose`, `eventDate`, `memberEmails` (array, optional). Times must be on `:00` or `:30`. Saved as `pending`; if an allocation run already exists for that `date` it is allocated at once. Answer has `status` (`pending`, `confirmed` or `unallocated`) and `reason` Phase 3: if the immediate allocation ends `unallocated`, an alternative `offer` is created when one is free (see below). The answer includes it. |
+| GET `/reservations/mine` | auth | Jasandeep | `getMyReservations` | own bookings and bookings where I am a group member. Each row: `purpose`, `groupSize`, `status`, `reason`, populated `resource` and `members` (name and email only), `isRequester` (true/false) and `requester { name }` Phase 3: each row also has `offer` (`{ resource {id, label, zone}, status, expiresAt }`), `originalResource` and, for `waitlisted` rows, `queuePosition`. Open offers that are too old are marked `expired` when they are read. |
+| DELETE `/reservations/:id` | requester or admin | Jasandeep | `cancelReservation` | `pending`, `unallocated` or `confirmed` booking that has not started becomes `cancelled`. A group member cannot cancel Phase 3: `waitlisted` can be cancelled too. After a `confirmed` booking is cancelled the waitlist of that resource is reconsidered. |
+| GET `/admin/reservations?status=&date=` | admin | Krishna | `getAllReservations` | all reservations, user and resource populated. Phase 2: `date` filter and `purpose`, `groupSize`, `priorityScore`, `reason` in each row Phase 3: each row also has `offer` and, for `waitlisted` rows, `queuePosition`. |
+| POST `/admin/reservations/:id/confirm` | admin | Krishna | `confirmReservation` | force confirm a `waiting`, `pending`, `unallocated` or `bumped` booking. Goes through `allocateReservation`, so it can skip the priority order but never exceed capacity (409 if it does not fit, status unchanged) Phase 3: `waitlisted` can be force confirmed too. |
+| POST `/admin/reservations/:id/cancel` | admin | Krishna | `adminCancelReservation` | cancel Phase 3: after a `confirmed` booking is cancelled the waitlist is reconsidered. |
 | POST `/admin/reservations/:id/no-show` | admin | Krishna | `markNoShow` | only after the start time. Status `no_show`, `user.noShowCount` +1 (display only), no automatic suspension |
-| DELETE `/admin/reservations/:id` | admin | Krishna | `deleteReservation` | hard delete |
+| DELETE `/admin/reservations/:id` | admin | Krishna | `deleteReservation` | hard delete Phase 3: deleting a `confirmed` booking that has not started also reconsiders the waitlist. |
 | GET `/exam-windows` | auth | Lovish (Phase 2) | `getExamWindows` | list, each window has `kind` |
 | POST `/exam-windows` | admin | Lovish (Phase 2) | `createExamWindow` | body `{ title, startDate, endDate, kind }`, `kind` is `mid_semester_exam`, `end_semester_exam` or `other` |
 | DELETE `/exam-windows/:id` | admin | Krishna | `deleteExamWindow` | delete |
@@ -43,15 +43,19 @@ All paths start with `/api`. Protected routes need the header `Authorization: Be
 | GET `/messages` | auth | Krishna | `getMessages` | admin sees all, user sees own |
 | PATCH `/messages/:id` | admin | Krishna | `updateMessage` | update `status` (`unread`/`read`) or `reply` |
 | DELETE `/messages/:id` | admin | Krishna | `deleteMessage` | delete |
-| POST `/admin/allocate` | admin | Lovish | `runAllocation` | body `{ date }` (`YYYY-MM-DD`). Ranks the `pending` and `unallocated` bookings of that date and allocates them one by one. Answer: summary (`considered`, `confirmed`, `unallocated`) and the list of decisions |
-| GET `/admin/allocation-runs` | admin | Lovish | `getAllocationRuns` | run history, newest first |
+| POST `/admin/allocate` | admin | Lovish | `runAllocation` | body `{ date }` (`YYYY-MM-DD`). Ranks the `pending` and `unallocated` bookings of that date and allocates them one by one. Answer: summary (`considered`, `confirmed`, `unallocated`) and the list of decisions Phase 3: after the run an offer is created for every booking that ended `unallocated` (when one is free). The summary has `offersCreated`. |
+| GET `/admin/allocation-runs` | admin | Lovish | `getAllocationRuns` | run history, newest first Phase 3: each run also has `offers`. |
+| POST `/reservations/:id/offer/accept` | requester | Lovish (Phase 3) | `acceptOffer` | accept the open alternative offer of an `unallocated` booking. The seats are checked again. If it fits the booking becomes `confirmed` on the offered resource and `originalResource` remembers the first choice. If it no longer fits the offer becomes `expired` and the booking stays `unallocated` (409). An expired offer answers 409 |
+| POST `/reservations/:id/offer/reject` | requester | Lovish (Phase 3) | `rejectOffer` | the offer becomes `rejected`, the booking stays `unallocated` |
+| POST `/reservations/:id/waitlist` | requester | Lovish (Phase 3) | `joinWaitlist` | only from `unallocated` (409 otherwise). Status becomes `waitlisted`, `waitlistedAt` is saved and an open offer is closed |
+| GET `/recommendations?date=&startTime=&endTime=&groupSize=&type=&zone=` | auth | Lovish (Phase 3) | `getRecommendations` | active resources with enough free seats for the whole group. Same type and zone first, then same type, then the others, each by most free seats, then label. No seats are held |
 | GET `/health` | public | Lovish | (in `app.js`) | check the server is running |
 
 ## Allowed resource types
 `study room`, `discussion_room`, `carrel`, `computer station`, `seminar hall`, `community study hall`, `reading pod`.
 
 ## Reservation statuses
-Phase 2 statuses: `pending` (waiting for the allocation), `confirmed`, `unallocated` (did not fit), `cancelled`, `no_show`. `completed`, `waiting`, `bumped` exist only for migrated history.
+Phase 2 statuses: `pending` (waiting for the allocation), `confirmed`, `unallocated` (did not fit), `cancelled`, `no_show`. Phase 3 adds `waitlisted` (the student chose to wait for a free seat). `completed`, `waiting`, `bumped` exist only for migrated history.
 
 ## Phase 2 rules in short
 - Purpose tiers (strict): 5 `job_interview`, 4 `end_semester_exam`, 3 `mid_semester_exam`, 2 `quarterly_test` and `project_work`, 1 `general_study`.
@@ -59,3 +63,14 @@ Phase 2 statuses: `pending` (waiting for the allocation), `confirmed`, `unalloca
 - Only `confirmed` bookings use seats. A group needs `groupSize` seats and is never split.
 - Dates and "has the booking started" use library time (`LIBRARY_UTC_OFFSET_MINUTES`, default 330).
 - A confirmed booking is never bumped, revoked or reduced by a later request or run.
+
+## Phase 3 rules in short (alternatives, waitlist, recommendations)
+- A booking that ends `unallocated` gets at most ONE alternative offer, ever: another active resource of the same type with enough free seats for the whole group at the same date and time (same zone first, then most free seats, then label). If none is free there is no offer and the reason says so.
+- `offer` = `{ resource, status (offered / accepted / rejected / expired), expiresAt, createdAt }`. It is only a suggestion, it does not hold seats. `expiresAt` is the earlier of now + `OFFER_MINUTES` (default 60, in `.env`) and the start of the booking. A booking that starts in less than 5 minutes gets no offer.
+- Offers expire only when they are read or answered (no background job). An open offer on a booking that is no longer `unallocated` is closed the same way.
+- Accepting checks the seats and whether anybody in the group is busy again. Rejecting keeps the booking `unallocated`. The first choice is never changed unless the student accepts (`originalResource` then shows it).
+- `waitlisted` is always the student's choice (`POST /reservations/:id/waitlist`, only from `unallocated`). The admin allocation run does not include `waitlisted` bookings.
+- The waitlist is reconsidered when a `confirmed` booking is cancelled or deleted: waitlisted bookings of the same resource and time are tried in the usual order (tier, score, `createdAt`, `_id`), each one only if the whole group fits and nobody in it is busy. Started bookings are skipped. A confirmed booking is never touched.
+- Queue position = place in that order (1 = first).
+- Shared helpers (Stage 0, frozen): `utils/alternatives.js` (`findCandidates`, `findAlternatives`, `createOffer`, `expireOfferIfNeeded`), `utils/waitlist.js` (`getQueue`, `getQueuePosition`, `reconsiderWaitlist`), `utils/allocation.js` (`findBusyPerson`), `utils/timeCheck.js` (`toLibraryDate`).
+- Until the owners finish their stages, the three new reservation routes and `GET /recommendations` answer 501.
