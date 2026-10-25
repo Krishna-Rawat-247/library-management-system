@@ -3,6 +3,7 @@ const {Reservation} = require("../models/reservationModel")
 const {Resource} = require("../models/resourceModel")
 const {User} = require("../models/userModel")
 const {getSeatsUsed, allocateReservation, findBusyPerson} = require("../utils/allocation")
+const {cleanReason, addToReason} = require("../utils/alternatives")
 const {hasStarted} = require("../utils/timeCheck")
 
 // Phase 3: the student answers the alternative offer of an unallocated booking.
@@ -65,6 +66,7 @@ const checkOpenOffer = (reservation) => {
 
 // acceptOffer => the requester accepts the alternative. The seats and the people are checked again.
 // If it fits, the booking moves to the offered resource and is confirmed.
+// If it does not fit any more, the booking stays unallocated on its first resource and the offer expires.
 const acceptOffer = async (req, res) => {
     try {
         const reservation = await loadReservation(req, res)
@@ -93,19 +95,32 @@ const acceptOffer = async (req, res) => {
         // the seats of the offered resource, counted again
         const alternative = await Resource.findById(reservation.offer.resource)
         const groupSize = reservation.groupSize || 1
+        const baseReason = cleanReason(reservation.reason)
         let fits = false
         if (alternative && alternative.active) {
             const used = await getSeatsUsed(alternative._id, reservation.date, reservation.startTime, reservation.endTime, reservation._id)
             fits = used + groupSize <= alternative.capacity
         }
         if (!fits) {
-            return res.status(409).send({message: "The alternative has no seats left for your whole group now"})
+            reservation.offer.status = "expired"
+            reservation.reason = addToReason(baseReason, "The alternative filled up before you accepted.")
+            await reservation.save()
+            return res.status(409).send({message: "The alternative filled up before you accepted. Your request is still unallocated", data: await reservationAnswer(reservation)})
         }
 
         // confirm on the new resource and remember the first choice
         const firstChoice = reservation.resource
         reservation.resource = alternative._id
         await allocateReservation(reservation, alternative)
+        if (reservation.status !== "confirmed") {
+            // somebody took the last seats at the same moment, so go back to the first resource
+            reservation.resource = firstChoice
+            reservation.status = "unallocated"
+            reservation.offer.status = "expired"
+            reservation.reason = addToReason(baseReason, "The alternative filled up before you accepted.")
+            await reservation.save()
+            return res.status(409).send({message: "The alternative filled up before you accepted. Your request is still unallocated", data: await reservationAnswer(reservation)})
+        }
         reservation.offer.status = "accepted"
         reservation.originalResource = firstChoice
         reservation.reason = "Allocated on " + alternative.label + " after you accepted the offer"
