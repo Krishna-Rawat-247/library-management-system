@@ -6,7 +6,7 @@ const {ExamWindow} = require("../models/examWindowModel")
 const {AllocationRun} = require("../models/allocationRunModel")
 const {allocateReservation} = require("../utils/allocation")
 const {createOffer, expireOfferIfNeeded} = require("../utils/alternatives")
-const {getQueuePosition} = require("../utils/waitlist")
+const {getQueuePosition, reconsiderWaitlist} = require("../utils/waitlist")
 const {getToday, hasStarted, isSlotAligned} = require("../utils/timeCheck")
 const {calculatePriorityScore} = require("../utils/priority")
 
@@ -261,7 +261,8 @@ const getMyReservations = async (req, res) => {
 }
 
 // cancelReservation => the person who made the booking (or an admin) cancels a pending, unallocated,
-// waitlisted or confirmed booking that has not started. A group member cannot cancel
+// waitlisted or confirmed booking that has not started. A group member cannot cancel.
+// When a confirmed booking is cancelled its seats are free, so the waitlist of that resource is reconsidered
 const cancelReservation = async (req, res) => {
     try {
         const id = req.params.id
@@ -286,9 +287,13 @@ const cancelReservation = async (req, res) => {
             return res.status(400).send({message: "A booking that has started cannot be cancelled"})
         }
 
+        const wasConfirmed = reservation.status === "confirmed"
         reservation.status = "cancelled"
         reservation.reason = "Cancelled"
         await reservation.save()
+        if (wasConfirmed) {
+            await reconsiderWaitlist(reservation.resource, reservation.date, reservation.startTime, reservation.endTime)
+        }
         res.status(200).send({message: "Booking cancelled successfully", data: reservationData(reservation, req.user.id)})
     } catch (error) {
         res.status(500).send({message: error.message})
