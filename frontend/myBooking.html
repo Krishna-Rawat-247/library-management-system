@@ -212,6 +212,7 @@
                         <p>Purpose: ${escapeHtml(purposeText)}</p>
                         <p>Seats for: ${escapeHtml(groupText)}</p>
                         <p>Status: ${displayStatus}${timeStatus ? ` (${timeStatus})` : ""}</p>
+                        ${statusHelp(booking, timeStatus) ? `<p>${statusHelp(booking, timeStatus)}</p>` : ""}
                         ${booking.reason ? `<p>Reason: ${escapeHtml(booking.reason)}</p>` : ""}
                         ${memberNote}
                         ${queueNote}
@@ -239,6 +240,35 @@
                     <hr>
                 `;
             });
+        }
+
+        // one plain sentence that tells the student what the status means for them
+        function statusHelp(booking, timeStatus) {
+            if (booking.status === "pending") {
+                return "Your request is waiting. Seats are given when the admin runs the allocation for this date.";
+            }
+            if (booking.status === "confirmed") {
+                if (timeStatus === "Upcoming") {
+                    return "Your seats are booked.";
+                }
+                return timeStatus === "Active" ? "Your booking is on now." : "";
+            }
+            if (booking.status === "unallocated") {
+                if (booking.offer && booking.offer.status === "offered") {
+                    return "There was no room for your whole group. Accept or reject the alternative below, or choose to wait.";
+                }
+                return "There was no room for your whole group. You can join the waitlist, book another time or resource, or cancel.";
+            }
+            if (booking.status === "waitlisted") {
+                return "You are waiting in the queue. You are confirmed automatically if a seat frees up.";
+            }
+            if (booking.status === "cancelled") {
+                return "This booking was cancelled.";
+            }
+            if (booking.status === "no_show") {
+                return "You did not come to this booking.";
+            }
+            return "";
         }
 
         function formatBookingStatus(status) {
