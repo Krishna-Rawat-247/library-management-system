@@ -131,8 +131,28 @@ const acceptOffer = async (req, res) => {
     }
 }
 
+// rejectOffer => the requester says no to the alternative. The booking stays unallocated
 const rejectOffer = async (req, res) => {
-    res.status(501).send({message: "rejectOffer not implemented yet"})
+    try {
+        const reservation = await loadReservation(req, res)
+        if (!reservation) {
+            return
+        }
+        if (reservation.status !== "unallocated") {
+            return res.status(409).send({message: "Only an unallocated booking can reject an offer"})
+        }
+        const problem = checkOpenOffer(reservation)
+        if (problem) {
+            return res.status(409).send({message: problem})
+        }
+
+        reservation.offer.status = "rejected"
+        reservation.reason = addToReason(cleanReason(reservation.reason), "You rejected the alternative. You can join the waitlist, book another time or resource, or cancel the request.")
+        await reservation.save()
+        res.status(200).send({message: "Offer rejected", data: await reservationAnswer(reservation)})
+    } catch (error) {
+        res.status(500).send({message: error.message})
+    }
 }
 
 const joinWaitlist = async (req, res) => {
