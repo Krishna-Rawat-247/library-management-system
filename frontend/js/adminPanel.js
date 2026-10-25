@@ -237,7 +237,8 @@ function createActionButtons(reservation) {
   if (
     reservation.status === "pending" ||
     reservation.status === "waiting" ||
-    reservation.status === "unallocated"
+    reservation.status === "unallocated" ||
+    reservation.status === "waitlisted"
   ) {
     actionsTd.appendChild(
       createButton("Force Confirm", function () {
@@ -258,7 +259,8 @@ function createActionButtons(reservation) {
     reservation.status === "pending" ||
     reservation.status === "confirmed" ||
     reservation.status === "waiting" ||
-    reservation.status === "unallocated"
+    reservation.status === "unallocated" ||
+    reservation.status === "waitlisted"
   ) {
     actionsTd.appendChild(
       createButton("Cancel", function () {
@@ -283,13 +285,21 @@ function createButton(text, onClick) {
   return button;
 }
 
+// tells the admin when a cancel or a delete gave the free seats to waitlisted requests
+function showWaitlistResult(result) {
+  if (result && result.data && result.data.waitlistConfirmed > 0) {
+    alert(result.data.waitlistConfirmed + " waitlisted request(s) were confirmed with the free seats.");
+  }
+}
+
 // Force Confirm and Cancel. The server checks if there is a free seat.
 async function updateReservationStatus(id, newStatus) {
   try {
     if (newStatus === "confirmed") {
       await apiPost(`/admin/reservations/${id}/confirm`, {});
     } else {
-      await apiPost(`/admin/reservations/${id}/cancel`, {});
+      let result = await apiPost(`/admin/reservations/${id}/cancel`, {});
+      showWaitlistResult(result);
     }
   } catch (error) {
     alert(error.message);
@@ -305,7 +315,8 @@ async function deleteReservation(reservation) {
   if (!confirmDelete) return;
 
   try {
-    await apiDelete(`/admin/reservations/${reservation.id}`);
+    let result = await apiDelete(`/admin/reservations/${reservation.id}`);
+    showWaitlistResult(result);
   } catch (error) {
     alert(error.message);
   }
