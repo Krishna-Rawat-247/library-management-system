@@ -1,7 +1,119 @@
-// Stub controller. Phase 3 owner (Lovish) replaces each function with the real logic.
+const mongoose = require("mongoose")
+const {Reservation} = require("../models/reservationModel")
+const {Resource} = require("../models/resourceModel")
+const {User} = require("../models/userModel")
+const {getSeatsUsed, allocateReservation, findBusyPerson} = require("../utils/allocation")
+const {hasStarted} = require("../utils/timeCheck")
 
+// Phase 3: the student answers the alternative offer of an unallocated booking.
+// An offer does not hold any seats, so everything is checked again when the student answers.
+
+// reservationAnswer => the booking we send back after an answer (resource, first choice and offer have their labels)
+const reservationAnswer = async (reservation) => {
+    await reservation.populate([
+        {path: "resource", select: "label type zone capacity"},
+        {path: "originalResource", select: "label"},
+        {path: "offer.resource", select: "label zone"}
+    ])
+    const resource = reservation.resource
+    const first = reservation.originalResource
+    const offerResource = reservation.offer && reservation.offer.resource
+    return {
+        id: reservation._id,
+        status: reservation.status,
+        reason: reservation.reason,
+        date: reservation.date,
+        startTime: reservation.startTime,
+        endTime: reservation.endTime,
+        groupSize: reservation.groupSize || 1,
+        resource: resource && resource.label
+            ? {id: resource._id, label: resource.label, type: resource.type, zone: resource.zone, capacity: resource.capacity}
+            : null,
+        originalResource: first && first.label ? {id: first._id, label: first.label} : null,
+        offer: reservation.offer && reservation.offer.status
+            ? {
+                status: reservation.offer.status,
+                expiresAt: reservation.offer.expiresAt,
+                resource: offerResource && offerResource.label ? {id: offerResource._id, label: offerResource.label, zone: offerResource.zone} : null
+            }
+            : null
+    }
+}
+
+// loadReservation => finds the booking of :id. If something is wrong it sends the error itself and returns null
+const loadReservation = async (req, res) => {
+    const id = req.params.id
+    if (!mongoose.isValidObjectId(id)) {
+        res.status(400).send({message: "Invalid reservation id"})
+        return null
+    }
+    const reservation = await Reservation.findById(id)
+    if (!reservation) {
+        res.status(404).send({message: "Reservation not found"})
+        return null
+    }
+    return reservation
+}
+
+// checkOpenOffer => a text that says why the booking has no open offer, or null when the offer is open
+const checkOpenOffer = (reservation) => {
+    if (!reservation.offer || reservation.offer.status !== "offered") {
+        return "This booking has no open offer"
+    }
+    return null
+}
+
+// acceptOffer => the requester accepts the alternative. The seats and the people are checked again.
+// If it fits, the booking moves to the offered resource and is confirmed.
 const acceptOffer = async (req, res) => {
-    res.status(501).send({message: "acceptOffer not implemented yet"})
+    try {
+        const reservation = await loadReservation(req, res)
+        if (!reservation) {
+            return
+        }
+        if (reservation.status !== "unallocated") {
+            return res.status(409).send({message: "Only an unallocated booking can accept an offer"})
+        }
+        const problem = checkOpenOffer(reservation)
+        if (problem) {
+            return res.status(409).send({message: problem})
+        }
+        if (hasStarted(reservation.date, reservation.startTime)) {
+            return res.status(409).send({message: "A booking that has started cannot accept an offer"})
+        }
+
+        // nobody in the group may have another confirmed booking at that time
+        const busyId = await findBusyPerson(reservation)
+        if (busyId) {
+            const busyUser = await User.findById(busyId)
+            const who = String(busyId) === String(reservation.user) ? "You already have" : (busyUser ? busyUser.email : "A group member") + " already has"
+            return res.status(409).send({message: who + " a confirmed booking at that time"})
+        }
+
+        // the seats of the offered resource, counted again
+        const alternative = await Resource.findById(reservation.offer.resource)
+        const groupSize = reservation.groupSize || 1
+        let fits = false
+        if (alternative && alternative.active) {
+            const used = await getSeatsUsed(alternative._id, reservation.date, reservation.startTime, reservation.endTime, reservation._id)
+            fits = used + groupSize <= alternative.capacity
+        }
+        if (!fits) {
+            return res.status(409).send({message: "The alternative has no seats left for your whole group now"})
+        }
+
+        // confirm on the new resource and remember the first choice
+        const firstChoice = reservation.resource
+        reservation.resource = alternative._id
+        await allocateReservation(reservation, alternative)
+        reservation.offer.status = "accepted"
+        reservation.originalResource = firstChoice
+        reservation.reason = "Allocated on " + alternative.label + " after you accepted the offer"
+        await reservation.save()
+        res.status(200).send({message: "Offer accepted. Your booking is confirmed on " + alternative.label, data: await reservationAnswer(reservation)})
+    } catch (error) {
+        res.status(500).send({message: error.message})
+    }
 }
 
 const rejectOffer = async (req, res) => {
