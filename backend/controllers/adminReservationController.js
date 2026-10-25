@@ -5,6 +5,19 @@ const {User} = require("../models/userModel")
 const {getSeatsUsed, allocateReservation} = require("../utils/allocation")
 const {hasStarted} = require("../utils/timeCheck")
 
+// offerRow => the alternative offer of a booking (the offered resource has its label), or null if there is none
+const offerRow = (offer) => {
+    if (!offer || !offer.status) {
+        return null
+    }
+    const resource = offer.resource
+    return {
+        status: offer.status,
+        expiresAt: offer.expiresAt,
+        resource: resource && resource.label ? {id: resource._id, label: resource.label, zone: resource.zone} : null
+    }
+}
+
 // reservationRow => one row for the admin table. user and resource are populated,
 // but they can be empty if the user or resource was deleted later
 const reservationRow = (reservation) => {
@@ -24,7 +37,11 @@ const reservationRow = (reservation) => {
         reason: reservation.reason,
         priorityScore: reservation.priorityScore,
         checkedIn: reservation.checkedIn,
-        createdAt: reservation.createdAt
+        createdAt: reservation.createdAt,
+        offer: offerRow(reservation.offer),
+        originalResource: reservation.originalResource && reservation.originalResource.label
+            ? {id: reservation.originalResource._id, label: reservation.originalResource.label}
+            : null
     }
 }
 
@@ -32,7 +49,9 @@ const reservationRow = (reservation) => {
 const addDetails = async (reservation) => {
     await reservation.populate([
         {path: "user", select: "name email"},
-        {path: "resource", select: "label"}
+        {path: "resource", select: "label"},
+        {path: "originalResource", select: "label"},
+        {path: "offer.resource", select: "label zone"}
     ])
 }
 
@@ -52,6 +71,8 @@ const getAllReservations = async (req, res) => {
         const reservations = await Reservation.find(filter)
             .populate("user", "name email")
             .populate("resource", "label")
+            .populate("originalResource", "label")
+            .populate("offer.resource", "label zone")
             .sort({date: 1, startTime: 1})
         const data = reservations.map(reservation => reservationRow(reservation))
         res.status(200).send({message: "Reservations fetched successfully", data})
