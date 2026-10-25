@@ -12,6 +12,7 @@ const {routes: adminReservationRoutes} = require("./Routes/adminReservation.rout
 const {routes: adminAllocationRoutes} = require("./Routes/adminAllocation.routes")
 const {routes: examWindowRoutes} = require("./Routes/examWindow.routes")
 const {routes: messageRoutes} = require("./Routes/message.routes")
+const {routes: recommendRoutes} = require("./Routes/recommend.routes")
 
 const app = express()
 app.use(express.json()) // we are sending json data from client
@@ -32,6 +33,7 @@ app.use("/api/admin/reservations", adminReservationRoutes)
 app.use("/api/admin", adminAllocationRoutes)
 app.use("/api/exam-windows", examWindowRoutes)
 app.use("/api/messages", messageRoutes)
+app.use("/api/recommendations", recommendRoutes)
 
 // the frontend folder is served as static files (http://localhost:3000/index.html)
 app.use(express.static(path.join(__dirname, "..", "frontend")))
