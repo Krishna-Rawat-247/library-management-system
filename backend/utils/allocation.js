@@ -52,4 +52,27 @@ const allocateReservation = async (reservation, resource) => {
     return reservation
 }
 
-module.exports = {getSeatsUsed, allocateReservation}
+// findBusyPerson => the id of the first person of the booking (requester or group member) who already
+// has ANOTHER confirmed booking at the same time, or null if nobody is busy.
+// Used before a booking is confirmed later (accepting an offer, the waitlist) so one person
+// is never confirmed in two places at once. The seat rule itself stays in getSeatsUsed.
+const findBusyPerson = async (reservation) => {
+    const people = [reservation.user, ...(reservation.members || [])]
+    for (const person of people) {
+        const personId = person._id || person // works for a populated user and for a plain id
+        const busy = await Reservation.findOne({
+            _id: {$ne: reservation._id},
+            status: "confirmed",
+            date: reservation.date,
+            startTime: {$lt: reservation.endTime},
+            endTime: {$gt: reservation.startTime},
+            $or: [{user: personId}, {members: personId}]
+        })
+        if (busy) {
+            return personId
+        }
+    }
+    return null
+}
+
+module.exports = {getSeatsUsed, allocateReservation, findBusyPerson}
