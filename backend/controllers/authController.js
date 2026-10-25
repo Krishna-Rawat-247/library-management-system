@@ -16,6 +16,9 @@ const signup = async (req, res) => {
         if (!name || !email || !password) {
             return res.status(400).send({message: "Name, email and password are required"})
         }
+        if (typeof name !== "string" || typeof email !== "string" || typeof password !== "string") {
+            return res.status(400).send({message: "Name, email and password must be text"})
+        }
         if (!email.includes("@")) {
             return res.status(400).send({message: "Invalid email"})
         }
@@ -59,6 +62,9 @@ const login = async (req, res) => {
         const {email, password} = req.body
         if (!email || !password) {
             return res.status(400).send({message: "Email and password are required"})
+        }
+        if (typeof email !== "string" || typeof password !== "string") {
+            return res.status(400).send({message: "Email and password must be text"})
         }
         const user = await User.findOne({email: email.trim().toLowerCase()}).select("+password")
         if (!user) {
