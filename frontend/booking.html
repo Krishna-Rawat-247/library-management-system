@@ -392,7 +392,17 @@
             list.forEach(item => {
                 let line = document.createElement("div");
                 line.style.margin = "8px 0";
-                line.innerText = item.label + " (" + item.zone + ", " + item.freeSeats + " seat" + (item.freeSeats !== 1 ? "s" : "") + " free)";
+                line.innerText = item.label + " (" + item.zone + ", " + item.freeSeats + " seat" + (item.freeSeats !== 1 ? "s" : "") + " free) ";
+
+                // one click switches the chosen space to this one
+                let button = document.createElement("button");
+                button.type = "button";
+                button.className = "btn btn--outline-dark";
+                button.style.display = "block";
+                button.style.marginTop = "6px";
+                button.innerText = "USE THIS SPACE";
+                button.addEventListener("click", () => selectResource(item.id));
+                line.appendChild(button);
                 listDiv.appendChild(line);
             });
             box.hidden = false;
@@ -471,7 +481,11 @@
                     eventDate: purpose === "general_study" ? undefined : eventDate,
                     memberEmails: memberEmails
                 });
-                alert(result.message);
+                if (result.data && result.data.status === "unallocated") {
+                    alert(result.message + "\n\nOpen MY BOOKINGS to answer an offer, join the waitlist or cancel the request.");
+                } else {
+                    alert(result.message);
+                }
             } catch (error) {
                 // for example "No seats left for that time"
                 alert(error.message);
