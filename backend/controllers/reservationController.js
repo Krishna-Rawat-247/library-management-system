@@ -260,8 +260,8 @@ const getMyReservations = async (req, res) => {
     }
 }
 
-// cancelReservation => the person who made the booking (or an admin) cancels a pending, unallocated
-// or confirmed booking that has not started. A group member cannot cancel. Nobody is promoted
+// cancelReservation => the person who made the booking (or an admin) cancels a pending, unallocated,
+// waitlisted or confirmed booking that has not started. A group member cannot cancel
 const cancelReservation = async (req, res) => {
     try {
         const id = req.params.id
@@ -279,7 +279,7 @@ const cancelReservation = async (req, res) => {
                 : "You can cancel only your own bookings"
             return res.status(403).send({message})
         }
-        if (!["pending", "unallocated", "confirmed"].includes(reservation.status)) {
+        if (!["pending", "unallocated", "waitlisted", "confirmed"].includes(reservation.status)) {
             return res.status(400).send({message: "This booking cannot be cancelled"})
         }
         if (hasStarted(reservation.date, reservation.startTime)) {
