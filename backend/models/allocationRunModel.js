@@ -7,7 +7,8 @@ const allocationRunSchema = mongoose.Schema({
     ranAt: {type: Date, default: Date.now},
     considered: {type: Number, default: 0},
     confirmed: {type: Number, default: 0},
-    unallocated: {type: Number, default: 0}
+    unallocated: {type: Number, default: 0},
+    offers: {type: Number, default: 0} // alternative offers created by this run
 })
 
 const AllocationRun = mongoose.model("AllocationRun", allocationRunSchema)
