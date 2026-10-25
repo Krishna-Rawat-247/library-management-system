@@ -3,6 +3,7 @@ const {Reservation} = require("../models/reservationModel")
 const {Resource} = require("../models/resourceModel")
 const {User} = require("../models/userModel")
 const {getSeatsUsed, allocateReservation} = require("../utils/allocation")
+const {getQueuePosition} = require("../utils/waitlist")
 const {hasStarted} = require("../utils/timeCheck")
 
 // offerRow => the alternative offer of a booking (the offered resource has its label), or null if there is none
@@ -19,8 +20,9 @@ const offerRow = (offer) => {
 }
 
 // reservationRow => one row for the admin table. user and resource are populated,
-// but they can be empty if the user or resource was deleted later
-const reservationRow = (reservation) => {
+// but they can be empty if the user or resource was deleted later.
+// queuePosition is only given for a waitlisted booking (1 = first in the queue)
+const reservationRow = (reservation, queuePosition) => {
     const user = reservation.user
     const resource = reservation.resource
     return {
@@ -41,7 +43,8 @@ const reservationRow = (reservation) => {
         offer: offerRow(reservation.offer),
         originalResource: reservation.originalResource && reservation.originalResource.label
             ? {id: reservation.originalResource._id, label: reservation.originalResource.label}
-            : null
+            : null,
+        queuePosition: queuePosition || null
     }
 }
 
@@ -74,7 +77,11 @@ const getAllReservations = async (req, res) => {
             .populate("originalResource", "label")
             .populate("offer.resource", "label zone")
             .sort({date: 1, startTime: 1})
-        const data = reservations.map(reservation => reservationRow(reservation))
+        const data = []
+        for (const reservation of reservations) {
+            const queuePosition = await getQueuePosition(reservation)
+            data.push(reservationRow(reservation, queuePosition))
+        }
         res.status(200).send({message: "Reservations fetched successfully", data})
     } catch (error) {
         res.status(500).send({message: error.message})
