@@ -131,6 +131,13 @@
                     <p style="text-align: center; padding: 12px 0;">Select a seat or space from the left to begin.</p>
                 </div>
 
+                <!-- Suggestions: other spaces with enough free seats (shown only when the chosen one is too full) -->
+                <div id="suggestionsBox" class="resource-card" style="margin: 12px 0; cursor: default;" hidden>
+                    <h3>Suggestions</h3>
+                    <p id="suggestionsHint"></p>
+                    <div id="suggestionsList"></div>
+                </div>
+
                 <form id="bookingForm" class="booking-form">
                     <div class="form-group">
                         <label for="date">Date</label>
@@ -320,7 +327,91 @@
                 <p>Zone: ${selectedResource.zone}</p>
                 <p>Capacity: ${selectedResource.capacity}</p>
             `;
+            updateSuggestions();
         };
+
+        // ---- suggestions (Phase 3) ----
+        // the group is the person who books plus the emails in the members box
+        let getGroupSize = () => {
+            let emails = document.getElementById("memberEmails").value
+                .split(",")
+                .map(email => email.trim())
+                .filter(email => email !== "");
+            return 1 + emails.length;
+        };
+
+        // each call gets a number, so an old slow answer never replaces a newer one
+        let suggestionsCall = 0;
+
+        // when the chosen space has fewer free seats than the group, ask the server for other spaces
+        let updateSuggestions = async () => {
+            let box = document.getElementById("suggestionsBox");
+            let date = document.getElementById("date").value;
+            let startTime = document.getElementById("startTime").value;
+            let endTime = document.getElementById("endTime").value;
+            let call = ++suggestionsCall;
+
+            box.hidden = true;
+            if (selectedResource === null || date === "" || startTime === "" || endTime === "" || startTime >= endTime) {
+                return;
+            }
+            let groupSize = getGroupSize();
+
+            try {
+                let availability = await apiGet(
+                    `/resources/${selectedResource.id}/availability?date=${date}&startTime=${startTime}&endTime=${endTime}`
+                );
+                if (availability.data.available >= groupSize) {
+                    return;
+                }
+                let query = `date=${date}&startTime=${startTime}&endTime=${endTime}&groupSize=${groupSize}` +
+                    `&type=${encodeURIComponent(selectedResource.type)}&zone=${encodeURIComponent(selectedResource.zone || "")}`;
+                let result = await apiGet("/recommendations?" + query);
+                if (call !== suggestionsCall) {
+                    return;
+                }
+                showSuggestions(result.data.slice(0, 5));
+            } catch (error) {
+                // the box simply stays hidden
+            }
+        };
+
+        let showSuggestions = (list) => {
+            let box = document.getElementById("suggestionsBox");
+            let hint = document.getElementById("suggestionsHint");
+            let listDiv = document.getElementById("suggestionsList");
+            listDiv.innerHTML = "";
+
+            if (list.length === 0) {
+                hint.innerText = "This space is too full for your group, and no other space has enough free seats at that time. " +
+                    "You can still send the request. If it cannot be seated you can join the waitlist.";
+            } else {
+                hint.innerText = "This space does not have enough free seats for your group at that time. These do:";
+            }
+
+            list.forEach(item => {
+                let line = document.createElement("div");
+                line.style.margin = "8px 0";
+                line.innerText = item.label + " (" + item.zone + ", " + item.freeSeats + " seat" + (item.freeSeats !== 1 ? "s" : "") + " free) ";
+
+                // one click switches the chosen space to this one
+                let button = document.createElement("button");
+                button.type = "button";
+                button.className = "btn btn--outline-dark";
+                button.style.display = "block";
+                button.style.marginTop = "6px";
+                button.innerText = "USE THIS SPACE";
+                button.addEventListener("click", () => selectResource(item.id));
+                line.appendChild(button);
+                listDiv.appendChild(line);
+            });
+            box.hidden = false;
+        };
+
+        document.getElementById("date").addEventListener("change", updateSuggestions);
+        document.getElementById("startTime").addEventListener("change", updateSuggestions);
+        document.getElementById("endTime").addEventListener("change", updateSuggestions);
+        document.getElementById("memberEmails").addEventListener("change", updateSuggestions);
 
         let bookingForm = document.getElementById("bookingForm");
 
@@ -390,7 +481,11 @@
                     eventDate: purpose === "general_study" ? undefined : eventDate,
                     memberEmails: memberEmails
                 });
-                alert(result.message);
+                if (result.data && result.data.status === "unallocated") {
+                    alert(result.message + "\n\nOpen MY BOOKINGS to answer an offer, join the waitlist or cancel the request.");
+                } else {
+                    alert(result.message);
+                }
             } catch (error) {
                 // for example "No seats left for that time"
                 alert(error.message);

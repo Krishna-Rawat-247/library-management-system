@@ -17,6 +17,16 @@ const getOfferMinutes = () => {
     return value
 }
 
+// addToReason => a reason plus one more sentence. The base text from the allocation has no full stop
+// at the end, so one is added before the new sentence
+const addToReason = (base, sentence) => {
+    if (base === "") {
+        return sentence
+    }
+    const end = base.endsWith(".") || base.endsWith("!") ? "" : "."
+    return base + end + " " + sentence
+}
+
 // cleanReason => the reason without the offer sentences we added earlier, so they are never repeated
 const cleanReason = (reason) => {
     let text = reason || ""
@@ -124,7 +134,7 @@ const createOffer = async (reservation) => {
     const base = cleanReason(reservation.reason)
     const alternatives = await findAlternatives(reservation, resource)
     if (alternatives.length === 0) {
-        reservation.reason = (base + " " + NO_ALTERNATIVE_TEXT).trim()
+        reservation.reason = addToReason(base, NO_ALTERNATIVE_TEXT)
         await reservation.save()
         return null
     }
@@ -138,7 +148,7 @@ const createOffer = async (reservation) => {
         createdAt: now
     }
     const where = alternative.zone ? alternative.label + " (" + alternative.zone + ")" : alternative.label
-    reservation.reason = (base + " " + OFFER_TEXT + where + " at the same time. You can accept it, reject it or join the waitlist.").trim()
+    reservation.reason = addToReason(base, OFFER_TEXT + where + " at the same time. You can accept it, reject it or join the waitlist.")
     await reservation.save()
     return reservation
 }
@@ -155,10 +165,10 @@ const expireOfferIfNeeded = async (reservation) => {
         await reservation.save()
     } else if (reservation.offer.expiresAt <= new Date()) {
         reservation.offer.status = "expired"
-        reservation.reason = (cleanReason(reservation.reason) + " The alternative offer expired. You can join the waitlist or cancel.").trim()
+        reservation.reason = addToReason(cleanReason(reservation.reason), "The alternative offer expired. You can join the waitlist or cancel.")
         await reservation.save()
     }
     return reservation
 }
 
-module.exports = {findCandidates, findAlternatives, createOffer, expireOfferIfNeeded, cleanReason}
+module.exports = {findCandidates, findAlternatives, createOffer, expireOfferIfNeeded, cleanReason, addToReason}
