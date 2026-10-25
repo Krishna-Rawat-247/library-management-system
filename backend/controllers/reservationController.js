@@ -6,6 +6,7 @@ const {ExamWindow} = require("../models/examWindowModel")
 const {AllocationRun} = require("../models/allocationRunModel")
 const {allocateReservation} = require("../utils/allocation")
 const {createOffer, expireOfferIfNeeded} = require("../utils/alternatives")
+const {getQueuePosition} = require("../utils/waitlist")
 const {getToday, hasStarted, isSlotAligned} = require("../utils/timeCheck")
 const {calculatePriorityScore} = require("../utils/priority")
 
@@ -26,8 +27,9 @@ const offerData = (offer) => {
 }
 
 // reservationData => the booking object we send (the old pages use "id").
-// myId is the logged in user. With it we also say if he made the booking or is only a group member
-const reservationData = (reservation, myId) => {
+// myId is the logged in user. With it we also say if he made the booking or is only a group member.
+// queuePosition is only given for a waitlisted booking (1 = first in the queue)
+const reservationData = (reservation, myId, queuePosition) => {
     const resource = reservation.resource
     const user = reservation.user
     const data = {
@@ -50,6 +52,8 @@ const reservationData = (reservation, myId) => {
         originalResource: reservation.originalResource && reservation.originalResource.label
             ? {id: reservation.originalResource._id, label: reservation.originalResource.label}
             : null,
+        waitlistedAt: reservation.waitlistedAt,
+        queuePosition: queuePosition || null,
         members: (reservation.members || []).filter(member => member && member.name).map(member => {
             return {name: member.name, email: member.email}
         })
@@ -245,7 +249,11 @@ const getMyReservations = async (req, res) => {
                 await expireOfferIfNeeded(reservation)
             }
         }
-        const data = reservations.map(reservation => reservationData(reservation, req.user.id))
+        const data = []
+        for (const reservation of reservations) {
+            const queuePosition = await getQueuePosition(reservation)
+            data.push(reservationData(reservation, req.user.id, queuePosition))
+        }
         res.status(200).send({message: "Reservations fetched successfully", data})
     } catch (error) {
         res.status(500).send({message: error.message})
