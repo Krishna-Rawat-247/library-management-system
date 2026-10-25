@@ -3,7 +3,7 @@ const {Reservation} = require("../models/reservationModel")
 const {Resource} = require("../models/resourceModel")
 const {User} = require("../models/userModel")
 const {getSeatsUsed, allocateReservation, findBusyPerson} = require("../utils/allocation")
-const {cleanReason, addToReason} = require("../utils/alternatives")
+const {cleanReason, addToReason, expireOfferIfNeeded} = require("../utils/alternatives")
 const {getQueuePosition} = require("../utils/waitlist")
 const {hasStarted} = require("../utils/timeCheck")
 
@@ -45,7 +45,9 @@ const reservationAnswer = async (reservation, queuePosition) => {
     }
 }
 
-// loadReservation => finds the booking of :id. If something is wrong it sends the error itself and returns null
+// loadReservation => finds the booking of :id. If something is wrong it sends the error itself and returns null.
+// Only the person who made the booking can answer (a group member or another student cannot).
+// An old open offer is closed here, because there is no background job
 const loadReservation = async (req, res) => {
     const id = req.params.id
     if (!mongoose.isValidObjectId(id)) {
@@ -57,13 +59,24 @@ const loadReservation = async (req, res) => {
         res.status(404).send({message: "Reservation not found"})
         return null
     }
+    if (String(reservation.user) !== req.user.id) {
+        res.status(403).send({message: "Only the person who made this booking can do this"})
+        return null
+    }
+    await expireOfferIfNeeded(reservation)
     return reservation
 }
 
 // checkOpenOffer => a text that says why the booking has no open offer, or null when the offer is open
 const checkOpenOffer = (reservation) => {
-    if (!reservation.offer || reservation.offer.status !== "offered") {
-        return "This booking has no open offer"
+    if (!reservation.offer || !reservation.offer.status) {
+        return "This booking has no offer"
+    }
+    if (reservation.offer.status === "expired") {
+        return "This offer has expired"
+    }
+    if (reservation.offer.status !== "offered") {
+        return "This offer was already answered"
     }
     return null
 }
