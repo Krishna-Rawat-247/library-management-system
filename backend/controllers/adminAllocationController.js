@@ -1,11 +1,13 @@
 const {Reservation} = require("../models/reservationModel")
+const {Resource} = require("../models/resourceModel")
 const {AllocationRun} = require("../models/allocationRunModel")
 const {allocateReservation} = require("../utils/allocation")
 const {createOffer, expireOfferIfNeeded} = require("../utils/alternatives")
 const {getPriority, compareReservations} = require("../utils/priority")
 
-// decisionRow => one line of the answer: who got what and why
-const decisionRow = (item) => {
+// decisionRow => one line of the answer: who got what and why.
+// offerInfo is {status, resource} when the request has an alternative offer, otherwise null
+const decisionRow = (item, offerInfo) => {
     const reservation = item.reservation
     return {
         id: reservation._id,
@@ -19,7 +21,8 @@ const decisionRow = (item) => {
         tier: item.tier,
         score: item.score,
         status: reservation.status,
-        reason: reservation.reason
+        reason: reservation.reason,
+        offer: offerInfo
     }
 }
 
@@ -53,7 +56,6 @@ const runAllocation = async (req, res) => {
         ranked.sort(compareReservations)
 
         // 4. allocate one by one in that order
-        const decisions = []
         let confirmed = 0
         let unallocated = 0
         for (const item of ranked) {
@@ -76,32 +78,49 @@ const runAllocation = async (req, res) => {
             } else {
                 unallocated++
             }
-            decisions.push(decisionRow(item))
         }
 
         // 5. now that all seats are decided, every unallocated request gets ONE alternative (if one is free).
         // A request that is confirmed now closes its old offer. A request never gets a second offer
+        let offersCreated = 0
         for (const item of ranked) {
             const reservation = item.reservation
             if (reservation.status === "unallocated") {
-                await createOffer(reservation)
+                const made = await createOffer(reservation)
+                if (made) {
+                    offersCreated++
+                }
             } else if (reservation.offer && reservation.offer.status === "offered") {
                 await expireOfferIfNeeded(reservation)
             }
         }
 
-        // 6. save a record of this run
+        // 6. the lines of the answer (with the offer of each request, if it has one)
+        const decisions = []
+        for (const item of ranked) {
+            const reservation = item.reservation
+            let offerInfo = null
+            if (reservation.offer && reservation.offer.status) {
+                const alternative = await Resource.findById(reservation.offer.resource)
+                offerInfo = {status: reservation.offer.status, resource: alternative ? alternative.label : null}
+            }
+            decisions.push(decisionRow(item, offerInfo))
+        }
+
+        // 7. save a record of this run
         const run = await AllocationRun.create({
             date,
             ranBy: req.user.id,
             considered: ranked.length,
             confirmed,
-            unallocated
+            unallocated,
+            offers: offersCreated
         })
         res.status(200).send({
             message: "Allocation finished for " + date,
             data: {
-                run: {id: run._id, date: run.date, ranAt: run.ranAt, considered: run.considered, confirmed: run.confirmed, unallocated: run.unallocated},
+                run: {id: run._id, date: run.date, ranAt: run.ranAt, considered: run.considered, confirmed: run.confirmed, unallocated: run.unallocated, offers: run.offers},
+                offersCreated,
                 decisions
             }
         })
@@ -122,7 +141,8 @@ const getAllocationRuns = async (req, res) => {
                 ranAt: run.ranAt,
                 considered: run.considered,
                 confirmed: run.confirmed,
-                unallocated: run.unallocated
+                unallocated: run.unallocated,
+                offers: run.offers || 0
             }
         })
         res.status(200).send({message: "Allocation runs fetched successfully", data})
