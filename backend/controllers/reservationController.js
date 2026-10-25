@@ -5,7 +5,7 @@ const {User} = require("../models/userModel")
 const {ExamWindow} = require("../models/examWindowModel")
 const {AllocationRun} = require("../models/allocationRunModel")
 const {allocateReservation} = require("../utils/allocation")
-const {createOffer} = require("../utils/alternatives")
+const {createOffer, expireOfferIfNeeded} = require("../utils/alternatives")
 const {getToday, hasStarted, isSlotAligned} = require("../utils/timeCheck")
 const {calculatePriorityScore} = require("../utils/priority")
 
@@ -238,6 +238,13 @@ const getMyReservations = async (req, res) => {
             .populate("originalResource", "label")
             .populate("offer.resource", "label zone")
             .sort({date: -1, startTime: -1})
+
+        // an open offer that is too old is closed when it is read (there is no background job)
+        for (const reservation of reservations) {
+            if (reservation.offer && reservation.offer.status === "offered") {
+                await expireOfferIfNeeded(reservation)
+            }
+        }
         const data = reservations.map(reservation => reservationData(reservation, req.user.id))
         res.status(200).send({message: "Reservations fetched successfully", data})
     } catch (error) {
