@@ -1,6 +1,7 @@
 const {Reservation} = require("../models/reservationModel")
 const {AllocationRun} = require("../models/allocationRunModel")
 const {allocateReservation} = require("../utils/allocation")
+const {createOffer, expireOfferIfNeeded} = require("../utils/alternatives")
 const {getPriority, compareReservations} = require("../utils/priority")
 
 // decisionRow => one line of the answer: who got what and why
@@ -23,7 +24,8 @@ const decisionRow = (item) => {
 }
 
 // runAllocation => the admin gives a date. We rank all pending and unallocated requests of that
-// date and allocate them one by one. Confirmed, cancelled and no_show bookings are never touched.
+// date and allocate them one by one. Confirmed, cancelled, no_show and waitlisted bookings are never touched.
+// Phase 3: when all seats are decided, every request that stayed unallocated gets ONE alternative offer
 const runAllocation = async (req, res) => {
     try {
         const date = req.body.date
@@ -56,12 +58,18 @@ const runAllocation = async (req, res) => {
         let unallocated = 0
         for (const item of ranked) {
             const reservation = item.reservation
+            const oldReason = reservation.reason
             if (!reservation.resource.active) {
                 reservation.status = "unallocated"
                 reservation.reason = "This resource is not available for booking"
                 await reservation.save()
             } else {
                 await allocateReservation(reservation, reservation.resource)
+            }
+            if (reservation.status === "unallocated" && reservation.offer && reservation.offer.status) {
+                // a request that already has an offer (a second run): keep its reason with the offer text
+                reservation.reason = oldReason
+                await reservation.save()
             }
             if (reservation.status === "confirmed") {
                 confirmed++
@@ -71,7 +79,18 @@ const runAllocation = async (req, res) => {
             decisions.push(decisionRow(item))
         }
 
-        // 5. save a record of this run
+        // 5. now that all seats are decided, every unallocated request gets ONE alternative (if one is free).
+        // A request that is confirmed now closes its old offer. A request never gets a second offer
+        for (const item of ranked) {
+            const reservation = item.reservation
+            if (reservation.status === "unallocated") {
+                await createOffer(reservation)
+            } else if (reservation.offer && reservation.offer.status === "offered") {
+                await expireOfferIfNeeded(reservation)
+            }
+        }
+
+        // 6. save a record of this run
         const run = await AllocationRun.create({
             date,
             ranBy: req.user.id,
