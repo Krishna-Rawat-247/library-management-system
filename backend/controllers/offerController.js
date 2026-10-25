@@ -4,13 +4,15 @@ const {Resource} = require("../models/resourceModel")
 const {User} = require("../models/userModel")
 const {getSeatsUsed, allocateReservation, findBusyPerson} = require("../utils/allocation")
 const {cleanReason, addToReason} = require("../utils/alternatives")
+const {getQueuePosition} = require("../utils/waitlist")
 const {hasStarted} = require("../utils/timeCheck")
 
 // Phase 3: the student answers the alternative offer of an unallocated booking.
 // An offer does not hold any seats, so everything is checked again when the student answers.
 
 // reservationAnswer => the booking we send back after an answer (resource, first choice and offer have their labels)
-const reservationAnswer = async (reservation) => {
+// queuePosition is only given for a waitlisted booking
+const reservationAnswer = async (reservation, queuePosition) => {
     await reservation.populate([
         {path: "resource", select: "label type zone capacity"},
         {path: "originalResource", select: "label"},
@@ -37,7 +39,9 @@ const reservationAnswer = async (reservation) => {
                 expiresAt: reservation.offer.expiresAt,
                 resource: offerResource && offerResource.label ? {id: offerResource._id, label: offerResource.label, zone: offerResource.zone} : null
             }
-            : null
+            : null,
+        waitlistedAt: reservation.waitlistedAt,
+        queuePosition: queuePosition || null
     }
 }
 
@@ -155,8 +159,37 @@ const rejectOffer = async (req, res) => {
     }
 }
 
+// joinWaitlist => the requester chooses to wait for a free seat. Only an unallocated booking can do this,
+// it never happens by itself. An open offer is closed. The place in the queue comes from the usual order
 const joinWaitlist = async (req, res) => {
-    res.status(501).send({message: "joinWaitlist not implemented yet"})
+    try {
+        const reservation = await loadReservation(req, res)
+        if (!reservation) {
+            return
+        }
+        if (reservation.status !== "unallocated") {
+            return res.status(409).send({message: "Only an unallocated booking can join the waitlist"})
+        }
+        if (hasStarted(reservation.date, reservation.startTime)) {
+            return res.status(409).send({message: "A booking that has started cannot join the waitlist"})
+        }
+        const resource = await Resource.findById(reservation.resource)
+        if (!resource || !resource.active) {
+            return res.status(409).send({message: "This resource is not available, so there is no waitlist for it"})
+        }
+
+        if (reservation.offer && reservation.offer.status === "offered") {
+            reservation.offer.status = "rejected"
+        }
+        reservation.status = "waitlisted"
+        reservation.waitlistedAt = new Date()
+        reservation.reason = "You are on the waitlist. You will be confirmed automatically if seats free up."
+        await reservation.save()
+        const queuePosition = await getQueuePosition(reservation)
+        res.status(200).send({message: "You are on the waitlist", data: await reservationAnswer(reservation, queuePosition)})
+    } catch (error) {
+        res.status(500).send({message: error.message})
+    }
 }
 
 module.exports = {acceptOffer, rejectOffer, joinWaitlist}
