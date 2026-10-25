@@ -2,7 +2,7 @@ const mongoose = require("mongoose")
 const {Reservation} = require("../models/reservationModel")
 const {Resource} = require("../models/resourceModel")
 const {User} = require("../models/userModel")
-const {getSeatsUsed, allocateReservation} = require("../utils/allocation")
+const {getSeatsUsed, allocateReservation, findBusyPerson} = require("../utils/allocation")
 const {expireOfferIfNeeded} = require("../utils/alternatives")
 const {getQueuePosition, reconsiderWaitlist} = require("../utils/waitlist")
 const {hasStarted} = require("../utils/timeCheck")
@@ -96,8 +96,9 @@ const getAllReservations = async (req, res) => {
     }
 }
 
-// confirmReservation => force confirm a booking that is waiting, pending, unallocated or bumped.
+// confirmReservation => force confirm a booking that is waiting, pending, unallocated, waitlisted or bumped.
 // It can skip the priority order, but it can never take more seats than the resource has
+// and nobody can be confirmed in two places at the same time. An open offer is closed
 const confirmReservation = async (req, res) => {
     try {
         const id = req.params.id
@@ -108,8 +109,8 @@ const confirmReservation = async (req, res) => {
         if (!reservation) {
             return res.status(404).send({message: "Reservation not found"})
         }
-        if (!["waiting", "pending", "unallocated", "bumped"].includes(reservation.status)) {
-            return res.status(400).send({message: "Only waiting, pending, unallocated or bumped bookings can be force confirmed"})
+        if (!["waiting", "pending", "unallocated", "waitlisted", "bumped"].includes(reservation.status)) {
+            return res.status(400).send({message: "Only waiting, pending, unallocated, waitlisted or bumped bookings can be force confirmed"})
         }
         const resource = await Resource.findById(reservation.resource)
         if (!resource) {
@@ -117,6 +118,14 @@ const confirmReservation = async (req, res) => {
         }
         if (!resource.active) {
             return res.status(400).send({message: "This resource is not available for booking"})
+        }
+
+        // nobody in the group may have another confirmed booking at that time
+        const busyId = await findBusyPerson(reservation)
+        if (busyId) {
+            const busyUser = await User.findById(busyId)
+            const who = busyUser ? busyUser.email : "A group member"
+            return res.status(409).send({message: who + " already has a confirmed booking at that time. Force confirm was not applied"})
         }
 
         // do the seats of the other confirmed bookings leave room for the whole group?
@@ -132,6 +141,7 @@ const confirmReservation = async (req, res) => {
         }
         reservation.reason = "Confirmed by an admin"
         await reservation.save()
+        await expireOfferIfNeeded(reservation) // it is confirmed now, so an old open offer is closed
         await addDetails(reservation)
         res.status(200).send({message: "Reservation confirmed successfully", data: reservationRow(reservation)})
     } catch (error) {
