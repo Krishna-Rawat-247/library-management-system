@@ -41,6 +41,7 @@ function buildAllocationPage() {
           <th>Tier</th>
           <th>Score</th>
           <th>Result</th>
+          <th>Offer</th>
           <th>Reason</th>
         </tr>
       </thead>
@@ -59,6 +60,7 @@ function buildAllocationPage() {
           <th>Considered</th>
           <th>Confirmed</th>
           <th>Unallocated</th>
+          <th>Offers</th>
         </tr>
       </thead>
       <tbody id="allocationRunsBody"></tbody>
@@ -84,7 +86,14 @@ function addAllocationRow(tbody, values) {
 function showAllocationSummary(run) {
   document.getElementById("allocationSummary").innerText =
     "Allocation for " + run.date + ": " + run.considered + " request(s) considered, " +
-    run.confirmed + " newly confirmed, " + run.unallocated + " unallocated.";
+    run.confirmed + " newly confirmed, " + run.unallocated + " unallocated, " +
+    (run.offers || 0) + " alternative offer(s) made.";
+}
+
+// the offer of a request as short text, for example "offered (Study Room B2)"
+function offerText(offer) {
+  if (!offer) return "-";
+  return offer.resource ? offer.status + " (" + offer.resource + ")" : offer.status;
 }
 
 // ---- decisions table ----
@@ -105,6 +114,7 @@ function showAllocationDecisions(decisions) {
       d.tier,
       d.score,
       d.status,
+      offerText(d.offer),
       d.reason || ""
     ]);
   });
@@ -135,7 +145,8 @@ async function loadAllocationRuns() {
       new Date(run.ranAt).toLocaleString(),
       run.considered,
       run.confirmed,
-      run.unallocated
+      run.unallocated,
+      run.offers || 0
     ]);
   });
 }
