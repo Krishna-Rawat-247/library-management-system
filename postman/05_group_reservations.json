@@ -807,7 +807,6 @@
                 "exec": [
                   "const data = pm.response.json();",
                   "pm.collectionVariables.set('resv1', data.data.id);",
-                  "const data = pm.response.json();",
                   "pm.test('pending, group of 1', () => { pm.expect(data.data.status).to.eql('pending'); pm.expect(data.data.groupSize).to.eql(1); });"
                 ]
               }
@@ -993,7 +992,6 @@
                 "exec": [
                   "const data = pm.response.json();",
                   "pm.collectionVariables.set('resv3', data.data.id);",
-                  "const data = pm.response.json();",
                   "pm.test('group size is 2', () => pm.expect(data.data.groupSize).to.eql(2));"
                 ]
               }
@@ -1231,7 +1229,6 @@
                 "exec": [
                   "const data = pm.response.json();",
                   "pm.collectionVariables.set('resv4', data.data.id);",
-                  "const data = pm.response.json();",
                   "pm.test('answered with confirmed (not pending)', () => pm.expect(data.data.status).to.eql('confirmed'));"
                 ]
               }
@@ -1285,7 +1282,6 @@
                 "exec": [
                   "const data = pm.response.json();",
                   "pm.collectionVariables.set('resv5', data.data.id);",
-                  "const data = pm.response.json();",
                   "pm.test('unallocated with a reason', () => { pm.expect(data.data.status).to.eql('unallocated'); pm.expect(data.data.reason).to.be.a('string'); });"
                 ]
               }
