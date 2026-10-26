@@ -4,6 +4,7 @@ const mongoose = require("mongoose")
 // the old statuses (completed, waiting, bumped) are only for migrated history
 // Phase 2: a booking has a purpose, can be for a group and waits as "pending" until it is allocated
 // Phase 3: an unallocated booking can get ONE alternative offer, and the student can join the waitlist
+// Phase 4: in a room with a seat map the student can wish for seats, a confirmed booking gets its seats
 const reservationSchema = mongoose.Schema({
     user: {type: mongoose.Schema.Types.ObjectId, ref: "User", required: true},
     resource: {type: mongoose.Schema.Types.ObjectId, ref: "Resource", required: true},
@@ -32,6 +33,8 @@ const reservationSchema = mongoose.Schema({
         expiresAt: {type: Date},
         createdAt: {type: Date}
     },
+    preferredSeats: [{type: String}], // Phase 4: the seats the student would like, only a wish (like "A1")
+    seats: [{type: String}], // the seats the booking really got. Only a confirmed booking has seats
     originalResource: {type: mongoose.Schema.Types.ObjectId, ref: "Resource"}, // set only when an accepted offer moved the booking
     waitlistedAt: {type: Date}, // when the student joined the waitlist (only for display, the order uses createdAt)
     checkedIn: {type: Boolean, default: false},
