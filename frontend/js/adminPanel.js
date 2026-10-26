@@ -36,6 +36,17 @@ let RESERVATION_PURPOSES = {
   general_study: "General study"
 };
 
+// the seats of a reservation as text: the seats it got, or the seats it asked for while it waits
+function getSeatsText(reservation) {
+  if (reservation.seats && reservation.seats.length > 0) {
+    return reservation.seats.join(", ");
+  }
+  if (reservation.preferredSeats && reservation.preferredSeats.length > 0) {
+    return "wish: " + reservation.preferredSeats.join(", ");
+  }
+  return "—";
+}
+
 function getUserName(reservation) {
   return reservation.user ? reservation.user.name : "Unknown";
 }
@@ -135,6 +146,7 @@ async function renderReservationTable() {
       reservation.startTime + " - " + reservation.endTime,
       RESERVATION_PURPOSES[reservation.purpose] || reservation.purpose || "General study",
       reservation.groupSize || 1,
+      getSeatsText(reservation),
       reservation.priorityScore ?? "—",
       reservation.status,
       reservation.reason || "",
