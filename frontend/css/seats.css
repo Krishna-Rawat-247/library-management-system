@@ -1,0 +1,87 @@
+/* seats.css => the seat map grid (Phase 4). Used by booking.html (student picker) and admin.html (map editor). */
+
+.seat-grid {
+  display: grid;
+  gap: 5px;
+  overflow-x: auto;
+  padding: 10px 4px;
+}
+
+/* one square of the grid */
+.seat {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--cream);
+  background: transparent;
+  cursor: pointer;
+}
+
+/* a place without a seat: a faint dashed square in the admin editor, invisible for the student */
+.seat-empty {
+  border: 1px dashed rgba(245, 237, 224, 0.18);
+  cursor: pointer;
+}
+
+.seat-grid.picker .seat-empty {
+  visibility: hidden;
+}
+
+/* a seat that is free */
+.seat-free {
+  background: rgba(125, 139, 106, 0.28);
+  border-color: var(--olive-light);
+}
+
+.seat-free:hover {
+  background: rgba(125, 139, 106, 0.5);
+}
+
+/* a seat somebody has */
+.seat-taken {
+  background: rgba(245, 237, 224, 0.08);
+  border-color: rgba(245, 237, 224, 0.12);
+  color: rgba(245, 237, 224, 0.35);
+  cursor: not-allowed;
+}
+
+/* a seat the student selected */
+.seat-chosen {
+  background: var(--brick);
+  border-color: var(--gold);
+  color: var(--cream);
+}
+
+/* the small legend under the map */
+.seat-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin: 8px 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.seat-legend .seat {
+  width: 16px;
+  height: 16px;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 5px;
+  cursor: default;
+}
+
+/* the line "screen / front of the room" above the map */
+.seat-front {
+  text-align: center;
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  color: var(--text-muted);
+  border-bottom: 2px solid var(--border-gold);
+  margin-bottom: 6px;
+  padding-bottom: 4px;
+}
