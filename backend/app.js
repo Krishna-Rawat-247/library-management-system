@@ -5,6 +5,7 @@ const {notFound, errorHandler} = require("./middleware/errorHandler")
 const {routes: authRoutes} = require("./Routes/auth.routes")
 const {routes: userRoutes} = require("./Routes/user.routes")
 const {routes: adminUserRoutes} = require("./Routes/adminUser.routes")
+const {routes: seatRoutes} = require("./Routes/seat.routes")
 const {routes: resourceRoutes} = require("./Routes/resource.routes")
 const {routes: offerRoutes} = require("./Routes/offer.routes")
 const {routes: reservationRoutes} = require("./Routes/reservation.routes")
@@ -26,6 +27,7 @@ app.get("/api/health", (req, res) => {
 app.use("/api/auth", authRoutes)
 app.use("/api/users", userRoutes)
 app.use("/api/admin/users", adminUserRoutes)
+app.use("/api/resources", seatRoutes) // the seat map route first, then the general resource routes
 app.use("/api/resources", resourceRoutes)
 app.use("/api/reservations", offerRoutes) // offer and waitlist routes first, then the general reservation routes
 app.use("/api/reservations", reservationRoutes)
